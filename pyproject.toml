@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools",]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "slimfit"
+description = "SymFit's little brother"
+readme = "README.md"
+license = {file = "LICENSE" }
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Intended Audience :: Science/Research",
+    "Topic :: Database"
+]
+dependencies = [
+    "numpy",
+    "scipy",
+    "sympy",
+    "tqdm",
+]
+
+dynamic = ["version"]
+
+[project.urls]
+repository = "https://github.com/Jhsmit/slimfit"
+
+[project.optional-dependencies]
+docs = [
+    "mkdocs", "mkdocstrings[python]>=0.18", "mkdocs-material"
+]
+plot = [
+    "proplot",
+    "matplotlib==3.5.3",
+]
+
+dev = [
+    "pytest", "build", "black", "mypy"
+]
+
+[tool.setuptools]
+packages = ['slimfit']
+
+
+[tool.versioneer]
+VCS = "git"
+style = "pep440-pre"
+versionfile_source = "slimfit/_version.py"
+versionfile_build = "slimfit/_version.py"
+tag_prefix = ""
+
+[tool.flake8]
+max-line-length = 100
+ignore = "D203"
+exclude = [".git", "__pycache__", "build", "dist", "docs"]
+max-complexity = 10
+
+[tool.black]
+line-length = 100

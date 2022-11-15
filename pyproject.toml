@@ -50,6 +50,7 @@ style = "pep440-pre"
 versionfile_source = "slimfit/_version.py"
 versionfile_build = "slimfit/_version.py"
 tag_prefix = ""
+parentdir_prefix = "slimfit-"
 
 [tool.flake8]
 max-line-length = 100

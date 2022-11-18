@@ -98,4 +98,38 @@ for k, v in result.parameters.items():
 
 #%%
 
-result.parameters
+data['t'].max()
+
+#%%
+
+num = 100
+ti = np.linspace(0, 11, num=num, endpoint=True)
+ei = np.linspace(-0.1, 1.1, num=num, endpoint=True)
+
+grid = np.meshgrid(ti, ei, sparse=True)
+grid
+
+#%%
+# since the `Mul` component of the model functions as a normal 'pyton' lazy multiplication,
+# we can make use of numpy broadcasting to evaluate the model on a 100x100 datapoint grid
+
+#%%
+# timing: 3.45 ms
+
+eval = model(t=ti.reshape(1, -1), e=ei.reshape(-1, 1), **result.parameters) #
+
+
+#%%
+# output shape is (N, N, 3, 1), we sum and squeeze to create the NxN grid
+array = eval['p'].sum(axis=-2).squeeze()
+
+#%%
+import proplot as pplt
+fig, ax = pplt.subplots()
+ax.contour(ti, ei, array, cmap='viridis')
+hdata, x_e, y_e = np.histogram2d(data['t'], data['e'], bins=20, density=True)
+ax.scatter(data['t'], data['e'], alpha=0.2, lw=0, color='k', zorder=-10)
+ax.format(xlabel='t', ylabel='e')
+fig.savefig("output/scatter_and_fit.png")
+pplt.show()
+

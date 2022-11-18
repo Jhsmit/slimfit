@@ -115,9 +115,7 @@ grid
 
 #%%
 # timing: 3.45 ms
-
 eval = model(t=ti.reshape(1, -1), e=ei.reshape(-1, 1), **result.parameters) #
-
 
 #%%
 # output shape is (N, N, 3, 1), we sum and squeeze to create the NxN grid
@@ -131,4 +129,3 @@ ax.scatter(data['t'], data['e'], alpha=0.2, lw=0, color='k', zorder=-10)
 ax.format(xlabel='t', ylabel='e')
 fig.savefig("output/scatter_and_fit.png")
 pplt.show()
-

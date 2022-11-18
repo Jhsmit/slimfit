@@ -38,7 +38,11 @@ plot = [
     "proplot",
     "matplotlib==3.5.3",
 ]
-
+interactive = [
+    "panel",
+    "bokeh",
+    "holoviz",
+]
 dev = [
     "pytest", "build", "black", "mypy"
 ]

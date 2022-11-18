@@ -127,7 +127,6 @@ array = eval['p'].sum(axis=-2).squeeze()
 import proplot as pplt
 fig, ax = pplt.subplots()
 ax.contour(ti, ei, array, cmap='viridis')
-hdata, x_e, y_e = np.histogram2d(data['t'], data['e'], bins=20, density=True)
 ax.scatter(data['t'], data['e'], alpha=0.2, lw=0, color='k', zorder=-10)
 ax.format(xlabel='t', ylabel='e')
 fig.savefig("output/scatter_and_fit.png")

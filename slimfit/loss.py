@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import abc
-from typing import Protocol, Optional, Literal
+from typing import Optional, Literal
 
 import numpy as np
 import numpy.typing as npt

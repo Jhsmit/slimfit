@@ -1,4 +1,4 @@
-from slimfit.callable import NumExprBase, MatrixNumExpr
+from slimfit.numerical import NumExprBase, MatrixNumExpr
 from slimfit.models import Model
 from slimfit.symbols import (
     Probability,
@@ -7,4 +7,5 @@ from slimfit.symbols import (
 )
 
 from . import _version
-__version__ = _version.get_versions()['version']
+
+__version__ = _version.get_versions()["version"]

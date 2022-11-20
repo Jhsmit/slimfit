@@ -5,7 +5,7 @@ import numpy.typing as npt
 from sympy import Expr, MatrixBase
 
 from slimfit.base import SymbolicBase
-from slimfit.callable import convert_callable, NumExprBase
+from slimfit.numerical import to_numexpr, NumExprBase
 from slimfit.symbols import (
     Variable,
     Probability,
@@ -16,7 +16,7 @@ from slimfit.symbols import (
 
 class Model(SymbolicBase):
     def __init__(
-        self, model_dict: [Union[Variable, Probability], Union[Expr, NumExprBase, MatrixBase], ],
+        self, model_dict: [Union[Variable, Probability], Union[Expr, NumExprBase, MatrixBase],],
     ):
 
         if all(isinstance(lhs, Probability) for lhs in model_dict.keys()):
@@ -29,11 +29,11 @@ class Model(SymbolicBase):
             )
 
         self.model_dict: [FitSymbol, NumExprBase] = {
-            lhs: convert_callable(rhs) for lhs, rhs in model_dict.items()
+            lhs: to_numexpr(rhs) for lhs, rhs in model_dict.items()
         }
 
         self._model_dict: [str, NumExprBase] = {
-            lhs.name: convert_callable(rhs) for lhs, rhs in model_dict.items()
+            lhs.name: to_numexpr(rhs) for lhs, rhs in model_dict.items()
         }
 
     def __call__(self, **kwargs) -> dict[str, npt.ArrayLike]:

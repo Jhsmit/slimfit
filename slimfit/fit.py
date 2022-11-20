@@ -9,8 +9,8 @@ from sympy import Expr, MatrixBase
 from slimfit.loss import L2Loss, LogLoss, Loss
 from slimfit.minimizer import ScipyMinimizer, Minimizer
 from slimfit.models import Model
+from slimfit.numerical import NumExprBase
 from slimfit.symbols import Variable, Probability
-from slimfit.callable import NumExprBase
 
 
 class Fit(object):

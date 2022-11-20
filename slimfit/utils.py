@@ -3,11 +3,12 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Iterable, Optional, OrderedDict, Any
 
+import numpy as np
+
 from slimfit import NumExprBase, Model
 from slimfit.operations import Mul
 from slimfit.symbols import Parameter, FitSymbol
 
-import numpy as np
 
 def overlapping_model_parameters(
     model_callables: list[tuple[FitSymbol, NumExprBase]]

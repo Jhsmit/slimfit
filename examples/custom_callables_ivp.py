@@ -25,6 +25,7 @@ data = sol.y + np.random.normal(0, 0.05, size=num)
 
 #%%
 
+
 class IVPNumExpr(NumExprBase):
     def __init__(
         self,
@@ -68,6 +69,7 @@ class IVPNumExpr(NumExprBase):
 
     def renew(self):
         ...
+
 
 ivp = IVPNumExpr(
     Variable("t"), Parameter("freq"), Parameter("damp"), Parameter("y0"), domain=(0.0, 25.0),

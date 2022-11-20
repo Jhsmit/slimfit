@@ -1,11 +1,11 @@
 from functools import reduce
 from operator import add
-from typing import Optional, Union, Callable
+from typing import Optional, Callable
 
 import numpy as np
-from sympy import S, Matrix, zeros
+from sympy import Matrix, zeros
 
-from slimfit.symbols import Parameter, Variable
+from slimfit.symbols import Parameter
 
 OPERATORS = ["<->", "<-", "->"]
 

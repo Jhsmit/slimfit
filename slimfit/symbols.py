@@ -5,7 +5,7 @@ from typing import Union, Optional, Any, Type
 
 import numpy as np
 import numpy.typing as npt
-from sympy import Matrix, Symbol, zeros
+from sympy import Symbol, zeros
 from sympy.core.cache import clear_cache
 
 

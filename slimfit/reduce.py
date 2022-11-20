@@ -1,6 +1,7 @@
 from __future__ import annotations
-from typing import Protocol, Callable, Union
-import numpy.typing as npt
+
+from typing import Callable, Union
+
 import numpy as np
 
 ReductionStrategy = Callable[[dict[str, np.array]], Union[float, np.array]]

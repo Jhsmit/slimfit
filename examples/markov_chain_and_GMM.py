@@ -15,7 +15,7 @@ import numpy as np
 #%%
 
 arr = np.genfromtxt("data/GMM_dynamics.txt")
-data = {'e': arr[:, 0], 't': arr[:, 1]}
+data = {"e": arr[:, 0], "t": arr[:, 1]}
 
 gt_values = {
     "k_A_B": 5e-1,
@@ -98,7 +98,7 @@ for k, v in result.parameters.items():
 
 #%%
 
-data['t'].max()
+data["t"].max()
 
 #%%
 
@@ -115,17 +115,18 @@ grid
 
 #%%
 # timing: 3.45 ms
-eval = model(t=ti.reshape(1, -1), e=ei.reshape(-1, 1), **result.parameters) #
+eval = model(t=ti.reshape(1, -1), e=ei.reshape(-1, 1), **result.parameters)  #
 
 #%%
 # output shape is (N, N, 3, 1), we sum and squeeze to create the NxN grid
-array = eval['p'].sum(axis=-2).squeeze()
+array = eval["p"].sum(axis=-2).squeeze()
 
 #%%
 import proplot as pplt
+
 fig, ax = pplt.subplots()
-ax.contour(ti, ei, array, cmap='viridis')
-ax.scatter(data['t'], data['e'], alpha=0.2, lw=0, color='k', zorder=-10)
-ax.format(xlabel='t', ylabel='e')
+ax.contour(ti, ei, array, cmap="viridis")
+ax.scatter(data["t"], data["e"], alpha=0.2, lw=0, color="k", zorder=-10)
+ax.format(xlabel="t", ylabel="e")
 fig.savefig("output/scatter_and_fit.png")
 pplt.show()

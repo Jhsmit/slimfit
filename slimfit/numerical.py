@@ -16,7 +16,7 @@ from slimfit.symbols import (
     Variable,
 )
 
-#todo refactor NumExpr
+# todo refactor NumExpr
 class NumExprBase(SymbolicBase):
     """Symbolic expression which allows calling cached lambified expressions
     """
@@ -154,7 +154,7 @@ class MatrixNumExpr(NumExprBase):
     @cached_property
     def lambdified(self) -> np.ndarray:
         """Array of lambdified function per matrix element"""
-        #TODO scalercallable per element
+        # TODO scalercallable per element
 
         # subtitute out fixed parameters
         subs = [(p, p.value) for p in self.fixed_parameters.values()]
@@ -280,8 +280,8 @@ class GMM(MatrixNumExpr):
                 "GMM parameter matrices must be of shape (N, 1) where N is the number of states."
             )
         self.x = x
-        self.mu = convert_callable(mu)
-        self.sigma = convert_callable(sigma)
+        self.mu = to_numexpr(mu)
+        self.sigma = to_numexpr(sigma)
 
         from slimfit.functions import gaussian
 
@@ -307,13 +307,13 @@ def identify_expression_kind(sympy_expression: Union[Expr, MatrixBase]) -> str:
     return "generic"
 
 
-def convert_callable(expression: Union[NumExprBase, Expr, MatrixBase], **kwargs) -> NumExprBase:
-    """Converts sympy expression to slimfit Callable"""
+def to_numexpr(expression: Union[NumExprBase, Expr, MatrixBase], **kwargs) -> NumExprBase:
+    """Converts sympy expression to slimfit numerical expression"""
 
     if isinstance(expression, HadamardProduct):
         from slimfit.operations import Mul
 
-        return Mul(*(convert_callable(arg) for arg in expression.args), **kwargs)
+        return Mul(*(to_numexpr(arg) for arg in expression.args), **kwargs)
     elif isinstance(expression, MatrixBase):
         return MatrixNumExpr(expression, **kwargs)
     elif isinstance(expression, Expr):

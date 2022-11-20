@@ -40,9 +40,7 @@ class InteractiveODE(param.Parameterized):
                     value, vmin, vmax = par.value, par.vmin, par.vmax
                     label = par.name
 
-                slider = pn.widgets.FloatSlider(
-                    value=value, start=vmin, end=vmax, name=label
-                )
+                slider = pn.widgets.FloatSlider(value=value, start=vmin, end=vmax, name=label)
 
                 self.sliders[par.name] = slider
                 slider.param.watch(self._slider_changed, "value")
@@ -61,12 +59,12 @@ class InteractiveODE(param.Parameterized):
         kwargs = {}
         for name, slider in self.sliders.items():
             if name in self.log_params:
-                kwargs[name] = 10**slider.value
+                kwargs[name] = 10 ** slider.value
             else:
                 kwargs[name] = slider.value
         res = self.model(**self.data, **kwargs)
 
-        data_dict = {st: f_j for st, f_j in zip(self.states, res['p'].squeeze().T)}
+        data_dict = {st: f_j for st, f_j in zip(self.states, res["p"].squeeze().T)}
         data_dict |= self.data
 
         return data_dict
@@ -85,10 +83,9 @@ Parameter("k_B_A", vmin=1e-2, vmax=1e3)
 Parameter("k_B_C", vmin=1e-2, vmax=1e3)
 
 y0 = [
-    Parameter('y0_A', value=1., vmin=0., vmax=1.),
-    Parameter('y0_B', value=0., vmin=0., vmax=1.),
-    Parameter('y0_C', value=0., vmin=0., vmax=1.),
-
+    Parameter("y0_A", value=1.0, vmin=0.0, vmax=1.0),
+    Parameter("y0_B", value=0.0, vmin=0.0, vmax=1.0),
+    Parameter("y0_C", value=0.0, vmin=0.0, vmax=1.0),
 ]
 y0 = Matrix([y0]).T
 
@@ -97,26 +94,25 @@ xt = exp(m * Variable("t"))
 model = Model({Probability("p"): xt @ y0})
 
 tdata = np.linspace(0, 11, num=250)
-data = {'t': tdata}
+data = {"t": tdata}
 
 ode = InteractiveODE(
     model,
     data,
     states=states,
     colors=["red", "cyan", "green"],
-    log_params=["k_A_B", 'k_B_A', 'k_B_C'],
+    log_params=["k_A_B", "k_B_A", "k_B_C"],
 )
 
-accent_color = '#15590b'
+accent_color = "#15590b"
 app = pn.template.FastListTemplate(
-        title="Interactive ODEs",
-        header_background=accent_color,
-        sidebar=list(ode.sliders.values()),
-        main=[pn.pane.Bokeh(ode.figure)],
-    )
+    title="Interactive ODEs",
+    header_background=accent_color,
+    sidebar=list(ode.sliders.values()),
+    main=[pn.pane.Bokeh(ode.figure)],
+)
 
 if __name__.startswith("__main__"):
     pn.serve(app)
 elif __name__.startswith("bokeh"):
     app.servable()
-

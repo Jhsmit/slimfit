@@ -1,4 +1,4 @@
-from slimfit.callable import CallableBase, MatrixCallable
+from slimfit.callable import NumExprBase, MatrixNumExpr
 from slimfit.models import Model
 from slimfit.symbols import (
     Probability,

@@ -17,7 +17,7 @@ from slimfit.symbols import (
 )
 
 #todo refactor NumExpr
-class CallableBase(SymbolicBase):
+class NumExprBase(SymbolicBase):
     """Symbolic expression which allows calling cached lambified expressions
     """
 
@@ -38,7 +38,7 @@ class CallableBase(SymbolicBase):
         return self(**self.guess)
 
 
-class DummyCallable(CallableBase):
+class DummyNumExpr(NumExprBase):
     """Dummy callable object which returns supplied 'obj' when called
     Has no parameters or variables
     """
@@ -53,13 +53,13 @@ class DummyCallable(CallableBase):
         pass
 
 
-class ArrayCallable(DummyCallable):
+class ArrayCallable(DummyNumExpr):
     @property
     def shape(self) -> tuple[int, int]:
         return self.obj.shape
 
 
-class ScalarCallable(CallableBase):
+class ScalarNumExpr(NumExprBase):
     def __init__(self, expr: Expr, **kwargs):
         if not isinstance(expr, Expr):
             raise TypeError(f"Expression must be an instance of MatrixParameter or sympy.Matrix")
@@ -97,7 +97,7 @@ class ScalarCallable(CallableBase):
 
 
 # todo name via kwargs to super
-class MatrixCallable(CallableBase):
+class MatrixNumExpr(NumExprBase):
     def __init__(self, expr: MatrixBase, name: Optional[str] = None, kind: Optional[str] = None):
         if not isinstance(expr, MatrixBase):
             raise TypeError(f"Expression must be an instance of MatrixParameter or sympy.Matrix")
@@ -241,7 +241,7 @@ class MatrixCallable(CallableBase):
         return self.elements[name]
 
 
-class Constant(MatrixCallable):
+class Constant(MatrixNumExpr):
     # WIP of a class which has an additional variable which determines output shape but
     # is no symbol in underlying expression
 
@@ -255,7 +255,7 @@ class Constant(MatrixCallable):
         np.broadcast_to(...)
 
 
-class DummyVariableMatrix(MatrixCallable):
+class DummyVariableMatrix(MatrixNumExpr):
     """
     Matrix callable which takes an additional variable such that called returned shape is expanded to accomodate its
     shapes
@@ -273,7 +273,7 @@ class DummyVariableMatrix(MatrixCallable):
         return {s.name: s for s in sorted(symbols.values(), key=SORT_KEY)}
 
 
-class GMM(MatrixCallable):
+class GMM(MatrixNumExpr):
     def __init__(self, x: Variable, mu: Matrix, sigma: Matrix, name: Optional[str] = None):
         if mu.shape[1] != 1:
             raise ValueError(
@@ -307,7 +307,7 @@ def identify_expression_kind(sympy_expression: Union[Expr, MatrixBase]) -> str:
     return "generic"
 
 
-def convert_callable(expression: Union[CallableBase, Expr, MatrixBase], **kwargs) -> CallableBase:
+def convert_callable(expression: Union[NumExprBase, Expr, MatrixBase], **kwargs) -> NumExprBase:
     """Converts sympy expression to slimfit Callable"""
 
     if isinstance(expression, HadamardProduct):
@@ -315,12 +315,12 @@ def convert_callable(expression: Union[CallableBase, Expr, MatrixBase], **kwargs
 
         return Mul(*(convert_callable(arg) for arg in expression.args), **kwargs)
     elif isinstance(expression, MatrixBase):
-        return MatrixCallable(expression, **kwargs)
+        return MatrixNumExpr(expression, **kwargs)
     elif isinstance(expression, Expr):
-        return ScalarCallable(expression, **kwargs)
+        return ScalarNumExpr(expression, **kwargs)
     elif isinstance(expression, np.ndarray):
         return ArrayCallable(expression, **kwargs)
-    elif isinstance(expression, CallableBase):
+    elif isinstance(expression, NumExprBase):
         return expression
     else:
         raise TypeError(f"Invalid type {type(expression)!r}")

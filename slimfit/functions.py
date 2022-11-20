@@ -6,7 +6,7 @@ import numpy as np
 import sympy as sp
 from sympy import Matrix, zeros, Symbol, Expr
 
-from slimfit import MatrixCallable
+from slimfit import MatrixNumExpr
 
 if typing.TYPE_CHECKING:
     from slimfit.symbols import Variable
@@ -23,8 +23,8 @@ def gaussian_sympy(x: Symbol, mu: Symbol, sig: Symbol) -> Expr:
 
 
 def gaussian(
-    x: Variable, mu: Matrix | MatrixCallable, sigma: Matrix | MatrixCallable
-) -> Matrix | MatrixCallable:
+    x: Variable, mu: Matrix | MatrixNumExpr, sigma: Matrix | MatrixNumExpr
+) -> Matrix | MatrixNumExpr:
     if mu.shape != sigma.shape:
         raise ValueError("Shape mismatch between 'mu' and 'sigma'")
 
@@ -32,8 +32,8 @@ def gaussian(
     for i, j in np.ndindex(mu.shape):
         m_out[i, j] = gaussian_sympy(x, mu[i, j], sigma[i, j])
 
-    if isinstance(mu, MatrixCallable) or isinstance(sigma, MatrixCallable):
-        return MatrixCallable(m_out, kind="GMM")
+    if isinstance(mu, MatrixNumExpr) or isinstance(sigma, MatrixNumExpr):
+        return MatrixNumExpr(m_out, kind="GMM")
     else:
         return m_out
 

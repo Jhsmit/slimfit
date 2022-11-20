@@ -7,12 +7,12 @@ from operator import or_, mul, add
 
 import numpy.typing as npt
 
-from slimfit.callable import CallableBase, convert_callable
+from slimfit.callable import NumExprBase, convert_callable
 
 
 # a composite expression has multiple expr elements; connected by some operation but calculation is
 # deferred so that fitting can inspect the composition and decide the best optimization strategy
-class CompositeCallable(CallableBase):
+class CompositeNumExpr(NumExprBase):
     """Operations base class"""
 
     def __init__(self, *args, **kwargs):
@@ -31,11 +31,11 @@ class CompositeCallable(CallableBase):
         """Return symbols in order or constituent elements and then by alphabet"""
         return reduce(or_, (elem.symbols for elem in self.elements))
 
-    def __getitem__(self, item) -> CallableBase:
+    def __getitem__(self, item) -> NumExprBase:
         return self.elements.__getitem__(item)
 
 
-class Sum(CompositeCallable):
+class Sum(CompositeNumExpr):
     def __call__(self, **kwargs) -> npt.ArrayLike:
         eval_elems = (elem(**kwargs) for elem in self.elements)
 
@@ -43,7 +43,7 @@ class Sum(CompositeCallable):
 
 
 # elementwise !
-class Mul(CompositeCallable):
+class Mul(CompositeNumExpr):
     # might be subject to renaming
     """Mul elementwise lazily
     """
@@ -58,7 +58,7 @@ class Mul(CompositeCallable):
         return f"Mul({args})"
 
 
-class MatMul(CompositeCallable):
+class MatMul(CompositeNumExpr):
 
     """
     matmul composite callable

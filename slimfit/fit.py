@@ -10,7 +10,7 @@ from slimfit.loss import L2Loss, LogLoss, Loss
 from slimfit.minimizer import ScipyMinimizer, Minimizer
 from slimfit.models import Model
 from slimfit.symbols import Variable, Probability
-from slimfit.callable import CallableBase
+from slimfit.callable import NumExprBase
 
 
 class Fit(object):
@@ -22,7 +22,7 @@ class Fit(object):
 
     def __init__(
         self,
-        model: dict[Variable | Probability, Expr | CallableBase | MatrixBase] | Model,
+        model: dict[Variable | Probability, Expr | NumExprBase | MatrixBase] | Model,
         **data: npt.ArrayLike,
     ):
 

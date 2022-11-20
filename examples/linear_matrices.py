@@ -67,7 +67,7 @@ result.parameters
 #%%
 
 """
-This works but is performance-wise not desirable as the MatrixCallable in the model is shape (100, 1) and calling it
+This works but is performance-wise not desirable as the MatrixNumExpr in the model is shape (100, 1) and calling it
 requires evalulating one lambdified function per matrix element.
 """
 

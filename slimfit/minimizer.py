@@ -8,7 +8,7 @@ import numpy as np
 from scipy.optimize import minimize
 from tqdm.auto import trange
 
-from slimfit import Model, CallableBase
+from slimfit import Model, NumExprBase
 from slimfit.fitresult import FitResult
 from slimfit.loss import Loss
 from slimfit.operations import Mul
@@ -103,7 +103,7 @@ class LikelihoodOptimizer(Minimizer):
         # parameters which needs to be passed / inferred
 
         # Split top-level multiplications in the model as they can be optimized in log likelihood independently
-        components: list[tuple[FitSymbol, CallableBase]] = []  # todo tuple LHS as variable
+        components: list[tuple[FitSymbol, NumExprBase]] = []  # todo tuple LHS as variable
         for lhs, rhs in self.model.items():
             if isinstance(rhs, Mul):
                 components += [(lhs, elem) for elem in rhs.elements]

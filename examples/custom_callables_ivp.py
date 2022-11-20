@@ -4,7 +4,7 @@ import numpy.typing as npt
 import proplot as pplt
 
 from slimfit import Model
-from slimfit.callable import CallableBase
+from slimfit.callable import NumExprBase
 from slimfit.fit import Fit
 from slimfit.symbols import SORT_KEY, FitSymbol, Parameter, Variable
 
@@ -25,7 +25,7 @@ data = sol.y + np.random.normal(0, 0.05, size=num)
 
 #%%
 
-class IVPCallable(CallableBase):
+class IVPNumExpr(NumExprBase):
     def __init__(
         self,
         t_var: Variable,
@@ -69,7 +69,7 @@ class IVPCallable(CallableBase):
     def renew(self):
         ...
 
-ivp = IVPCallable(
+ivp = IVPNumExpr(
     Variable("t"), Parameter("freq"), Parameter("damp"), Parameter("y0"), domain=(0.0, 25.0),
 )
 

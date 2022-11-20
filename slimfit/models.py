@@ -5,7 +5,7 @@ import numpy.typing as npt
 from sympy import Expr, MatrixBase
 
 from slimfit.base import SymbolicBase
-from slimfit.callable import convert_callable, CallableBase
+from slimfit.callable import convert_callable, NumExprBase
 from slimfit.symbols import (
     Variable,
     Probability,
@@ -16,7 +16,7 @@ from slimfit.symbols import (
 
 class Model(SymbolicBase):
     def __init__(
-        self, model_dict: [Union[Variable, Probability], Union[Expr, CallableBase, MatrixBase],],
+        self, model_dict: [Union[Variable, Probability], Union[Expr, NumExprBase, MatrixBase], ],
     ):
 
         if all(isinstance(lhs, Probability) for lhs in model_dict.keys()):
@@ -28,11 +28,11 @@ class Model(SymbolicBase):
                 "Model dictionary keys need to be either all `Variable` or `Probability`"
             )
 
-        self.model_dict: [FitSymbol, CallableBase] = {
+        self.model_dict: [FitSymbol, NumExprBase] = {
             lhs: convert_callable(rhs) for lhs, rhs in model_dict.items()
         }
 
-        self._model_dict: [str, CallableBase] = {
+        self._model_dict: [str, NumExprBase] = {
             lhs.name: convert_callable(rhs) for lhs, rhs in model_dict.items()
         }
 
@@ -42,7 +42,7 @@ class Model(SymbolicBase):
     def __repr__(self):
         return f"Model({self.model_dict.__repr__()})"
 
-    def __getitem__(self, item) -> CallableBase:
+    def __getitem__(self, item) -> NumExprBase:
         if isinstance(item, str):
             return self._model_dict[item]
         else:

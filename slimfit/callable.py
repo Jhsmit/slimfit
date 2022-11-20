@@ -16,7 +16,7 @@ from slimfit.symbols import (
     Variable,
 )
 
-
+#todo refactor NumExpr
 class CallableBase(SymbolicBase):
     """Symbolic expression which allows calling cached lambified expressions
     """
@@ -154,6 +154,7 @@ class MatrixCallable(CallableBase):
     @cached_property
     def lambdified(self) -> np.ndarray:
         """Array of lambdified function per matrix element"""
+        #TODO scalercallable per element
 
         # subtitute out fixed parameters
         subs = [(p, p.value) for p in self.fixed_parameters.values()]

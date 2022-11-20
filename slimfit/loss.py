@@ -124,9 +124,15 @@ class LogLoss(Loss):
 
 
 class LogSumLoss(Loss):
-    """Sums by specified axis, then takes elementwise log
+    """Sums by specified axis, then takes elementwise log, then applies reduction method
+
+
 
     Used in combination with maximum likelihood methods
+
+    Example:
+        # sum along axis 1, then takes elementwise log, then sums the result
+        LogSumLoss(sum_axis=1, reduction='sum')
 
     returns negative of the reductions are use in combination with minimizers rather than maximizers
     """

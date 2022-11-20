@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Any, Union
+import numpy as np
 
 import yaml
 
@@ -79,3 +80,8 @@ class FitResult:
 
         with Path(path).open("wb") as f:
             pickle.dump(self, f)
+
+    def __call__(self, **kwargs) -> dict[str, np.ndarray]:
+        data = self.data or {}
+        kwargs = self.parameters | data | kwargs
+        return self.model(**kwargs)

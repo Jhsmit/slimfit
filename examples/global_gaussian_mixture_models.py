@@ -1,7 +1,7 @@
 import numpy as np
 import proplot as pplt
 
-from slimfit.callable import GMM
+from slimfit.numerical import GMM
 from slimfit.fit import Fit
 from slimfit.loss import LogSumLoss
 from slimfit.minimizer import LikelihoodOptimizer

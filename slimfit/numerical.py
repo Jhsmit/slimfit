@@ -6,6 +6,7 @@ from numbers import Number
 from typing import Union, Callable, Optional, Any
 
 import numpy as np
+from scipy.integrate import solve_ivp
 from sympy import Expr, MatrixBase, lambdify, HadamardProduct, Matrix
 
 from slimfit.base import SymbolicBase
@@ -289,6 +290,65 @@ class GMM(MatrixNumExpr):
         name = name or "GMM"  # counter for number of instances?
         super().__init__(expr, kind="GMM", name=name)
 
+
+class MarkovIVPNumExpr(NumExprBase):
+    """Uses scipy.integrate.solve_ivp to numerically find time evolution of a markov process
+        given a transition rate matrix.
+
+    Returned shape is (len(t_var), len(y0), 1), or (<datapoints>, <states>, 1)
+
+    """
+    def __init__(
+        self,
+        t_var: Variable,
+        trs_matrix: Matrix,
+        y0: Matrix,
+        domain: Optional[tuple[float, float]] = None,
+        **ivp_kwargs
+    ):
+        self.t_var = t_var
+        self.trs_matrix = to_numexpr(trs_matrix)
+        self.y0 = to_numexpr(y0)
+        self.domain = domain
+
+        ivp_defaults = {'method': 'Radau'}
+        self.ivp_defaults = ivp_defaults | ivp_kwargs
+
+    @property
+    def symbols(self) -> dict[str, FitSymbol]:
+        symbols = self.trs_matrix.symbols | self.y0.symbols | {self.t_var.name: self.t_var}
+        return {s.name: s for s in sorted(symbols.values(), key=SORT_KEY)}
+
+    def __call__(self, **kwargs):
+        trs_matrix = self.trs_matrix(**kwargs)
+        y0 = self.y0(**kwargs).squeeze()
+
+        domain = self.domain or self.get_domain(**kwargs)
+        sol = solve_ivp(
+            self.grad_func,
+            domain,
+            y0=y0,
+            t_eval=kwargs[self.t_var.name],
+            args=(trs_matrix, ),
+            **self.ivp_defaults
+
+        )
+
+        ans = sol.y.T
+
+        return np.expand_dims(ans, -1)
+
+    def get_domain(self, **kwargs) -> tuple[float, float]:
+        dpts = kwargs[self.t_var.name]
+        return dpts.min(), dpts.max()
+
+    @staticmethod
+    def grad_func(t, y, trs_matrix):
+        return trs_matrix @ y
+
+    def renew(self):
+        self.trs_matrix.renew()
+        self.y0.renew()
 
 def identify_expression_kind(sympy_expression: Union[Expr, MatrixBase]) -> str:
     """Find the type of expression

@@ -4,7 +4,7 @@ import numpy.typing as npt
 import proplot as pplt
 
 from slimfit import Model
-from slimfit.callable import NumExprBase
+from slimfit.numerical import NumExprBase
 from slimfit.fit import Fit
 from slimfit.symbols import SORT_KEY, FitSymbol, Parameter, Variable
 

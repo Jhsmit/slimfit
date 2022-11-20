@@ -1,7 +1,7 @@
 import numpy as np
 from slimfit import Model
 
-from slimfit.callable import GMM
+from slimfit.numerical import GMM
 from slimfit.fit import Fit
 from slimfit.loss import LogSumLoss
 from slimfit.minimizer import LikelihoodOptimizer

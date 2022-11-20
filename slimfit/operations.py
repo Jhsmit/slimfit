@@ -7,7 +7,7 @@ from operator import or_, mul, add
 
 import numpy.typing as npt
 
-from slimfit.callable import NumExprBase, convert_callable
+from slimfit.numerical import NumExprBase, to_numexpr
 
 
 # a composite expression has multiple expr elements; connected by some operation but calculation is
@@ -15,10 +15,12 @@ from slimfit.callable import NumExprBase, convert_callable
 class CompositeNumExpr(NumExprBase):
     """Operations base class"""
 
+    kind = 'composite'
+
     def __init__(self, *args, **kwargs):
         if len(args) == 1:
             raise ValueError("At least two arguments are required.")
-        self.elements = [convert_callable(arg) for arg in args]
+        self.elements = [to_numexpr(arg) for arg in args]
 
     def renew(self) -> None:
         """Renews component parts"""

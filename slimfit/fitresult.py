@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import pickle
 from dataclasses import dataclass, field
@@ -18,7 +20,7 @@ class FitResult:
 
     """
 
-    parameters: dict[str, float]
+    parameters: dict[str, float | np.ndarray]
     """Fitted parameter values"""
 
     gof_qualifiers: dict

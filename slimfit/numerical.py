@@ -7,14 +7,11 @@ from typing import Union, Callable, Optional, Any
 
 import numpy as np
 from scipy.integrate import solve_ivp
-from sympy import Expr, MatrixBase, lambdify, HadamardProduct, Matrix
+from sympy import Expr, MatrixBase, lambdify, HadamardProduct, Matrix, Symbol
 
 from slimfit.base import SymbolicBase
 from slimfit.symbols import (
     FitSymbol,
-    Parameter,
-    SORT_KEY,
-    Variable,
 )
 
 # todo refactor NumExpr
@@ -70,16 +67,16 @@ class ScalarNumExpr(NumExprBase):
     @property
     def symbols(self) -> dict[str, FitSymbol]:
         """all symbols, sorted first by sort priority (variable, probability, parameter), then alphabetized"""
-        return {s.name: s for s in sorted(self.expr.free_symbols, key=SORT_KEY)}
+        return {s.name: s for s in sorted(self.expr.free_symbols, key=str)}
 
     @cached_property
     def lambdified(self) -> Callable:
 
         # subtitute out fixed parameters
-        subs = [(p, p.value) for p in self.fixed_parameters.values()]
-        sub_expr = self.expr.subs(subs)
+        # subs = [(p, p.value) for p in self.fixed_parameters.values()]
+        # sub_expr = self.expr.subs(subs)
 
-        ld = lambdify(self.free_symbols.values(), sub_expr)
+        ld = lambdify(self.symbols.values(), self.expr)
 
         return ld
 
@@ -91,7 +88,7 @@ class ScalarNumExpr(NumExprBase):
 
     def __call__(self, **kwargs: float) -> Union[np.ndarray, float]:
         try:
-            val = self.lambdified(**{k: kwargs[k] for k in self.free_symbols.keys()})
+            val = self.lambdified(**{k: kwargs[k] for k in self.symbols.keys()})
             return val
         except KeyError as e:
             raise KeyError(f"Missing value for parameter {e}") from e
@@ -133,7 +130,7 @@ class MatrixNumExpr(NumExprBase):
     @property
     def symbols(self) -> dict[str, FitSymbol]:
         """all symbols, sorted first by sort priority (variable, probability, parameter), then alphabetized"""
-        return {s.name: s for s in sorted(self.expr.free_symbols, key=SORT_KEY)}
+        return {s.name: s for s in sorted(self.expr.free_symbols, key=str)}
 
     @property
     def shape(self) -> tuple[int, int]:
@@ -145,12 +142,14 @@ class MatrixNumExpr(NumExprBase):
         Dictionary mapping parameter name to matrix indices
         """
 
-        element_mapping = {}
-        for i, j in np.ndindex(self.shape):
-            elem = self.expr[i, j]
-            if isinstance(elem, Parameter):
-                element_mapping[elem.name] = (i, j)
-        return element_mapping
+        raise NotImplementedError("Elements is not implemented")
+
+        # element_mapping = {}
+        # for i, j in np.ndindex(self.shape):
+        #     elem = self.expr[i, j]
+        #     if isinstance(elem, Parameter):
+        #         element_mapping[elem.name] = (i, j)
+        # return element_mapping
 
     @cached_property
     def lambdified(self) -> np.ndarray:
@@ -158,12 +157,12 @@ class MatrixNumExpr(NumExprBase):
         # TODO scalercallable per element
 
         # subtitute out fixed parameters
-        subs = [(p, p.value) for p in self.fixed_parameters.values()]
-        sub_expr = self.expr.subs(subs)
+        # subs = [(p, p.value) for p in self.fixed_parameters.values()]
+        # sub_expr = self.expr.subs(subs)
 
         lambdas = np.empty(self.shape, dtype=object)
         for i, j in np.ndindex(self.shape):
-            lambdas[i, j] = lambdify(self.free_symbols.values(), sub_expr[i, j])
+            lambdas[i, j] = lambdify(self.symbols.values(), self.expr[i, j])
 
         return lambdas
 
@@ -178,7 +177,7 @@ class MatrixNumExpr(NumExprBase):
         # https://github.com/sympy/sympy/issues/5642
         # Prepare kwargs for lambdified
         try:
-            ld_kwargs = {k: kwargs[k] for k in self.free_symbols.keys()}
+            ld_kwargs = {k: kwargs[k] for k in self.symbols.keys()}
         except KeyError as e:
             raise KeyError(f"Missing value for symbol {e}") from e
 
@@ -246,7 +245,7 @@ class Constant(MatrixNumExpr):
     # WIP of a class which has an additional variable which determines output shape but
     # is no symbol in underlying expression
 
-    def __init__(self, x: Variable, m: Matrix, name: Optional[str] = None):
+    def __init__(self, x: Symbol, m: Matrix, name: Optional[str] = None):
         self.x = x
         super().__init__(m, name=name)
 
@@ -263,7 +262,7 @@ class DummyVariableMatrix(MatrixNumExpr):
     """
 
     def __init__(
-        self, x: Variable, m: Matrix, kind: Optional[str] = None, name: Optional[str] = None,
+        self, x: Symbol, m: Matrix, kind: Optional[str] = None, name: Optional[str] = None,
     ):
         self.x = x
         super().__init__(m, kind=kind, name=name)
@@ -271,11 +270,11 @@ class DummyVariableMatrix(MatrixNumExpr):
     @property
     def symbols(self) -> dict[str, FitSymbol]:
         symbols = super().symbols | {self.x.name: self.x}
-        return {s.name: s for s in sorted(symbols.values(), key=SORT_KEY)}
+        return {s.name: s for s in sorted(symbols.values(), key=str)}
 
 
 class GMM(MatrixNumExpr):
-    def __init__(self, x: Variable, mu: Matrix, sigma: Matrix, name: Optional[str] = None):
+    def __init__(self, x: Symbol, mu: Matrix, sigma: Matrix, name: Optional[str] = None):
         if mu.shape[1] != 1:
             raise ValueError(
                 "GMM parameter matrices must be of shape (N, 1) where N is the number of states."
@@ -300,7 +299,7 @@ class MarkovIVPNumExpr(NumExprBase):
     """
     def __init__(
         self,
-        t_var: Variable,
+        t_var: Symbol,
         trs_matrix: Matrix,
         y0: Matrix,
         domain: Optional[tuple[float, float]] = None,
@@ -317,7 +316,7 @@ class MarkovIVPNumExpr(NumExprBase):
     @property
     def symbols(self) -> dict[str, FitSymbol]:
         symbols = self.trs_matrix.symbols | self.y0.symbols | {self.t_var.name: self.t_var}
-        return {s.name: s for s in sorted(symbols.values(), key=SORT_KEY)}
+        return {s.name: s for s in sorted(symbols.values(), key=str)}
 
     def __call__(self, **kwargs):
         trs_matrix = self.trs_matrix(**kwargs)
@@ -358,9 +357,9 @@ def identify_expression_kind(sympy_expression: Union[Expr, MatrixBase]) -> str:
     if isinstance(sympy_expression, MatrixBase):
         # check for gaussian mixture model ...
         ...
-
-        if all(isinstance(elem, (Number, Parameter)) for elem in sympy_expression):
-            return "constant"
+        #
+        # if all(isinstance(elem, (Number, Parameter)) for elem in sympy_expression):
+        #     return "constant"
 
     return "generic"
 

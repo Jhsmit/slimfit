@@ -7,7 +7,7 @@ import numpy as np
 
 from slimfit import NumExprBase, Model
 from slimfit.operations import Mul
-from slimfit.symbols import Parameter, FitSymbol
+from slimfit.symbols import FitSymbol
 
 
 def overlapping_model_parameters(

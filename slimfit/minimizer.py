@@ -6,12 +6,14 @@ from typing import Optional, Any
 
 import numpy as np
 from scipy.optimize import minimize
+from sympy import Symbol
 from tqdm.auto import trange
 
 from slimfit import Model, NumExprBase
 from slimfit.fitresult import FitResult
 from slimfit.loss import Loss
 from slimfit.operations import Mul
+from slimfit.parameter import Parameters
 from slimfit.symbols import FitSymbol
 from slimfit.utils import get_bounds, overlapping_model_parameters
 
@@ -23,43 +25,39 @@ class Minimizer(metaclass=abc.ABCMeta):
     def __init__(
         self,
         model: Model,
+        parameters: Parameters,
         independent_data: dict[str, np.array],
         dependent_data: dict[str, np.array],
         loss: Loss,
-        guess: Optional[dict[str, float]] = None,
     ):
-        self.loss = loss
         self.model = model
+        self.parameters = parameters
         self.independent_data = independent_data
         self.dependent_data = dependent_data
-        guess = guess or {}
-        self.guess = self.model.guess | guess
+
+        self.loss = loss
+        self.model = model
 
     @abc.abstractmethod
     def execute(self, **minimizer_options) -> FitResult:
         ...
 
-    @property
-    def parameter_names(self) -> list[str]:
-        """List of parameter names in the model"""
-        return list(self.model.free_parameters.keys())
-
 
 class ScipyMinimizer(Minimizer):
     def execute(self, **minimizer_options):
-        x = np.array([self.guess[p_name] for p_name in self.parameter_names])
+        x = self.parameters.pack()
 
         result = minimize(
             minfunc,
             x,
             args=(
-                self.parameter_names,
+                self.parameters,
                 self.independent_data,
                 self.dependent_data,
                 self.model,
                 self.loss,
             ),
-            bounds=get_bounds(self.model.free_parameters.values()),
+            bounds=self.parameters.get_bounds(),
             **self.rename_options(minimizer_options)
         )
 
@@ -75,18 +73,18 @@ class ScipyMinimizer(Minimizer):
         return out
 
     def to_fitresult(self, result) -> FitResult:
-        parameters = {k: xi for k, xi in zip(self.parameter_names, result.x)}
+        parameter_values = {name: arr.item() if arr.size == 1 else arr for name, arr in self.parameters.unpack(result.x).items()}
 
         gof_qualifiers = {
             "loss": result["fun"],
         }
 
         fit_result = FitResult(
-            parameters=parameters,
+            parameters=parameter_values,
             gof_qualifiers=gof_qualifiers,
-            guess=self.guess,
+            guess=self.parameters.guess,
             data={**self.independent_data, **self.dependent_data},
-            _result=result,
+            base_result=result,
         )
 
         return fit_result
@@ -414,13 +412,14 @@ def minfunc_expectation(
 
 def minfunc(
     x: np.ndarray,  # array of parameters
-    x_names,  # parameter names
+    parameters: Parameters,  # parameter names
     independent_data: dict,  # measurement points
     dependent_data: dict,  # corresponding measurements; target data
     model: Model,
     loss: Loss,
 ) -> float:
-    params = {name: value for name, value in zip(x_names, x)}
-    predicted = model(**independent_data, **params)
+
+    parameter_values = parameters.unpack(x)
+    predicted = model(**independent_data, **parameter_values)
 
     return loss(dependent_data, predicted)

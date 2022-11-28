@@ -22,13 +22,6 @@ def clear_symbols():
     FitSymbol._instances = {}
 
 
-def set_parameter_values(values: dict[str, float]):
-    """Batch set parameter values through the magic of singleton Parameters"""
-
-    for name, value in values.items():
-        Parameter(name, value=value)
-
-
 class FitSymbol(Symbol):
     _instances: dict[str, FitSymbol] = {}
 
@@ -49,71 +42,6 @@ class FitSymbol(Symbol):
     _lambdacode = _sympystr
     _numpycode = _sympystr
     _pythoncode = _sympystr
-
-
-class Parameter(FitSymbol):
-    def __new__(
-        cls,
-        name: str,
-        value: Optional[float] = None,
-        vmin: Optional[float] = None,
-        vmax: Optional[float] = None,
-        fixed: Optional[bool] = None,
-    ) -> Parameter:
-        obj = super().__new__(cls, name)
-        if not isinstance(obj, Parameter):
-            raise TypeError(f"Variable name {name!r} already exists as '{obj.__class__.__name__}'")
-
-        obj.set_attr("value", value, 1.0)
-        obj.set_attr("vmin", vmin, None)
-        obj.set_attr("vmax", vmax, None)
-        obj.set_attr("fixed", fixed, False)
-
-        if obj.vmin is not None and obj.vmin > obj.value:
-            raise ValueError("Lower bound must be smaller than or equal to parameter value")
-        if obj.vmax is not None and obj.vmax < obj.value:
-            raise ValueError("Upper bound must be larger than or equal to parameter value")
-
-        return obj
-
-    def set_attr(self, attr: str, value: Any, default: Any) -> None:
-        """
-        Set attribute 'attr'; when it does not exist sets to either default or value,
-        otherwise updates to 'value' if not None.
-
-        Args:
-            attr: Name of attribute to set.
-            value: Value for the attribute.
-            default: Value to use when 'value' is None.
-
-        """
-        if not hasattr(self, attr) or value is not None:
-            setattr(self, attr, value if value is not None else default)
-
-    def __repr__(self) -> str:
-        attrs = ["name", "value", "vmin", "vmax", "fixed"]
-        elements = [f"{attr}={repr(getattr(self, attr))}" for attr in attrs]
-        return f"Parameter({', '.join(elements)})"
-
-
-class Variable(FitSymbol):
-    def __new__(cls, name):
-        obj = super().__new__(cls, name)
-        if isinstance(obj, Variable):
-            return obj
-        else:
-            raise TypeError(f"Variable name {name!r} already exists as '{obj.__class__.__name__}'")
-
-
-class Probability(FitSymbol):
-    def __new__(cls, name):
-        obj = super().__new__(cls, name)
-        if isinstance(obj, Probability):
-            return obj
-        else:
-            raise TypeError(
-                f"Probability name {name!r} already exists as '{obj.__class__.__name__}'"
-            )
 
 
 def parameter_matrix(
@@ -214,5 +142,5 @@ def parameter_matrix(
     return matrix
 
 
-SORT_PRIORITY = [Variable, Probability, Parameter]
-SORT_KEY = lambda x: (SORT_PRIORITY.index(type(x)), x.name)
+# SORT_PRIORITY = [Variable, Probability, Parameter]
+# SORT_KEY = lambda x: (SORT_PRIORITY.index(type(x)), x.name)

@@ -1,9 +1,11 @@
 import numpy as np
 import proplot as pplt
 
-from slimfit import Variable, Parameter, Model, Probability
+from slimfit import Symbol, Model
 from slimfit.fit import Fit
 from slimfit.functions import gaussian_sympy
+from slimfit.loss import LogLoss
+from slimfit.parameter import Parameters
 
 #%%
 
@@ -11,13 +13,14 @@ gt_params = {"mu": 2.4, "sigma": 0.7}
 
 xdata = np.random.normal(gt_params["mu"], scale=gt_params["sigma"], size=500)
 model = Model(
-    {Probability("p"): gaussian_sympy(Variable("x"), Parameter("mu"), Parameter("sigma"))}
+    {Symbol("p"): gaussian_sympy(Symbol("x"), Symbol("mu"), Symbol("sigma"))}
 )
 
-
+#%%
+parameters = Parameters.from_model(model, 'mu sigma')
 #%%
 
-fit = Fit(model, x=xdata)
+fit = Fit(model, parameters, data={'x': xdata}, loss=LogLoss())
 result = fit.execute()
 
 #%%

@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import re
 from collections import UserList
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Iterable, Optional
-import re
 
 import numpy as np
+import numpy.typing as npt
 from sympy import Expr
 
 from slimfit import Model
@@ -87,15 +88,15 @@ class Parameters(UserList):
     @classmethod
     def from_model(cls,
            model: Model,
-           parameters: Iterable[str] | str = None,
-           guess: dict[str, np.ndarray] = None) -> Parameters:
+           parameters: dict[str, npt.ArrayLike] | Iterable[str] | str = None,
+        ) -> Parameters:
         if isinstance(parameters, str):
             param_list = [Parameter(model.symbols[k]) for k in re.split('; |, |\*|\s+', parameters)]
         elif isinstance(parameters, list):
             param_list = [Parameter(model.symbols[k]) for k in parameters]
-        elif isinstance(guess, dict):
-            param_list = [Parameter(model.symbols[k], guess=v) for k, v in guess.items()]
-        elif parameters is None and guess is None:
+        elif isinstance(parameters, dict):
+            param_list = [Parameter(model.symbols[k], guess=v) for k, v in parameters.items()]
+        elif parameters is None:
             param_list = [Parameter(symbol) for symbol in model.symbols.values()]
         else:
             raise ValueError("Invalid values for 'parameters' or 'guess'")

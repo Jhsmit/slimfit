@@ -1,6 +1,6 @@
 from slimfit.numerical import NumExprBase, MatrixNumExpr
 from slimfit.models import Model
-
+from slimfit.symbols import Symbol, FitSymbol
 
 from . import _version
 

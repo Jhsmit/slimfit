@@ -152,8 +152,8 @@ class LikelihoodOptimizer(Minimizer):
                         loss=self.loss,
                         guess=guess,
                     )
-                    result = opt.execute()
-                    parameters = result.parameters
+                    scipy_result = opt.execute()
+                    parameters = scipy_result.parameters
 
                 # collect parameters of this sub_model into parmaeters dict
                 parameters_step |= parameters
@@ -177,9 +177,9 @@ class LikelihoodOptimizer(Minimizer):
         gof_qualifiers = {
             "loss": loss,
             "log_likelihood": -loss,
-            "n_iter": i,
+            "n_iter": i + 1,
             "elapsed": tdelta,
-            "iter/s": tdelta / i,
+            "iter/s": tdelta / (i +1),
         }
 
         result = FitResult(
@@ -188,6 +188,7 @@ class LikelihoodOptimizer(Minimizer):
             guess=self.guess,
             model=self.model,
             data={**self.independent_data, **self.dependent_data},
+            base_result = {'scipy': scipy_result}
         )
 
         return result

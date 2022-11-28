@@ -39,8 +39,8 @@ class FitResult:
     metadata: dict = field(default_factory=dict)
     """Additional metadata"""
 
-    _result: Optional[Any] = field(default=None, repr=False)
-    """Source fit result object"""
+    base_result: Optional[Any] = field(default=None, repr=False)
+    """Source fit result object. Can be dicts of sub results"""
 
     def __post_init__(self) -> None:
         if self.fixed_parameters is None and self.model is not None and self.model.fixed_parameters:

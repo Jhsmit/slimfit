@@ -334,9 +334,7 @@ class MarkovIVPNumExpr(NumExprBase):
 
         )
 
-        ans = sol.y.T
-
-        return np.expand_dims(ans, -1)
+        return np.expand_dims(sol.y.T, -1)
 
     def get_domain(self, **kwargs) -> tuple[float, float]:
         dpts = kwargs[self.t_var.name]

@@ -42,7 +42,7 @@ class Model(SymbolicBase):
     def __repr__(self):
         return f"Model({self.model_dict.__repr__()})"
 
-    def __getitem__(self, item) -> NumExprBase:
+    def __getitem__(self, item: Union[str, FitSymbol]) -> NumExprBase:
         if isinstance(item, str):
             return self._model_dict[item]
         else:

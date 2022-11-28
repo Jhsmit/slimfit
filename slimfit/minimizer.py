@@ -26,14 +26,14 @@ class Minimizer(metaclass=abc.ABCMeta):
         self,
         model: Model,
         parameters: Parameters,
-        independent_data: dict[str, np.array],
-        dependent_data: dict[str, np.array],
+        xdata: dict[str, np.array],
+        ydata: dict[str, np.array],
         loss: Loss,
     ):
         self.model = model
         self.parameters = parameters
-        self.independent_data = independent_data
-        self.dependent_data = dependent_data
+        self.xdata = xdata
+        self.ydata = ydata
 
         self.loss = loss
         self.model = model
@@ -52,8 +52,8 @@ class ScipyMinimizer(Minimizer):
             x,
             args=(
                 self.parameters,
-                self.independent_data,
-                self.dependent_data,
+                self.xdata,
+                self.ydata,
                 self.model,
                 self.loss,
             ),
@@ -83,7 +83,7 @@ class ScipyMinimizer(Minimizer):
             parameters=parameter_values,
             gof_qualifiers=gof_qualifiers,
             guess=self.parameters.guess,
-            data={**self.independent_data, **self.dependent_data},
+            data={**self.xdata, **self.ydata},
             base_result=result,
         )
 
@@ -118,8 +118,8 @@ class LikelihoodOptimizer(Minimizer):
         prev_loss = 0.0
         no_progress = 0
         for i in pbar:
-            eval = self.model(**self.independent_data, **parameters_current)
-            loss = self.loss(self.dependent_data, eval)
+            eval = self.model(**self.xdata, **parameters_current)
+            loss = self.loss(self.ydata, eval)
             # posterior dict has values with shapes equal to eval
             posterior = {k: v / v.sum(axis=STATE_AXIS, keepdims=True) for k, v in eval.items()}
 
@@ -131,12 +131,12 @@ class LikelihoodOptimizer(Minimizer):
                 kinds = [c.kind for c in sub_model.values()]
                 if all([k == "constant" for k in kinds]):
                     opt = ConstantOptimizer(
-                        sub_model, self.independent_data, {}, posterior, loss=self.loss
+                        sub_model, self.xdata, {}, posterior, loss=self.loss
                     )
                     parameters = opt.step()
                 elif all([k == "gmm" for k in kinds]):
                     opt = GMMOptimizer(
-                        sub_model, self.independent_data, {}, posterior, loss=self.loss
+                        sub_model, self.xdata, {}, posterior, loss=self.loss
                     )
                     parameters = opt.step()
                 else:
@@ -144,7 +144,7 @@ class LikelihoodOptimizer(Minimizer):
                     # todo loss is not used; should be EM loss while the main loop uses Log likelihood loss
                     opt = ScipyEMOptimizer(
                         sub_model,
-                        self.independent_data,
+                        self.xdata,
                         {},
                         posterior,
                         loss=self.loss,
@@ -185,7 +185,7 @@ class LikelihoodOptimizer(Minimizer):
             gof_qualifiers=gof_qualifiers,
             guess=self.guess,
             model=self.model,
-            data={**self.independent_data, **self.dependent_data},
+            data={**self.xdata, **self.ydata},
             base_result = {'scipy': scipy_result}
         )
 
@@ -196,8 +196,8 @@ class EMOptimizer(Minimizer):
     def __init__(
         self,
         model: Model,
-        independent_data: dict[str, np.array],
-        dependent_data: dict[str, np.array],
+        xdata: dict[str, np.array],
+        ydata: dict[str, np.array],
         posterior: dict[str, np.array],
         loss: Loss,
         guess: Optional[dict[str, float]] = None,
@@ -205,8 +205,8 @@ class EMOptimizer(Minimizer):
         self.posterior = posterior
         super().__init__(
             model=model,
-            independent_data=independent_data,
-            dependent_data=dependent_data,
+            xdata=xdata,
+            ydata=ydata,
             loss=loss,
             guess=guess,
         )
@@ -225,8 +225,8 @@ class EMOptimizer(Minimizer):
         no_progress = 0
         # cache dict?
         for i in pbar:
-            eval = self.model(**self.independent_data, **parameters_current)
-            loss = self.loss(self.dependent_data, eval)
+            eval = self.model(**self.xdata, **parameters_current)
+            loss = self.loss(self.ydata, eval)
 
             parameters_step = self.step()
 
@@ -259,7 +259,7 @@ class EMOptimizer(Minimizer):
             gof_qualifiers=gof_qualifiers,
             guess=self.guess,
             model=self.model,
-            data={**self.independent_data, **self.dependent_data},
+            data={**self.xdata, **self.ydata},
         )
 
         return result
@@ -284,7 +284,7 @@ class GMMOptimizer(EMOptimizer):
 
                     # independent data should be given in the same shape as T_i
                     # which is typically (N, 1), to be sure shapes match we reshape independent data
-                    num += np.sum(T_i * self.independent_data[gmm_rhs.x.name].reshape(T_i.shape))
+                    num += np.sum(T_i * self.xdata[gmm_rhs.x.name].reshape(T_i.shape))
                     denom += np.sum(T_i)
 
             parameters[p_name] = num / denom
@@ -307,7 +307,7 @@ class GMMOptimizer(EMOptimizer):
 
                     num += np.sum(
                         T_i
-                        * (self.independent_data[gmm_rhs.x.name].reshape(T_i.shape) - mu_value) ** 2
+                        * (self.xdata[gmm_rhs.x.name].reshape(T_i.shape) - mu_value) ** 2
                     )
                     denom += np.sum(T_i)
 
@@ -357,7 +357,7 @@ class ScipyEMOptimizer(EMOptimizer):
             x,
             args=(
                 self.parameter_names,
-                self.independent_data,
+                self.xdata,
                 self.posterior,
                 self.model,
                 self.loss,
@@ -380,7 +380,7 @@ class ScipyEMOptimizer(EMOptimizer):
             parameters=parameters,
             gof_qualifiers=gof_qualifiers,
             guess=self.guess,
-            data={**self.independent_data, **self.dependent_data},
+            data={**self.xdata, **self.ydata},
             _result=result,
         )
 

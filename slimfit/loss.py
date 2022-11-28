@@ -189,7 +189,7 @@ class LogSumLoss(Loss):
 #         super().__init__(weights, reduction)
 #
 #     def __call__(
-#         self, dependent_data: dict[str, np.ndarray], target_data: dict[str, np.ndarray]
+#         self, ydata: dict[str, np.ndarray], target_data: dict[str, np.ndarray]
 #     ) -> np.ndarray | float:
 #         if self.weights is None:
 #             log_vals = {k: np.log(target_data[k]) for k in target_data.keys()}

@@ -1,16 +1,14 @@
 from __future__ import annotations
 
 import re
-from collections import UserList
+from collections import UserList, UserDict
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Iterable, Optional
 
 import numpy as np
 import numpy.typing as npt
-from sympy import Expr
-
-from slimfit import Model
+from sympy import Expr, Symbol
 
 
 class ParamType(Enum):
@@ -66,8 +64,8 @@ class Parameter:
         return self.symbol.name
 
 
-class Parameters(UserList):
-    """Parameter list object
+class Parameters(UserDict):
+    """Parameter dict object
 
     For now convenience
     Could potentially help the `Objective` to/from flat array of guesses for argument of scipy.minimize
@@ -75,10 +73,10 @@ class Parameters(UserList):
 
     @property
     def guess(self) -> dict[str, np.ndarray]:
-        return {p.name: np.asarray(p.guess) for p in self}
+        return {p.name: np.asarray(p.guess) for p in self.values()}
 
     def get_bounds(self) -> list[tuple[float | None, float | None]] | None:
-        bounds = [(p.lower_bound, p.upper_bound) for p in self]
+        bounds = [(p.lower_bound, p.upper_bound) for p in self.values()]
 
         if all((None, None) == b for b in bounds):
             return None
@@ -86,31 +84,31 @@ class Parameters(UserList):
             return bounds
 
     @classmethod
-    def from_model(cls,
-           model: Model,
-           parameters: dict[str, npt.ArrayLike] | Iterable[str] | str = None,
-        ) -> Parameters:
+    def from_symbols(cls,
+                     symbols: dict[str, Symbol],
+                     parameters: dict[str, npt.ArrayLike] | Iterable[str] | str = None,
+                     ) -> Parameters:
         if isinstance(parameters, str):
-            param_list = [Parameter(model.symbols[k]) for k in re.split('; |, |\*|\s+', parameters)]
+            p_dict = {k: Parameter(symbols[k]) for k in re.split('; |, |\*|\s+', parameters)}
         elif isinstance(parameters, list):
-            param_list = [Parameter(model.symbols[k]) for k in parameters]
+            p_dict = {k: Parameter(symbols[k]) for k in parameters}
         elif isinstance(parameters, dict):
-            param_list = [Parameter(model.symbols[k], guess=v) for k, v in parameters.items()]
+            p_dict = {k: Parameter(symbols[k], guess=v) for k, v in parameters.items()}
         elif parameters is None:
-            param_list = [Parameter(symbol) for symbol in model.symbols.values()]
+            p_dict = {symbol.name: Parameter(symbol) for symbol in symbols.values()}
         else:
             raise ValueError("Invalid values for 'parameters' or 'guess'")
-        return cls(param_list)
+        return cls(p_dict)
 
     def unpack(self, x: np.ndarray) -> dict[str, np.ndarray]:
         """Unpack a ndim 1 array of concatenated parameter values into a dictionary of
             parameter name: parameter_value where parameter values are cast back to their
             specified shapes.
         """
-        sizes = [int(np.product(p.shape)) for p in self]
+        sizes = [int(np.product(p.shape)) for p in self.values()]
 
         x_split = np.split(x, np.cumsum(sizes))
-        p_values = {p.name: arr.reshape(p.shape) for arr, p in zip(x_split, self)}
+        p_values = {p.name: arr.reshape(p.shape) for arr, p in zip(x_split, self.values())}
 
         return p_values
 

@@ -5,7 +5,7 @@ from slimfit.fit import Fit
 from slimfit.functions import gaussian_numpy
 
 from slimfit.operations import MatMul
-from slimfit.symbols import parameter_matrix, Variable
+from slimfit.symbols import symbol_matrix, Variable
 
 import proplot as pplt
 
@@ -47,7 +47,7 @@ We can define the model in two ways:
 Option 1: Create sympy Matrix with coefficients and multiply it with the array of coefficients
 """
 # Create a sympy matrix with parameters are elements with shape (3, 1)
-x = parameter_matrix(name="X", shape=(3, 1))
+x = symbol_matrix(name="X", shape=(3, 1))
 x
 
 #%%

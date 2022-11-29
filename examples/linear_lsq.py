@@ -22,7 +22,8 @@ ydata += noise
 DATA = {"x": xdata, "y": ydata}
 
 #%%
-parameters = Parameters.from_model(model, 'a b')
+
+parameters = Parameters.from_symbols(model.symbols, 'a b')
 
 fit = Fit(model, parameters=parameters, data=DATA)
 result = fit.execute()
@@ -30,5 +31,5 @@ result = fit.execute()
 #%%
 fig, ax = pplt.subplots()
 ax.scatter(DATA["x"], DATA["y"])
-ax.plot(DATA["x"], model(**fit.xdata, **result.parameters)["y"], color="r")
+ax.plot(DATA["x"], model.to_numerical()(**fit.xdata, **result.parameters)["y"], color="r")
 pplt.show()

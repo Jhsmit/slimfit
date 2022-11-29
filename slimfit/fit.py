@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from functools import cached_property
 from typing import Optional, Type
 
 import numpy as np
@@ -8,8 +9,8 @@ from sympy import Expr, MatrixBase, Symbol
 
 from slimfit.loss import L2Loss, LogLoss, Loss
 from slimfit.minimizer import ScipyMinimizer, Minimizer
-from slimfit.models import Model
-from slimfit.numerical import NumExprBase
+from slimfit.models import Model, NumericalModel
+from slimfit.numerical import NumExprBase, to_numerical
 from slimfit.parameter import Parameter, Parameters
 
 
@@ -28,21 +29,25 @@ class Fit(object):
         loss: Optional[Loss] = L2Loss(),
     ):
 
-        self.model = model
+        self.symbolic_model = model
         self.parameters = Parameters(parameters)
 
         data: dict[str, np.ndarray] = {getattr(k, 'name', k): np.asarray(v) for k, v in data.items()}
         self.loss = loss
 
         # 'independent' data; or 'xdata'; typically chosen measurement points
-        self.xdata = {k: v for k, v in data.items() if k in self.model.symbols}
+        self.xdata = {k: v for k, v in data.items() if k in self.symbolic_model.symbols}
 
         # 'dependent' data; or 'ydata'; typically measurements
-        self.ydata = {k: v for k, v in data.items() if k in self.model.dependent_symbols}
+        self.ydata = {k: v for k, v in data.items() if k in self.symbolic_model.dependent_symbols}
 
         # TODO checking if everything is accounted for
         # except KeyError as k:
         #     raise KeyError(f"Missing independent data: {k}") from k
+
+    @cached_property
+    def numerical_model(self) -> NumericalModel:
+        return to_numerical(self.symbolic_model, self.parameters)
 
     def execute(
         self,
@@ -50,10 +55,9 @@ class Fit(object):
         **execute_options,
     ):
 
-        self.model.renew()  # refresh lambdified cached properties
         minimizer_cls = minimizer or self.get_minimizer()
         minimizer_instance = minimizer_cls(
-            self.model, self.parameters, self.xdata, self.ydata, self.loss,
+            self.numerical_model, self.parameters, self.xdata, self.ydata, self.loss,
         )
 
         result = minimizer_instance.execute(**execute_options)

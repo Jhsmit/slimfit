@@ -3,7 +3,7 @@ from typing import Callable, Optional
 from slimfit.callable import convert_callable
 from slimfit.fit import Fit
 from slimfit.markov import generate_transition_matrix, extract_states
-from slimfit.symbols import Parameter, Variable, parameter_matrix
+from slimfit.symbols import Parameter, Variable, symbol_matrix
 from slimfit.models import Model
 import numpy as np
 import proplot as pplt
@@ -37,7 +37,7 @@ states = extract_states(connectivity)
 xt = exp(m * Variable("t"))
 
 #%%
-y0 = parameter_matrix(name="y0", shape=(3, 1), suffix=states, rand_init=True, norm=True)
+y0 = symbol_matrix(name="y0", shape=(3, 1), suffix=states, rand_init=True, norm=True)
 model = Model({Variable("y"): xt @ y0})
 
 #%%

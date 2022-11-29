@@ -4,11 +4,12 @@ Currently only multiplications for probablities
 """
 from functools import reduce
 from operator import or_, mul, add
+from typing import Optional
 
 import numpy.typing as npt
 
-from slimfit.numerical import NumExprBase, to_numexpr
-
+from slimfit.numerical import NumExprBase, to_numerical
+from slimfit.parameter import Parameters
 
 # a composite expression has multiple expr elements; connected by some operation but calculation is
 # deferred so that fitting can inspect the composition and decide the best optimization strategy
@@ -17,10 +18,11 @@ class CompositeNumExpr(NumExprBase):
 
     kind = 'composite'
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, parameters: Optional[Parameters] = None):
+        super().__init__(parameters)
         if len(args) == 1:
             raise ValueError("At least two arguments are required.")
-        self.elements = [to_numexpr(arg) for arg in args]
+        self.elements = [to_numerical(arg, parameters) for arg in args]
 
     def renew(self) -> None:
         """Renews component parts"""
@@ -32,6 +34,11 @@ class CompositeNumExpr(NumExprBase):
     def symbols(self) -> dict:
         """Return symbols in order or constituent elements and then by alphabet"""
         return reduce(or_, (elem.symbols for elem in self.elements))
+
+    # @property
+    # def parameters(self) -> Parameters:
+    #     """Return parameters"""
+    #     return reduce(or_, (elem.parameters for elem in self.elements))
 
     def __getitem__(self, item) -> NumExprBase:
         return self.elements.__getitem__(item)
@@ -69,78 +76,13 @@ class MatMul(CompositeNumExpr):
 
     """
 
-    def __init__(self, *args):
+    def __init__(self, *args, parameters: Optional[Parameters] = None):
         if len(args) != 2:
             raise ValueError("MatMul takes exactly two arguments")
-        super().__init__(*args)
+        super().__init__(*args, parameters=parameters)
 
     def __call__(self, **kwargs):
         return self.elements[0](**kwargs) @ self.elements[1](**kwargs)
-
-
-#
-# class CompositeModel(StateProbabilityModel):
-#     def __init__(
-#             self, lhs: StateProbabilityModel, rhs: StateProbabilityModel, operator: Callable
-#     ):
-#         expressions = {**lhs.expressions, **rhs.expressions}
-#         independent_vars = {**lhs.independent_vars, **rhs.independent_vars}.values()
-#         super().__init__(independent_vars, expressions)
-#         # TODO in sympy these are called args
-#         """
-#         >>> x*y + 3
-#
-#         >>> type(expr)
-#         <class 'sympy.core.add.Add'>
-#
-#         >>> expr.args
-#         (3, x * y)
-#         """
-#         self.components = [lhs, rhs]
-#         for c in self.components:
-#             if not isinstance(c, StateProbabilityModel):
-#                 raise TypeError(
-#                     "Only 'StateProbabilityModel' objects can be multiplied " "together"
-#                 )
-#         self.operator = operator
-#         self.operator = operator
-#         if not operator == mul:
-#             raise TypeError("Composite Models support multiplication only")
-#
-#         if lhs.states != rhs.states:
-#             raise ValueError("Mismatch between states of model components.")
-#
-#         self.states = lhs.states
-#
-#     def __call__(self, **kwargs):
-#         return self.operator(self.components[0](**kwargs), self.components[1](**kwargs))
-#
-#     def __iter__(self):
-#         return self.components.__iter__()
-#
-#     def f_ij(self, **kwargs):
-#         lhs = self.components[0].f_ij(**kwargs)
-#         rhs = self.components[1].f_ij(**kwargs)
-#         return self.operator(lhs, rhs)
-#
-#     def get_component(self, component_type: Type) -> dict[int, Any]:
-#         """
-#         Returns model components of specifed type
-#
-#         Args:
-#             component_type: The type to return
-#
-#         Returns:
-#             Dictionary of components of the requested type, keys are their position.
-#         """
-#
-#         components = {
-#             i: c for i, c in enumerate(self.components) if isinstance(c, component_type)
-#         }
-#
-#         return components
-#
-#
 
 
 class Sum(object):

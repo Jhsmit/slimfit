@@ -4,15 +4,18 @@ from collections import defaultdict
 from typing import Iterable, Optional, OrderedDict, Any
 
 import numpy as np
+from sympy import Symbol
 
 from slimfit import NumExprBase, Model
+from slimfit.models import NumericalModel
 from slimfit.operations import Mul
+from slimfit.parameter import Parameter
 from slimfit.symbols import FitSymbol
 
 
 def overlapping_model_parameters(
-    model_callables: list[tuple[FitSymbol, NumExprBase]]
-) -> list[Model]:
+    model_callables: list[tuple[Symbol, NumExprBase]]
+) -> list[NumericalModel]:
 
     seen_models = []
     seen_sets = []
@@ -40,7 +43,7 @@ def overlapping_model_parameters(
         model_dict = {
             lhs: rhs[0] if len(rhs) == 1 else Mul(*rhs) for lhs, rhs in model_dict.items()
         }
-        sub_models.append(Model(model_dict))
+        sub_models.append(NumericalModel(model_dict))
 
     return sub_models
 

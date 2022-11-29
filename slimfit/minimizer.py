@@ -12,6 +12,7 @@ from tqdm.auto import trange
 from slimfit import Model, NumExprBase
 from slimfit.fitresult import FitResult
 from slimfit.loss import Loss
+from slimfit.models import NumericalModel
 from slimfit.operations import Mul
 from slimfit.parameter import Parameters
 from slimfit.symbols import FitSymbol
@@ -24,7 +25,7 @@ STATE_AXIS = -2
 class Minimizer(metaclass=abc.ABCMeta):
     def __init__(
         self,
-        model: Model,
+        model: NumericalModel,
         parameters: Parameters,
         xdata: dict[str, np.array],
         ydata: dict[str, np.array],
@@ -34,9 +35,7 @@ class Minimizer(metaclass=abc.ABCMeta):
         self.parameters = parameters
         self.xdata = xdata
         self.ydata = ydata
-
         self.loss = loss
-        self.model = model
 
     @abc.abstractmethod
     def execute(self, **minimizer_options) -> FitResult:
@@ -100,7 +99,7 @@ class LikelihoodOptimizer(Minimizer):
         # parameters which needs to be passed / inferred
 
         # Split top-level multiplications in the model as they can be optimized in log likelihood independently
-        components: list[tuple[FitSymbol, NumExprBase]] = []  # todo tuple LHS as variable
+        components: list[tuple[Symbol, NumExprBase]] = []  # todo tuple LHS as variable
         for lhs, rhs in self.model.items():
             if isinstance(rhs, Mul):
                 components += [(lhs, elem) for elem in rhs.elements]
@@ -114,14 +113,14 @@ class LikelihoodOptimizer(Minimizer):
         pbar = trange(max_iter, disable=not verbose)
         t0 = time.time()
 
-        parameters_current = self.guess  # initialize parameters
+        parameters_current = self.parameters.guess  # initialize parameters
         prev_loss = 0.0
         no_progress = 0
         for i in pbar:
-            eval = self.model(**self.xdata, **parameters_current)
-            loss = self.loss(self.ydata, eval)
+            result = self.model(**self.xdata, **parameters_current)
+            loss = self.loss(self.ydata, result)
             # posterior dict has values with shapes equal to eval
-            posterior = {k: v / v.sum(axis=STATE_AXIS, keepdims=True) for k, v in eval.items()}
+            posterior = {k: v / v.sum(axis=STATE_AXIS, keepdims=True) for k, v in result.items()}
 
             # At the moment we assume all callables in the sub models to be MatrixCallables
             # dictionary of new parameter values for in this iteration
@@ -129,12 +128,13 @@ class LikelihoodOptimizer(Minimizer):
             for sub_model in sub_models:
                 # determine the kind
                 kinds = [c.kind for c in sub_model.values()]
-                if all([k == "constant" for k in kinds]):
+                print("CHECK IF THIS STILL WORKS !!")
+                if all(k == "constant" for k in kinds):
                     opt = ConstantOptimizer(
                         sub_model, self.xdata, {}, posterior, loss=self.loss
                     )
                     parameters = opt.step()
-                elif all([k == "gmm" for k in kinds]):
+                elif all(k == "gmm" for k in kinds):
                     opt = GMMOptimizer(
                         sub_model, self.xdata, {}, posterior, loss=self.loss
                     )

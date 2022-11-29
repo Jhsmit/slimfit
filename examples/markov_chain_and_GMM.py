@@ -7,7 +7,7 @@ from slimfit.markov import generate_transition_matrix, extract_states
 from slimfit.minimizer import LikelihoodOptimizer
 from slimfit.models import Model
 from slimfit.operations import Mul
-from slimfit.symbols import clear_symbols, Variable, parameter_matrix
+from slimfit.symbols import clear_symbols, Variable, symbol_matrix
 
 from sympy import Matrix, exp
 import numpy as np
@@ -57,8 +57,8 @@ xt = exp(m * Variable("t"))
 y0 = Matrix([[Parameter("y0_A"), Parameter("y0_B"), 1 - Parameter("y0_A") - Parameter("y0_B")]]).T
 
 # Gaussian mixture model part
-mu = parameter_matrix("mu", shape=(3, 1), suffix=states)
-sigma = parameter_matrix("sigma", shape=(3, 1), suffix=states)
+mu = symbol_matrix("mu", shape=(3, 1), suffix=states)
+sigma = symbol_matrix("sigma", shape=(3, 1), suffix=states)
 gmm = GMM(Variable("e"), mu=mu, sigma=sigma)
 
 model = Model({Probability("p"): Mul(xt @ y0, gmm)})

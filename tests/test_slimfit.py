@@ -14,7 +14,7 @@ from slimfit.models import Model
 from slimfit.symbols import (
     Variable,
     Probability,
-    parameter_matrix,
+    symbol_matrix,
     Parameter,
     clear_symbols,
 )
@@ -23,14 +23,14 @@ from slimfit.symbols import (
 class TestEMBase(object):
     def test_parameter_matrix(self):
         clear_symbols()
-        m = parameter_matrix("A", shape=(3, 3))
+        m = symbol_matrix("A", shape=(3, 3))
 
         assert m.shape == (3, 3)
         elem = m[0, 0]
         assert elem.name == "A_0_0"
         assert elem.value == 1.0
 
-        m = parameter_matrix(
+        m = symbol_matrix(
             "A",
             values=[1, 2, 3],
             shape=(1, 3),
@@ -53,14 +53,14 @@ class TestEMBase(object):
         elem = m[0, 2]
         assert elem == 3
 
-        m = convert_callable(parameter_matrix("A", values=np.arange(9), shape=(3, 3)))
+        m = convert_callable(symbol_matrix("A", values=np.arange(9), shape=(3, 3)))
         for v, (i, j) in enumerate(np.ndindex(m.shape)):
             assert m.expr[i, j].value == v
             assert m[i, j].value == v
             assert m.kind == "constant"
             assert np.allclose(m(**m.guess), np.arange(9).reshape(3, 3))
 
-        b = convert_callable(parameter_matrix("B", shape=(5, 2), rand_init=True, norm=True))
+        b = convert_callable(symbol_matrix("B", shape=(5, 2), rand_init=True, norm=True))
         assert b(**b.guess).sum() == pytest.approx(1.0)
 
     def test_model(self):
@@ -86,11 +86,11 @@ class TestEMBase(object):
         assert res["p"].shape == (100, 3, 1)
 
         # Create GMM with factory methods
-        mu = parameter_matrix("mu", values=[0.2, 0.4, 0.7], shape=(3, 1))
-        sigma = parameter_matrix("sigma", values=[0.1, 0.1, 0.1], shape=(3, 1))
+        mu = symbol_matrix("mu", values=[0.2, 0.4, 0.7], shape=(3, 1))
+        sigma = symbol_matrix("sigma", values=[0.1, 0.1, 0.1], shape=(3, 1))
         x = Variable("x")
         gmm = gaussian(x, mu, sigma)
-        c = parameter_matrix("c", values=[0.2, 0.3, 0.5], shape=(3, 1))
+        c = symbol_matrix("c", values=[0.2, 0.3, 0.5], shape=(3, 1))
 
         model_dict = {Probability("p"): Mul(c, gmm)}
         model = Model(model_dict)
@@ -164,7 +164,7 @@ class TestEMFit(object):
         x_vals = np.array([0.3, 0.5, 0.2]).reshape(3, 1)  # unknowns
         spectrum = basis @ np.array(x_vals).reshape(3, 1)  # measured
 
-        x = parameter_matrix(name="X", shape=(3, 1))
+        x = symbol_matrix(name="X", shape=(3, 1))
         m = MatMul(basis, x)
         fit = Fit({Variable("b"): m}, b=spectrum)
         result = fit.execute()
@@ -190,7 +190,7 @@ class TestEMFit(object):
         states = extract_states(connectivity)
 
         xt = exp(m * Variable("t"))
-        y0 = parameter_matrix(name="y0", shape=(3, 1), suffix=states, rand_init=True, norm=True)
+        y0 = symbol_matrix(name="y0", shape=(3, 1), suffix=states, rand_init=True, norm=True)
         model = Model({Variable("y"): xt @ y0})
 
         num = 50
@@ -258,9 +258,9 @@ class TestEMFit(object):
             "c_D": 0.33,
         }
 
-        mu = parameter_matrix(name="mu", shape=(3, 1), suffix=states, rand_init=True)
-        sigma = parameter_matrix(name="sigma", shape=(3, 1), suffix=states, rand_init=True)
-        c = parameter_matrix(name="c", shape=(3, 1), suffix=states, norm=True)
+        mu = symbol_matrix(name="mu", shape=(3, 1), suffix=states, rand_init=True)
+        sigma = symbol_matrix(name="sigma", shape=(3, 1), suffix=states, rand_init=True)
+        c = symbol_matrix(name="c", shape=(3, 1), suffix=states, norm=True)
         model = Model({Probability("p"): Mul(c, GMM(Variable("x"), mu, sigma))})
 
         fit = Fit(model, **data)
@@ -359,15 +359,15 @@ class TestEMFit(object):
         model_dict = {}
 
         states = ["A", "B", "C"]
-        mu = parameter_matrix(name="mu", shape=(3, 1), suffix=states, rand_init=True)
-        sigma = parameter_matrix(name="sigma", shape=(3, 1), suffix=states, rand_init=True)
-        c = parameter_matrix(name="c", shape=(3, 1), suffix=states, norm=True)
+        mu = symbol_matrix(name="mu", shape=(3, 1), suffix=states, rand_init=True)
+        sigma = symbol_matrix(name="sigma", shape=(3, 1), suffix=states, rand_init=True)
+        c = symbol_matrix(name="c", shape=(3, 1), suffix=states, norm=True)
         model_dict[Probability("p1")] = Mul(c, GMM(Variable("x1"), mu, sigma))
 
         states = ["B", "C", "D"]
-        mu = parameter_matrix(name="mu", shape=(3, 1), suffix=states, rand_init=True)
-        sigma = parameter_matrix(name="sigma", shape=(3, 1), suffix=states, rand_init=True)
-        c = parameter_matrix(name="c", shape=(3, 1), suffix=states, norm=True)
+        mu = symbol_matrix(name="mu", shape=(3, 1), suffix=states, rand_init=True)
+        sigma = symbol_matrix(name="sigma", shape=(3, 1), suffix=states, rand_init=True)
+        c = symbol_matrix(name="c", shape=(3, 1), suffix=states, norm=True)
         model_dict[Probability("p2")] = Mul(c, GMM(Variable("x2"), mu, sigma))
 
         model = Model(model_dict)
@@ -411,8 +411,8 @@ class TestEMFit(object):
         ).T
 
         # Gaussian mixture model part
-        mu = parameter_matrix("mu", shape=(3, 1), suffix=states)
-        sigma = parameter_matrix("sigma", shape=(3, 1), suffix=states)
+        mu = symbol_matrix("mu", shape=(3, 1), suffix=states)
+        sigma = symbol_matrix("sigma", shape=(3, 1), suffix=states)
         gmm = GMM(Variable("e"), mu=mu, sigma=sigma)
 
         model = Model({Probability("p"): Mul(xt @ y0, gmm)})

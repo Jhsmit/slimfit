@@ -9,7 +9,7 @@ from slimfit import Model, MatrixNumExpr
 from slimfit.numerical import NumExprBase
 from slimfit.fit import Fit
 from slimfit.markov import generate_transition_matrix
-from slimfit.numerical import to_numexpr
+from slimfit.numerical import to_numerical
 from slimfit.symbols import SORT_KEY, FitSymbol, Parameter, Variable
 from sympy import Matrix
 
@@ -26,8 +26,8 @@ class MarkovIVPNumExpr(NumExprBase):
         **ivp_kwargs
     ):
         self.t_var = t_var
-        self.trs_matrix = to_numexpr(trs_matrix)
-        self.y0 = to_numexpr(y0)
+        self.trs_matrix = to_numerical(trs_matrix)
+        self.y0 = to_numerical(y0)
         self.domain = domain
 
         ivp_defaults = {'method': 'Radau'}

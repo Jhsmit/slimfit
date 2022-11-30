@@ -5,7 +5,8 @@ from slimfit.fit import Fit
 from slimfit.functions import gaussian_numpy
 
 from slimfit.operations import MatMul
-from slimfit.symbols import symbol_matrix, Variable
+from slimfit.parameter import Parameters
+from slimfit.symbols import symbol_matrix, Symbol, get_symbols
 
 import proplot as pplt
 
@@ -48,19 +49,23 @@ Option 1: Create sympy Matrix with coefficients and multiply it with the array o
 """
 # Create a sympy matrix with parameters are elements with shape (3, 1)
 x = symbol_matrix(name="X", shape=(3, 1))
-x
+
+symbols = get_symbols(x)
+parameters = Parameters.from_symbols(symbols)
+x, parameters
 
 #%%
 
 m = basis @ x  # Matirx multiply basis matrix with parameter vector
 model = Model(
-    {Variable("b"): basis @ x}
-)  # define the model, measured spectrum corresponds to Variable('b')
-m_callable = model.model_dict[Variable("b")]
-m_callable.shape
+    {Symbol("b"): basis @ x}
+)  # define the model, measured spectrum corresponds to Symbol('b')
+num_expr = model.expr[Symbol("b")]
+num_expr.shape
+
 
 #%%
-fit = Fit(model, b=spectrum)
+fit = Fit(model, parameters, data={'b': spectrum})
 result = fit.execute()  # executiong time 117 ms
 result.parameters
 
@@ -79,18 +84,17 @@ Option 2: Create a (3x1) Matrix and evaluate the matrix multiplication lazily wi
 
 #%%
 m = MatMul(basis, x)
-model = Model({Variable("b"): m})
-m_callable = model.model_dict[Variable("b")]
+model = Model({Symbol("b"): m})
+m_callable = model.expr[Symbol("b")]
 m_callable  # = MatMul object
+
 #%%
 
-fit = Fit(model, b=spectrum)
+fit = Fit(model, parameters, data={'b': spectrum})
 result = fit.execute()  # execution time: 13.3 ms
 
+
 #%%
-
-result.parameters
-
 for i, j in np.ndindex(x_vals.shape):
     print(x_vals[i, j], result.parameters[f"X_{i}_{j}"])
 
@@ -99,5 +103,5 @@ for i, j in np.ndindex(x_vals.shape):
 # plot the results
 fig, ax = pplt.subplots()
 ax.plot(wavenumber, spectrum, color="r")
-ax.plot(wavenumber, model(**result.parameters)["b"], color="k", linestyle="--")
+ax.plot(wavenumber, fit.numerical_model(**result.parameters)["b"], color="k", linestyle="--")
 pplt.show()

@@ -5,12 +5,12 @@ from sympy import HadamardProduct, Matrix, exp, Symbol
 
 # import numpy as np
 
-# from slimfit.fit import Fit
-# from slimfit.functions import gaussian, gaussian_sympy, gaussian_numpy
-# from slimfit.loss import LogSumLoss
+from slimfit.fit import Fit
+from slimfit.functions import gaussian, gaussian_sympy, gaussian_numpy
+from slimfit.loss import LogLoss
 # from slimfit.markov import generate_transition_matrix, extract_states
 # from slimfit.minimizer import LikelihoodOptimizer
-# from slimfit.operations import Mul, MatMul
+from slimfit.operations import Mul, MatMul
 from slimfit.models import Model
 from slimfit.numerical import MatrixNumExpr, NumExpr, GMM, to_numerical
 from slimfit.symbols import (
@@ -227,7 +227,7 @@ class TestNumExpr(object):
 
 
 class TestEMFit(object):
-    @pytest.mark.skip("Old test")
+
     def test_linear_lstsq(self):
         clear_symbols()
         np.random.seed(43)
@@ -242,33 +242,34 @@ class TestEMFit(object):
 
         data = {"x": xdata, "y": ydata}
 
-        model = Model({Variable("y"): Parameter("a") * Variable("x") + Parameter("b")})
-        fit = Fit(model, **data)
+        model = Model({Symbol("y"): Symbol("a") * Symbol("x") + Symbol("b")})
+        parameters = Parameters.from_symbols(model.symbols, "a b")
+        fit = Fit(model, parameters, data)
 
         res = fit.execute()
 
         assert res.parameters["a"] == pytest.approx(gt["a"], abs=0.2)
         assert res.parameters["b"] == pytest.approx(gt["b"], abs=0.1)
 
-    @pytest.mark.skip("Old test")
     def test_likelihood_gaussian(self):
         clear_symbols()
         np.random.seed(43)
 
         gt = {"mu": 2.4, "sigma": 0.7}
 
-        xdata = np.random.normal(gt["mu"], scale=gt["sigma"], size=100)
+        data = {'x': np.random.normal(gt["mu"], scale=gt["sigma"], size=100)}
         model = Model(
-            {Probability("p"): gaussian_sympy(Variable("x"), Parameter("mu"), Parameter("sigma"))}
+            {Symbol("p"): gaussian_sympy(Symbol("x"), Symbol("mu"), Symbol("sigma"))}
         )
 
-        fit = Fit(model, x=xdata)
+        parameters = Parameters.from_symbols(model.symbols, "mu sigma")
+
+        fit = Fit(model, parameters, data, loss=LogLoss())
         res = fit.execute()
 
         assert res.parameters["mu"] == pytest.approx(gt["mu"], abs=0.05)
         assert res.parameters["sigma"] == pytest.approx(gt["sigma"], abs=0.05)
 
-    @pytest.mark.skip("Old test")
     def test_linear_matrix(self):
         clear_symbols()
         np.random.seed(43)
@@ -284,8 +285,11 @@ class TestEMFit(object):
         spectrum = basis @ np.array(x_vals).reshape(3, 1)  # measured
 
         x = symbol_matrix(name="X", shape=(3, 1))
-        m = MatMul(basis, x)
-        fit = Fit({Variable("b"): m}, b=spectrum)
+        symbols = get_symbols(x)
+        parameters = Parameters.from_symbols(symbols)
+
+        model = Model({Symbol('b'): MatMul(basis, x)})
+        fit = Fit(model, parameters, data={'b': spectrum})
         result = fit.execute()
 
         for i, j in np.ndindex(x_vals.shape):

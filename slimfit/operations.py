@@ -7,67 +7,61 @@ from operator import or_, mul, add
 from typing import Optional
 
 import numpy.typing as npt
+import numpy as np
 
-from slimfit.numerical import NumExprBase, to_numerical
-from slimfit.parameter import Parameters
+from slimfit.numerical import NumExprBase, to_numerical, CompositeExpr
+from slimfit.parameter import Parameters, Parameter
+from slimfit.typing import Shape
 
 # a composite expression has multiple expr elements; connected by some operation but calculation is
 # deferred so that fitting can inspect the composition and decide the best optimization strategy
-class CompositeNumExpr(NumExprBase):
-    """Operations base class"""
-
-    kind = "composite"
-
-    def __init__(self, *args, parameters: Optional[Parameters] = None):
-        super().__init__(parameters)
-        if len(args) == 1:
-            raise ValueError("At least two arguments are required.")
-        self.elements = [to_numerical(arg, parameters) for arg in args]
-
-    def renew(self) -> None:
-        """Renews component parts"""
-
-        for elem in self.elements:
-            elem.renew()
-
-    @property
-    def symbols(self) -> dict:
-        """Return symbols in order or constituent elements and then by alphabet"""
-        return reduce(or_, (elem.symbols for elem in self.elements))
-
-    # @property
-    # def parameters(self) -> Parameters:
-    #     """Return parameters"""
-    #     return reduce(or_, (elem.parameters for elem in self.elements))
-
-    def __getitem__(self, item) -> NumExprBase:
-        return self.elements.__getitem__(item)
 
 
-class Sum(CompositeNumExpr):
-    def __call__(self, **kwargs) -> npt.ArrayLike:
-        eval_elems = (elem(**kwargs) for elem in self.elements)
+# class Sum(CompositeExpr):
+#     def __call__(self, **kwargs) -> npt.ArrayLike:
+#         eval_elems = (elem(**kwargs) for elem in self.elements)
+#
+#         return reduce(add, eval_elems)
+#
+#
+# # elementwise !
 
-        return reduce(add, eval_elems)
+#TODO subclass for *args based Composite
 
+class CompositeArgsExpr(CompositeExpr):
+    """Composite expr which takes *args to init rather than dictionary of expressions"""
 
-# elementwise !
-class Mul(CompositeNumExpr):
+    def __init__(self, *args):
+        expr = {i: arg for i, arg in enumerate(args)}
+        super().__init__(expr)
+
+    def to_numerical(self, parameters: dict[str, Parameter], data: dict[str, np.ndarray]):
+        args = (to_numerical(expr, parameters, data) for expr in self.values())
+        args = list(args)
+        print(args)
+        instance = self.__class__(*args)
+
+        return instance
+
+class Mul(CompositeArgsExpr):
     # might be subject to renaming
     """Mul elementwise lazily
     """
 
-    def __call__(self, **kwargs) -> npt.ArrayLike:
-        eval_elems = (elem(**kwargs) for elem in self.elements)
+    def __init__(self, *args):
+        super().__init__(*args)
 
-        return reduce(mul, eval_elems)
+    def __call__(self, **kwargs) -> npt.ArrayLike:
+        result = super().__call__(**kwargs)
+
+        return reduce(mul, result.values())
 
     def __repr__(self):
-        args = ", ".join([arg.__repr__() for arg in self.elements])
+        args = ", ".join([arg.__repr__() for arg in self.values()])
         return f"Mul({args})"
 
 
-class MatMul(CompositeNumExpr):
+class MatMul(CompositeArgsExpr):
 
     """
     matmul composite callable
@@ -76,13 +70,22 @@ class MatMul(CompositeNumExpr):
 
     """
 
-    def __init__(self, *args, parameters: Optional[Parameters] = None):
+    def __init__(self, *args):
         if len(args) != 2:
             raise ValueError("MatMul takes exactly two arguments")
-        super().__init__(*args, parameters=parameters)
+        super().__init__(*args)
 
     def __call__(self, **kwargs):
-        return self.elements[0](**kwargs) @ self.elements[1](**kwargs)
+        result = super().__call__(**kwargs)
+        return result[0] @ result[1]
+
+    @property
+    def shape(self) -> Shape:
+        raise NotImplementedError()
+
+    def __repr__(self):
+        args = ", ".join([arg.__repr__() for arg in self.values()])
+        return f"MatMul({args})"
 
 
 class Sum(object):

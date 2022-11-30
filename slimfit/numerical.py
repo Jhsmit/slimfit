@@ -88,20 +88,23 @@ class NumExprBase(SymbolicBase):
 
 class DummyNumExpr(NumExprBase):
     """Dummy callable object which returns supplied 'obj' when called
-    Has no parameters or variables
+    Has no parameters or symbols
     """
 
-    def __init__(self, obj: Any, parameters: Optional[Parameters] = None):
-        super().__init__(parameters)
+    def __init__(self, obj: Any, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.obj = obj
 
     def __call__(self, **kwargs):
         return self.obj
 
-
-class ArrayCallable(DummyNumExpr):
     @property
-    def shape(self) -> tuple[int, int]:
+    def symbols(self) -> dict[str, Symbol]:
+        return {}
+
+class ArrayNumExpr(DummyNumExpr):
+    @property
+    def shape(self) -> Shape:
         return self.obj.shape
 
 
@@ -413,7 +416,9 @@ class CompositeExpr(SymbolicBase):
             except TypeError:
                 # rhs is a slimfit `NumExpr` and has a `free_symbols` dictionary
                 symbols |= set(rhs.free_symbols.values())
-
+            except AttributeError:
+                # RHS doesnt have any symbols; for example might be a numpy array
+                pass
         return {s.name: s for s in sorted(symbols, key=str)}
 
     @property
@@ -421,13 +426,7 @@ class CompositeExpr(SymbolicBase):
         """Parameters must be a subset of symbols"""
         if self.numerical:
             return reduce(or_, (expr.parameters for expr in self.values()))
-        else:
-            return {}
-
-    # @parameters.setter
-    # def parameters(self, value: Mapping[str, Parameter]):
-    #     for expr in self.values():
-    #         expr.parameters = value
+        return {}
 
     @property
     def data(self) -> dict[str, np.ndarray]:
@@ -437,11 +436,6 @@ class CompositeExpr(SymbolicBase):
     def shape(self) -> Shape:
         shapes = (expr.shape for expr in self.values())
         return np.broadcast_shapes(*shapes)
-
-    # @data.setter
-    # def data(self, value: Mapping[str, np.ndarray]):
-    #     for expr in self.values():
-    #         expr.data = value
 
 
 class GMM(CompositeExpr):
@@ -612,8 +606,7 @@ def to_numerical(
     elif isinstance(expression, Expr):
         return NumExpr(expression, parameters=parameters, data=data)
     elif isinstance(expression, np.ndarray):
-        raise NotImplementedError("Not yet")
-        return ArrayCallable(expression, parameters=parameters, data=data)
+        return ArrayNumExpr(expression, parameters=parameters, data=data)
     elif isinstance(expression, NumExprBase):
         expression.parameters = parameters
         expression.data = data

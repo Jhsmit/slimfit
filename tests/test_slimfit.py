@@ -8,11 +8,12 @@ from sympy import HadamardProduct, Matrix, exp, Symbol
 from slimfit.fit import Fit
 from slimfit.functions import gaussian, gaussian_sympy, gaussian_numpy
 from slimfit.loss import LogLoss
+
 # from slimfit.markov import generate_transition_matrix, extract_states
 # from slimfit.minimizer import LikelihoodOptimizer
 from slimfit.operations import Mul, MatMul
 from slimfit.models import Model
-from slimfit.numerical import MatrixNumExpr, NumExpr, GMM, to_numerical
+from slimfit.numerical import MatrixNumExpr, NumExpr, GMM, to_numerical, LambdaNumExpr
 from slimfit.symbols import (
     symbol_matrix,
     clear_symbols,
@@ -23,7 +24,6 @@ import numpy as np
 
 
 class TestEMBase(object):
-
     def test_symbol_matrix(self):
         clear_symbols()
         m = symbol_matrix("A", shape=(3, 3))
@@ -32,11 +32,7 @@ class TestEMBase(object):
         elem = m[0, 0]
         assert elem.name == "A_0_0"
 
-        m = symbol_matrix(
-            "A",
-            shape=(1, 3),
-            suffix=["a", "b", "c"],
-        )
+        m = symbol_matrix("A", shape=(1, 3), suffix=["a", "b", "c"],)
 
         elem = m[0, 0]
         assert elem.name == "A_a"
@@ -45,21 +41,17 @@ class TestEMBase(object):
         assert elem.name == "A_b"
 
         parameters = {
-            'A_a': Parameter(m[0, 0], guess=2.),
-            'A_b': Parameter(m[0, 1]),
-            'A_c': Parameter(m[0, 2])
+            "A_a": Parameter(m[0, 0], guess=2.0),
+            "A_b": Parameter(m[0, 1]),
+            "A_c": Parameter(m[0, 2]),
         }
 
         m_num = to_numerical(m, parameters, {})
-        values = {
-            'A_a': 1,
-            'A_b': 2,
-            'A_c': 3.5
-        }
+        values = {"A_a": 1, "A_b": 2, "A_c": 3.5}
 
         result = m_num(**values)
         assert result.shape == (1, 3)
-        assert np.allclose(result, np.array([1., 2., 3.5]).reshape(1, 3))
+        assert np.allclose(result, np.array([1.0, 2.0, 3.5]).reshape(1, 3))
 
     @pytest.mark.skip("Old test")
     def test_model(self):
@@ -200,11 +192,11 @@ class TestNumExpr(object):
 
     def test_gmm(self):
         states = ["A", "B", "C"]
-        mu = symbol_matrix("mu", suffix=states)
-        sigma = symbol_matrix("sigma", suffix=states)
+        mu = symbol_matrix("mu", suffix=states, shape=(1, 3))
+        sigma = symbol_matrix("sigma", suffix=states, shape=(1, 3))
         gmm = GMM(Symbol("x"), mu, sigma)
         parameters = Parameters.from_symbols(gmm.symbols, "mu_A mu_B mu_C sigma_A sigma_B sigma_C")
-        data = {"x": np.linspace(-0.2, 1.2, num=25)}
+        data = {"x": np.linspace(-0.2, 1.2, num=25).reshape(-1, 1)}
 
         gt = {
             "mu_A": 0.23,
@@ -219,15 +211,14 @@ class TestNumExpr(object):
         }
 
         num_gmm = gmm.to_numerical(parameters, data)
-        assert num_gmm.shape == (3, 25)
+        assert num_gmm.shape == (25, 3)
         assert isinstance(num_gmm["mu"], MatrixNumExpr)
 
         result = num_gmm(**gt)
-        assert num_gmm.shape == (3, 25)
+        assert num_gmm.shape == (25, 3)
 
 
 class TestEMFit(object):
-
     def test_linear_lstsq(self):
         clear_symbols()
         np.random.seed(43)
@@ -257,10 +248,8 @@ class TestEMFit(object):
 
         gt = {"mu": 2.4, "sigma": 0.7}
 
-        data = {'x': np.random.normal(gt["mu"], scale=gt["sigma"], size=100)}
-        model = Model(
-            {Symbol("p"): gaussian_sympy(Symbol("x"), Symbol("mu"), Symbol("sigma"))}
-        )
+        data = {"x": np.random.normal(gt["mu"], scale=gt["sigma"], size=100)}
+        model = Model({Symbol("p"): gaussian_sympy(Symbol("x"), Symbol("mu"), Symbol("sigma"))})
 
         parameters = Parameters.from_symbols(model.symbols, "mu sigma")
 
@@ -288,8 +277,8 @@ class TestEMFit(object):
         symbols = get_symbols(x)
         parameters = Parameters.from_symbols(symbols)
 
-        model = Model({Symbol('b'): MatMul(basis, x)})
-        fit = Fit(model, parameters, data={'b': spectrum})
+        model = Model({Symbol("b"): MatMul(basis, x)})
+        fit = Fit(model, parameters, data={"b": spectrum})
         result = fit.execute()
 
         for i, j in np.ndindex(x_vals.shape):

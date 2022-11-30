@@ -69,8 +69,10 @@ c = symbol_matrix(name="c", shape=shape, suffix=states)
 gmm = GMM(Symbol("x"), mu, sigma)
 model = Model({Symbol("p"): gmm})
 
+
 #%%
-# model.symbols
+model.symbols
+
 #%%
 parameters = Parameters.from_symbols(gmm.symbols, guess)
 

@@ -65,7 +65,7 @@ num_expr.shape
 
 
 #%%
-fit = Fit(model, parameters, data={'b': spectrum})
+fit = Fit(model, parameters, data={"b": spectrum})
 result = fit.execute()  # executiong time 117 ms
 result.parameters
 
@@ -90,7 +90,7 @@ m_callable  # = MatMul object
 
 #%%
 
-fit = Fit(model, parameters, data={'b': spectrum})
+fit = Fit(model, parameters, data={"b": spectrum})
 result = fit.execute()  # execution time: 13.3 ms
 
 

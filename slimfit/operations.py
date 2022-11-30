@@ -26,7 +26,8 @@ from slimfit.typing import Shape
 #
 # # elementwise !
 
-#TODO subclass for *args based Composite
+# TODO subclass for *args based Composite
+
 
 class CompositeArgsExpr(CompositeExpr):
     """Composite expr which takes *args to init rather than dictionary of expressions"""
@@ -42,6 +43,7 @@ class CompositeArgsExpr(CompositeExpr):
         instance = self.__class__(*args)
 
         return instance
+
 
 class Mul(CompositeArgsExpr):
     # might be subject to renaming

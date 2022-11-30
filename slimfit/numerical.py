@@ -102,6 +102,7 @@ class DummyNumExpr(NumExprBase):
     def symbols(self) -> dict[str, Symbol]:
         return {}
 
+
 class ArrayNumExpr(DummyNumExpr):
     @property
     def shape(self) -> Shape:

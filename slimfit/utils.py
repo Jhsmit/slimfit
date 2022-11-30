@@ -8,6 +8,7 @@ from sympy import Symbol
 
 from slimfit import NumExprBase, Model
 from slimfit.models import NumericalModel
+
 # from slimfit.operations import Mul
 from slimfit.parameter import Parameter
 from slimfit.symbols import FitSymbol

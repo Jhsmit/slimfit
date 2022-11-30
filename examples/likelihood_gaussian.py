@@ -12,15 +12,13 @@ from slimfit.parameter import Parameters
 gt_params = {"mu": 2.4, "sigma": 0.7}
 
 xdata = np.random.normal(gt_params["mu"], scale=gt_params["sigma"], size=500)
-model = Model(
-    {Symbol("p"): gaussian_sympy(Symbol("x"), Symbol("mu"), Symbol("sigma"))}
-)
+model = Model({Symbol("p"): gaussian_sympy(Symbol("x"), Symbol("mu"), Symbol("sigma"))})
 
 #%%
-parameters = Parameters.from_symbols(model.symbols, 'mu sigma')
+parameters = Parameters.from_symbols(model.symbols, "mu sigma")
 #%%
 
-fit = Fit(model, parameters, data={'x': xdata}, loss=LogLoss())
+fit = Fit(model, parameters, data={"x": xdata}, loss=LogLoss())
 result = fit.execute()
 
 #%%

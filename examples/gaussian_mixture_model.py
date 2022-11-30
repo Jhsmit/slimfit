@@ -39,7 +39,7 @@ xdata = np.concatenate(
 )
 
 np.random.shuffle(xdata)
-data = {"x": xdata}
+data = {"x": xdata.reshape(-1, 1)}
 
 # %%
 guess = {
@@ -49,81 +49,87 @@ guess = {
     "sigma_A": 0.1,
     "sigma_B": 0.1,
     "sigma_C": 0.1,
-    "c_A": 0.33,
-    "c_B": 0.33,
-    "c_C": 0.33,
+    # "c_A": 0.33,
+    # "c_B": 0.33,
+    # "c_C": 0.33,
 }
+
+#%%
+
+y = data["x"] * np.random.rand(3).reshape(1, 3)
+y.shape
 
 # %%
 clear_symbols()
 
-mu = symbol_matrix(name="mu", shape=(3, 1), suffix=states)
-sigma = symbol_matrix(name="sigma", shape=(3, 1), suffix=states)
-c = symbol_matrix(name="c", shape=(3, 1), suffix=states)
-model = Model({Symbol("p"): Mul(c, GMM(Symbol("x"), mu, sigma))})
+shape = (1, 3)
+mu = symbol_matrix(name="mu", shape=shape, suffix=states)
+sigma = symbol_matrix(name="sigma", shape=shape, suffix=states)
+c = symbol_matrix(name="c", shape=shape, suffix=states)
+gmm = GMM(Symbol("x"), mu, sigma)
+model = Model({Symbol("p"): gmm})
 
 #%%
-model.symbols
+# model.symbols
 #%%
-
-parameters = Parameters.from_symbols(model.symbols, guess)
-parameters['sigma_A']
+parameters = Parameters.from_symbols(gmm.symbols, guess)
 
 # to_numerical(expr, parameters)
 #%%
 
-num_model = model.to_numerical(parameters)
+num_model = model.to_numerical(parameters, data)
+num_model(**guess)["p"].shape
 
-components: list[tuple[Symbol, NumExprBase]] = []  # todo tuple LHS as variable
-
-for lhs, rhs in num_model.items():
-    if isinstance(rhs, Mul):
-        components += [(lhs, elem) for elem in rhs.elements]
-    else:
-        components.append((lhs, rhs))
-components
-
-#%%
-
-def overlapping_model_parameters(
-    model_callables: list[tuple[FitSymbol, NumExprBase]]
-) -> list[NumericalModel]:
-
-    seen_models = []
-    seen_sets = []
-    for lhs, mc in model_callables:
-        items = set(mc.free_parameters.keys())
-
-        found = False
-        # look for sets of parameters we've seen so far, if found, append to the list of sets
-        for i, s in enumerate(seen_sets):
-            if items & s:
-                s |= items  # add in additional items
-                seen_models[i].append((lhs, mc))
-                found = True
-        if not found:
-            seen_sets.append(items)
-            seen_models.append([(lhs, mc)])
-
-    # Next, piece together the dependent model parts as Model objects, restoring original multiplications
-    sub_models = []
-    for components in seen_models:
-        model_dict = defaultdict(list)
-        for lhs, rhs in components:
-            model_dict[lhs].append(rhs)
-
-        model_dict = {
-            lhs: rhs[0] if len(rhs) == 1 else Mul(*rhs) for lhs, rhs in model_dict.items()
-        }
-        sub_models.append(NumericalModel(model_dict))
-
-    return sub_models
-
-
-#%%
-
-fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
-result = fit.execute(minimizer=LikelihoodOptimizer, )
+# components: list[tuple[Symbol, NumExprBase]] = []  # todo tuple LHS as variable
+#
+# for lhs, rhs in num_model.items():
+#     if isinstance(rhs, Mul):
+#         components += [(lhs, elem) for elem in rhs.elements]
+#     else:
+#         components.append((lhs, rhs))
+# components
+#
+# #%%
+#
+# def overlapping_model_parameters(
+#     model_callables: list[tuple[FitSymbol, NumExprBase]]
+# ) -> list[NumericalModel]:
+#
+#     seen_models = []
+#     seen_sets = []
+#     for lhs, mc in model_callables:
+#         items = set(mc.free_parameters.keys())
+#
+#         found = False
+#         # look for sets of parameters we've seen so far, if found, append to the list of sets
+#         for i, s in enumerate(seen_sets):
+#             if items & s:
+#                 s |= items  # add in additional items
+#                 seen_models[i].append((lhs, mc))
+#                 found = True
+#         if not found:
+#             seen_sets.append(items)
+#             seen_models.append([(lhs, mc)])
+#
+#     # Next, piece together the dependent model parts as Model objects, restoring original multiplications
+#     sub_models = []
+#     for components in seen_models:
+#         model_dict = defaultdict(list)
+#         for lhs, rhs in components:
+#             model_dict[lhs].append(rhs)
+#
+#         model_dict = {
+#             lhs: rhs[0] if len(rhs) == 1 else Mul(*rhs) for lhs, rhs in model_dict.items()
+#         }
+#         sub_models.append(NumericalModel(model_dict))
+#
+#     return sub_models
+#
+#
+# #%%
+#
+# fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
+# result = fit.execute(minimizer=LikelihoodOptimizer, )
 
 # # Compare fit result with ground truth parameters
 # for k, v in result.parameters.items():

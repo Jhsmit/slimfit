@@ -20,7 +20,7 @@ class ParamType(Enum):
 @dataclass
 class Parameter:
     symbol: Expr
-    guess: float | int | np.ndarray = field(default=1.)
+    guess: float | int | np.ndarray = field(default=1.0)
     lower_bound: float | int | np.ndarray = field(default=None)
     upper_bound: float | int | np.ndarray = field(default=None)
     # TODO partially fixing an array parameter is not supported
@@ -38,11 +38,10 @@ class Parameter:
 
         # If the `guess` has a shape, it must be the same as the symbol shape,
         # if it has any.
-        guess_shape = getattr(self.guess, 'shape', None)
-        symbol_shape = getattr(self.symbol, 'shape', guess_shape)
+        guess_shape = getattr(self.guess, "shape", None)
+        symbol_shape = getattr(self.symbol, "shape", guess_shape)
         if guess_shape != symbol_shape:
             raise ValueError(f"Guess shape for symbol {self.symbol} does not match symbol shape")
-
 
     @property
     def shape(self) -> tuple[int, ...]:
@@ -51,9 +50,9 @@ class Parameter:
         from `Parameter.guess`, and returns an empty tuple if neither is found.
 
         """
-        if shape := getattr(self.symbol, 'shape', None):
+        if shape := getattr(self.symbol, "shape", None):
             return shape
-        elif shape := getattr(self.guess, 'shape', None):
+        elif shape := getattr(self.guess, "shape", None):
             return shape
 
         # when the parameter is a scalar, return an empty tuple, which is the same shape as
@@ -86,12 +85,13 @@ class Parameters(UserDict):
             return bounds
 
     @classmethod
-    def from_symbols(cls,
-                     symbols: dict[str, Symbol],
-                     parameters: dict[str, npt.ArrayLike] | Iterable[str] | str = None,
-                     ) -> Parameters:
+    def from_symbols(
+        cls,
+        symbols: dict[str, Symbol],
+        parameters: dict[str, npt.ArrayLike] | Iterable[str] | str = None,
+    ) -> Parameters:
         if isinstance(parameters, str):
-            p_dict = {k: Parameter(symbols[k]) for k in re.split('; |, |\*|\s+', parameters)}
+            p_dict = {k: Parameter(symbols[k]) for k in re.split("; |, |\*|\s+", parameters)}
         elif isinstance(parameters, list):
             p_dict = {k: Parameter(symbols[k]) for k in parameters}
         elif isinstance(parameters, dict):

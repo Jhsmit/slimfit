@@ -17,7 +17,6 @@ from slimfit.symbols import FitSymbol
 
 
 class SymbolicBase(metaclass=abc.ABCMeta):
-
     @property
     @abc.abstractmethod
     def symbols(self) -> dict[str, Symbol]:
@@ -28,7 +27,11 @@ class SymbolicBase(metaclass=abc.ABCMeta):
         # all symbols which are not fixed parameters
         # these are the symbols which are arguments for lambdified,
         # fixed symbols (parameters) are substituted out before lambidification
-        return {name: symbol for name, symbol in self.symbols.items() if name not in self.fixed_parameters}
+        return {
+            name: symbol
+            for name, symbol in self.symbols.items()
+            if name not in self.fixed_parameters
+        }
 
     @property
     @abc.abstractmethod

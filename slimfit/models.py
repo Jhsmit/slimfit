@@ -10,7 +10,8 @@ from sympy import Expr, MatrixBase, Symbol
 from slimfit.base import SymbolicBase
 from slimfit.parameter import Parameters
 from slimfit.symbols import (
-    FitSymbol, get_symbols,
+    FitSymbol,
+    get_symbols,
 )
 
 import slimfit.numerical as numerical
@@ -24,14 +25,6 @@ class Model(numerical.CompositeExpr):
         # currently typing has a small problem where keys are expected to be `str`, not symbol
         super().__init__(model_dict)
 
-
-
-        # Dict of converted numerical expressions
-        # TODO: cached ?
-        # self.numerical: dict[Symbol, NumExprBase] = {
-        #     lhs: to_numexpr(rhs) for lhs, rhs in model_dict.items()
-        # }
-
     def __repr__(self):
         return f"Model({self.expr.__repr__()})"
 
@@ -39,8 +32,7 @@ class Model(numerical.CompositeExpr):
         if isinstance(item, str):
             item = self.symbols[item]
 
-        return self.model_dict[item]
-
+        return self.expr[item]
 
     @property
     def dependent_symbols(self) -> dict[str, Symbol]:
@@ -55,12 +47,16 @@ class Model(numerical.CompositeExpr):
 class NumericalModel(numerical.NumExprBase):
 
     # TODO or should the init convert to numerical model? probably yes
-    #actually no! it should be a composite where its elements ahve parameters
-    def __init__(self,
-                 model_dict: dict[Symbol, Expr | numerical.NumExprBase | MatrixBase],
-                 parameters: Optional[Parameters] = None):
+    # actually no! it should be a composite where its elements ahve parameters
+    def __init__(
+        self,
+        model_dict: dict[Symbol, Expr | numerical.NumExprBase | MatrixBase],
+        parameters: Optional[Parameters] = None,
+    ):
 
-        self.model_dict: dict[Symbol, numerical.NumExprBase] = {lhs: numerical.to_numerical(rhs, parameters) for lhs, rhs in model_dict.items()}
+        self.model_dict: dict[Symbol, numerical.NumExprBase] = {
+            lhs: numerical.to_numerical(rhs, parameters) for lhs, rhs in model_dict.items()
+        }
         super().__init__(parameters)
 
     def __call__(self, **kwargs) -> dict[str, npt.ArrayLike]:

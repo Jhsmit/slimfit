@@ -4,37 +4,48 @@ import abc
 import itertools
 from functools import cached_property, reduce
 from operator import or_
-from typing import Union, Callable, Optional, Any, Mapping, Iterable, TYPE_CHECKING, KeysView, ItemsView, ValuesView
+from typing import (
+    Union,
+    Callable,
+    Optional,
+    Any,
+    Mapping,
+    Iterable,
+    TYPE_CHECKING,
+    KeysView,
+    ItemsView,
+    ValuesView,
+)
 
 import numpy as np
 from scipy.integrate import solve_ivp
 from sympy import Expr, MatrixBase, lambdify, HadamardProduct, Matrix, Symbol
 
 from slimfit.base import SymbolicBase
+
 # from slimfit.base import SymbolicBase
 from slimfit.parameter import Parameters, Parameter
-from slimfit.symbols import (
-    FitSymbol,
-)
+from slimfit.symbols import FitSymbol
 from slimfit.typing import DataType, Shape
 
 if TYPE_CHECKING:
     from slimfit import Model
 
-#@dataclass
+# @dataclass
 class NumExprBase(SymbolicBase):
     """Symbolic expression which allows calling cached lambified expressions
     subclasses must implement `symbols` attribute / property
     """
 
-    def __init__(self,
-                 parameters: Optional[dict[str, Parameter]] = None,
-                 data: Optional[dict[str, np.ndarray]] = None
-                 ):
+    def __init__(
+        self,
+        parameters: Optional[dict[str, Parameter]] = None,
+        data: Optional[dict[str, np.ndarray]] = None,
+    ):
         self.parameters = parameters or {}
         self.data = data or {}
 
-        #Accepted parameters are a subset of `symbols`
+        # Accepted parameters are a subset of `symbols`
         # #todo property with getter / setter where setter filters parameters?
         # self.parameters = Parameters({name: p for name, p in parameters.items() if name in self.symbols})
 
@@ -59,18 +70,21 @@ class NumExprBase(SymbolicBase):
     @property
     def shape(self) -> Shape:
         parameter_shapes = (p.shape for p in self.parameters.values())
-        data_shapes = (getattr(v, 'shape', tuple()) for v in self.data.values())
+        data_shapes = (getattr(v, "shape", tuple()) for v in self.data.values())
 
         return np.broadcast_shapes(*itertools.chain(parameter_shapes, data_shapes))
 
     def parse_kwargs(self, **kwargs) -> dict[str, np.ndarray]:
         """Parse kwargs and take only the ones in `free_parameters`"""
         try:
-            parameters: dict[str, np.ndarray | float] = {k: kwargs[k] for k in self.free_parameters.keys()}
+            parameters: dict[str, np.ndarray | float] = {
+                k: kwargs[k] for k in self.free_parameters.keys()
+            }
         except KeyError as e:
             raise KeyError(f"Missing value for parameter {e}") from e
 
         return parameters
+
 
 class DummyNumExpr(NumExprBase):
     """Dummy callable object which returns supplied 'obj' when called
@@ -86,20 +100,20 @@ class DummyNumExpr(NumExprBase):
 
 
 class ArrayCallable(DummyNumExpr):
-
     @property
     def shape(self) -> tuple[int, int]:
         return self.obj.shape
 
 
 class NumExpr(NumExprBase):
-    def __init__(self,
-             expr: Expr,
-             parameters: Optional[dict[str, Parameter]] = None,
-             data: Optional[dict[str, np.ndarray]] = None
-                 ):
+    def __init__(
+        self,
+        expr: Expr,
+        parameters: Optional[dict[str, Parameter]] = None,
+        data: Optional[dict[str, np.ndarray]] = None,
+    ):
         if not isinstance(expr, (Expr, MatrixBase)):
-            #TODO subclass such that typing is correct
+            # TODO subclass such that typing is correct
             raise TypeError(f"Expression must be an instance of `Expr` or ")
         self.expr = expr
 
@@ -119,20 +133,27 @@ class NumExpr(NumExprBase):
 
     def __call__(self, **kwargs: float) -> np.ndarray | float:
         try:
-            parameters: dict[str, np.ndarray | float] = {k: kwargs[k] for k in self.parameters.keys()}
+            parameters: dict[str, np.ndarray | float] = {
+                k: kwargs[k] for k in self.parameters.keys()
+            }
         except KeyError as e:
             raise KeyError(f"Missing value for parameter {e}") from e
 
         val = self.lambdified(**parameters, **self.fixed_parameters, **self.data)
         return val
 
+
 # todo name via kwargs to super
 # = composite num expr"?
 class MatrixNumExpr(NumExpr):
-    def __init__(self, expr: MatrixBase,
-                 parameters: Optional[dict[str, Parameter]] = None,
-                 data: Optional[dict[str, np.ndarray]] = None,
-                 name: Optional[str] = None, kind: Optional[str] = None):
+    def __init__(
+        self,
+        expr: MatrixBase,
+        parameters: Optional[dict[str, Parameter]] = None,
+        data: Optional[dict[str, np.ndarray]] = None,
+        name: Optional[str] = None,
+        kind: Optional[str] = None,
+    ):
 
         if not isinstance(expr, MatrixBase):
             raise TypeError("Expression must be an instance of MatrixParameter or sympy.Matrix")
@@ -206,7 +227,6 @@ class MatrixNumExpr(NumExpr):
 
         return lambdas
 
-
     def forward(self, **kwargs):
         """forward pass with type checking
 
@@ -218,20 +238,23 @@ class MatrixNumExpr(NumExpr):
         # https://github.com/sympy/sympy/issues/5642
         # Prepare kwargs for lambdified
         try:
-            parameters: dict[str, np.ndarray | float] = {k: kwargs[k] for k in self.parameters.keys()}
+            parameters: dict[str, np.ndarray | float] = {
+                k: kwargs[k] for k in self.parameters.keys()
+            }
         except KeyError as e:
             raise KeyError(f"Missing value for parameter {e}") from e
 
         # check shapes
         # this should move somewhere else
         for p_name, p_value in parameters.items():
-            if getattr(p_value, 'shape', tuple()) != self.parameters[p_name].shape:
+            if getattr(p_value, "shape", tuple()) != self.parameters[p_name].shape:
                 raise ValueError(f"Shape mismatch for parameter {p_name}")
-
 
         out = np.empty(self.shape)
         for i, j in np.ndindex(self.expr.shape):
-            out[..., i, j] = self.lambdified[i, j](**parameters, **self.fixed_parameters, **self.data)
+            out[..., i, j] = self.lambdified[i, j](
+                **parameters, **self.fixed_parameters, **self.data
+            )
 
         return out
 
@@ -295,7 +318,12 @@ class DummyVariableMatrix(MatrixNumExpr):
     """
 
     def __init__(
-        self, x: Symbol, m: Matrix, parameters: Optional[Parameters] = None, kind: Optional[str] = None, name: Optional[str] = None,
+        self,
+        x: Symbol,
+        m: Matrix,
+        parameters: Optional[Parameters] = None,
+        kind: Optional[str] = None,
+        name: Optional[str] = None,
     ):
         raise NotImplementedError("Nope")
         self.x = x
@@ -306,15 +334,16 @@ class DummyVariableMatrix(MatrixNumExpr):
         symbols = super().symbols | {self.x.name: self.x}
         return {s.name: s for s in sorted(symbols.values(), key=str)}
 
+
 # different class for Symbolic / Numerical ?
 class LambdaNumExpr(NumExprBase):
-
-    def __init__(self,
-                 func,
-                 symbols: Mapping[str, Symbol] | Iterable[Symbol],
-                 parameters: Optional[Parameters] = None,
-                 data: Optional[dict[str, np.ndarray]] = None,
-                 ) -> None:
+    def __init__(
+        self,
+        func,
+        symbols: Mapping[str, Symbol] | Iterable[Symbol],
+        parameters: Optional[Parameters] = None,
+        data: Optional[dict[str, np.ndarray]] = None,
+    ) -> None:
         self.func = func
         if isinstance(symbols, Mapping):
             self.symbols = dict(symbols)
@@ -337,8 +366,10 @@ class LambdaNumExpr(NumExprBase):
 
 class CompositeExpr(SymbolicBase):
     """Can be both numerical or symbolic """
-    def __init__(self, expr: dict[str | Symbol, NumExprBase | Expr | CompositeExpr],
-                 ):
+
+    def __init__(
+        self, expr: dict[str | Symbol, NumExprBase | Expr | CompositeExpr],
+    ):
         self.expr = expr
 
     def __call__(self, **kwargs) -> dict[str, np.ndarray]:
@@ -361,7 +392,6 @@ class CompositeExpr(SymbolicBase):
 
         instance = self.__class__(num_expr)
         return instance
-
 
     @property
     def symbols(self) -> dict[str, Symbol]:
@@ -409,33 +439,37 @@ class CompositeExpr(SymbolicBase):
 
 
 class GMM(CompositeExpr):
-    #todo can also be implemented as normal NumExpr but with broadcasting parameter shapes
-    #important is that GMM class allows users to find oud positions of parmaeters in mu / sigma
-    #matrices for EM GMM optimization.
+    # todo can also be implemented as normal NumExpr but with broadcasting parameter shapes
+    # important is that GMM class allows users to find oud positions of parmaeters in mu / sigma
+    # matrices for EM GMM optimization.
 
-    def __init__(self, x: Symbol | NumExpr, mu: Matrix | MatrixNumExpr, sigma: Matrix | MatrixNumExpr,
-                 name: Optional[str] = None
-                 ):
-        if mu.shape[1] != 1:
+    def __init__(
+        self,
+        x: Symbol | NumExpr,
+        mu: Matrix | MatrixNumExpr,
+        sigma: Matrix | MatrixNumExpr,
+        name: Optional[str] = None,
+    ):
+        if mu.shape[0] != 1:
             raise ValueError(
-                "GMM parameter matrices must be of shape (N, 1) where N is the number of states."
+                "GMM parameter matrices must be of shape (1, N) where N is the number of states."
             )
 
-        #todo dont need these references
+        # todo dont need these references
         self.x = x
         # todo i guess this should stay symbolic until conversion to numerical
-        self.mu = mu# to_numerical(mu, parameters=parameters, data=data)
-        self.sigma = sigma # to_numerical(sigma, parameters=parameters, data=data)
+        self.mu = mu  # to_numerical(mu, parameters=parameters, data=data)
+        self.sigma = sigma  # to_numerical(sigma, parameters=parameters, data=data)
 
-        expr = {'x': x, 'mu': mu, 'sigma': sigma}
+        expr = {"x": x, "mu": mu, "sigma": sigma}
 
         name = name or "GMM"  # counter for number of instances?
         super().__init__(expr)
 
     def __call__(self, **kwargs):
-        result =  super().__call__(**kwargs)
+        result = super().__call__(**kwargs)
         # from slimfit.functions import gaussian
-        x, mu, sig = result['x'], result['mu'], result['sigma']
+        x, mu, sig = result["x"], result["mu"], result["sigma"]
         return 1 / (np.sqrt(2 * np.pi) * sig) * np.exp(-np.power((x - mu) / sig, 2) / 2)
 
     def to_numerical(self, parameters: dict[str, Parameter], data: dict[str, np.ndarray]):
@@ -444,11 +478,11 @@ class GMM(CompositeExpr):
         # todo
         # GMM(self.x, **num_expr)
         instance = GMM(
-                       to_numerical(self.x, parameters, data),
-                       to_numerical(self.mu, parameters, data),
-                       to_numerical(self.sigma, parameters, data))
+            to_numerical(self.x, parameters, data),
+            to_numerical(self.mu, parameters, data),
+            to_numerical(self.sigma, parameters, data),
+        )
         return instance
-
 
     # @property
     # def symbols(self) ->  dict[str, Symbol]:
@@ -457,8 +491,14 @@ class GMM(CompositeExpr):
     #     return {symbol_name: symbols[symbol_name] for symbol_name in sorted(symbols)}
 
 
+class Mul(CompositeExpr):
+    def __init__(self):
+        ...
+
+
 class MatMul(CompositeExpr):
     ...
+
 
 class MarkovIVPNumExpr(NumExprBase):
     """Uses scipy.integrate.solve_ivp to numerically find time evolution of a markov process
@@ -467,6 +507,7 @@ class MarkovIVPNumExpr(NumExprBase):
     Returned shape is (len(t_var), len(y0), 1), or (<datapoints>, <states>, 1)
 
     """
+
     def __init__(
         self,
         t_var: Symbol,
@@ -474,7 +515,7 @@ class MarkovIVPNumExpr(NumExprBase):
         y0: Matrix,
         parameters: Optional[Parameters] = None,
         domain: Optional[tuple[float, float]] = None,
-        **ivp_kwargs
+        **ivp_kwargs,
     ):
         super().__init__(parameters)
         self.t_var = t_var
@@ -482,7 +523,7 @@ class MarkovIVPNumExpr(NumExprBase):
         self.y0 = to_numerical(y0, parameters)
         self.domain = domain
 
-        ivp_defaults = {'method': 'Radau'}
+        ivp_defaults = {"method": "Radau"}
         self.ivp_defaults = ivp_defaults | ivp_kwargs
 
     @property
@@ -500,9 +541,8 @@ class MarkovIVPNumExpr(NumExprBase):
             domain,
             y0=y0,
             t_eval=kwargs[self.t_var.name],
-            args=(trs_matrix, ),
-            **self.ivp_defaults
-
+            args=(trs_matrix,),
+            **self.ivp_defaults,
         )
 
         return np.expand_dims(sol.y.T, -1)
@@ -532,11 +572,12 @@ def identify_expression_kind(sympy_expression: Union[Expr, MatrixBase]) -> str:
 
     return "generic"
 
+
 # todo behaviour for `None` ?
 def to_numerical(
-        expression: Union[NumExprBase, Expr, MatrixBase | Model | CompositeExpr],
-        parameters: dict[str, Parameter],
-        data: dict[str, np.ndarray],
+    expression: Union[NumExprBase, Expr, MatrixBase | Model | CompositeExpr],
+    parameters: dict[str, Parameter],
+    data: dict[str, np.ndarray],
 ) -> NumExprBase:
     """Converts sympy expression to slimfit numerical expression
 
@@ -546,16 +587,20 @@ def to_numerical(
     """
     from slimfit.models import Model
 
-    if hasattr(expression, 'to_numerical'):
+    if hasattr(expression, "to_numerical"):
         return expression.to_numerical(parameters, data)
     elif isinstance(expression, Model):
         model_dict = {lhs: to_numerical(rhs) for lhs, rhs in expression.items()}
         from slimfit.models import NumericalModel
+
         return NumericalModel(model_dict, parameters, data)
     if isinstance(expression, HadamardProduct):
         raise NotImplementedError("Not yet")
         from slimfit.operations import Mul
-        return Mul(*(to_numerical(arg, parameters) for arg in expression.args), parameters=parameters)
+
+        return Mul(
+            *(to_numerical(arg, parameters) for arg in expression.args), parameters=parameters
+        )
     elif isinstance(expression, MatrixBase):
         return MatrixNumExpr(expression, parameters=parameters, data=data)
     elif isinstance(expression, Expr):

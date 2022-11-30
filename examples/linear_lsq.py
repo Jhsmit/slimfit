@@ -23,7 +23,7 @@ DATA = {"x": xdata, "y": ydata}
 
 #%%
 
-parameters = Parameters.from_symbols(model.symbols, 'a b')
+parameters = Parameters.from_symbols(model.symbols, "a b")
 
 fit = Fit(model, parameters=parameters, data=DATA)
 result = fit.execute()

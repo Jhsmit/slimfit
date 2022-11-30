@@ -4,14 +4,14 @@ from collections import UserDict
 from typing import TypeVar, Generic, TypedDict, KeysView, ValuesView, ItemsView, Protocol
 from typing_extensions import TypeVarTuple
 
-#PEP 646: https://peps.python.org/pep-0646/
+# PEP 646: https://peps.python.org/pep-0646/
 Shape = TypeVarTuple("Shape")
 
 DataType = TypeVar("DataType")
 
 
 # STRATEGY / PROTOCOL?
-#class Data(UserDict, Generic[DataType]):
+# class Data(UserDict, Generic[DataType]):
 class Data(Protocol[DataType]):
 
     ...
@@ -31,10 +31,11 @@ class Data(Protocol[DataType]):
     def items(self) -> ItemsView[str, DataType]:
         return super().items()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     import numpy as np
 
-    d = {'a': np.random.rand(10, 20)}
+    d = {"a": np.random.rand(10, 20)}
     data: Data[np.ndarray] = d
 
     print(data)

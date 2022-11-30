@@ -16,7 +16,7 @@ from slimfit.parameter import Parameters
 class CompositeNumExpr(NumExprBase):
     """Operations base class"""
 
-    kind = 'composite'
+    kind = "composite"
 
     def __init__(self, *args, parameters: Optional[Parameters] = None):
         super().__init__(parameters)

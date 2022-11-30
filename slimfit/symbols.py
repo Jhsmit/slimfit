@@ -96,9 +96,7 @@ def symbol_matrix(
 
     matrix = zeros(*shape)
     for i, j in np.ndindex(shape):
-        matrix[i, j] = Symbol(
-            name=names[i, j],
-        )
+        matrix[i, j] = Symbol(name=names[i, j],)
 
     return matrix
 

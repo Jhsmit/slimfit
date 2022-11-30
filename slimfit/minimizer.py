@@ -24,11 +24,7 @@ STATE_AXIS = -2
 
 class Minimizer(metaclass=abc.ABCMeta):
     def __init__(
-        self,
-        model: NumericalModel,
-        parameters: Parameters,
-        ydata: dict[str, np.array],
-        loss: Loss,
+        self, model: NumericalModel, parameters: Parameters, ydata: dict[str, np.array], loss: Loss,
     ):
         self.model = model
         self.parameters = parameters
@@ -47,12 +43,7 @@ class ScipyMinimizer(Minimizer):
         result = minimize(
             minfunc,
             x,
-            args=(
-                self.parameters,
-                self.ydata,
-                self.model,
-                self.loss,
-            ),
+            args=(self.parameters, self.ydata, self.model, self.loss,),
             bounds=self.parameters.get_bounds(),
             **self.rename_options(minimizer_options)
         )
@@ -69,7 +60,10 @@ class ScipyMinimizer(Minimizer):
         return out
 
     def to_fitresult(self, result) -> FitResult:
-        parameter_values = {name: arr.item() if arr.size == 1 else arr for name, arr in self.parameters.unpack(result.x).items()}
+        parameter_values = {
+            name: arr.item() if arr.size == 1 else arr
+            for name, arr in self.parameters.unpack(result.x).items()
+        }
 
         gof_qualifiers = {
             "loss": result["fun"],
@@ -126,25 +120,16 @@ class LikelihoodOptimizer(Minimizer):
                 kinds = [c.kind for c in sub_model.values()]
                 print("CHECK IF THIS STILL WORKS !!")
                 if all(k == "constant" for k in kinds):
-                    opt = ConstantOptimizer(
-                        sub_model, self.xdata, {}, posterior, loss=self.loss
-                    )
+                    opt = ConstantOptimizer(sub_model, self.xdata, {}, posterior, loss=self.loss)
                     parameters = opt.step()
                 elif all(k == "gmm" for k in kinds):
-                    opt = GMMOptimizer(
-                        sub_model, self.xdata, {}, posterior, loss=self.loss
-                    )
+                    opt = GMMOptimizer(sub_model, self.xdata, {}, posterior, loss=self.loss)
                     parameters = opt.step()
                 else:
                     guess = {k: parameters_current[k] for k in sub_model.free_parameters}
                     # todo loss is not used; should be EM loss while the main loop uses Log likelihood loss
                     opt = ScipyEMOptimizer(
-                        sub_model,
-                        self.xdata,
-                        {},
-                        posterior,
-                        loss=self.loss,
-                        guess=guess,
+                        sub_model, self.xdata, {}, posterior, loss=self.loss, guess=guess,
                     )
                     scipy_result = opt.execute()
                     parameters = scipy_result.parameters
@@ -173,7 +158,7 @@ class LikelihoodOptimizer(Minimizer):
             "log_likelihood": -loss,
             "n_iter": i + 1,
             "elapsed": tdelta,
-            "iter/s": tdelta / (i +1),
+            "iter/s": tdelta / (i + 1),
         }
 
         result = FitResult(
@@ -182,7 +167,7 @@ class LikelihoodOptimizer(Minimizer):
             guess=self.guess,
             model=self.model,
             data={**self.xdata, **self.ydata},
-            base_result = {'scipy': scipy_result}
+            base_result={"scipy": scipy_result},
         )
 
         return result
@@ -200,11 +185,7 @@ class EMOptimizer(Minimizer):
     ):
         self.posterior = posterior
         super().__init__(
-            model=model,
-            xdata=xdata,
-            ydata=ydata,
-            loss=loss,
-            guess=guess,
+            model=model, xdata=xdata, ydata=ydata, loss=loss, guess=guess,
         )
 
     @abc.abstractmethod
@@ -302,8 +283,7 @@ class GMMOptimizer(EMOptimizer):
                     )
 
                     num += np.sum(
-                        T_i
-                        * (self.xdata[gmm_rhs.x.name].reshape(T_i.shape) - mu_value) ** 2
+                        T_i * (self.xdata[gmm_rhs.x.name].reshape(T_i.shape) - mu_value) ** 2
                     )
                     denom += np.sum(T_i)
 
@@ -351,13 +331,7 @@ class ScipyEMOptimizer(EMOptimizer):
         result = minimize(
             minfunc_expectation,
             x,
-            args=(
-                self.parameter_names,
-                self.xdata,
-                self.posterior,
-                self.model,
-                self.loss,
-            ),
+            args=(self.parameter_names, self.xdata, self.posterior, self.model, self.loss,),
             bounds=get_bounds(self.model.free_parameters.values()),
             **options
         )

@@ -32,7 +32,9 @@ class Fit(object):
         self.symbolic_model = model
         self.parameters = parameters
 
-        data: dict[str, np.ndarray] = {getattr(k, 'name', k): np.asarray(v) for k, v in data.items()}
+        data: dict[str, np.ndarray] = {
+            getattr(k, "name", k): np.asarray(v) for k, v in data.items()
+        }
         self.loss = loss
 
         # 'independent' data; or 'xdata'; typically chosen measurement points
@@ -47,13 +49,11 @@ class Fit(object):
 
     @cached_property
     def numerical_model(self) -> Model:
-        #TODO parameters type
+        # TODO parameters type
         return to_numerical(self.symbolic_model, self.parameters, self.xdata)
 
     def execute(
-        self,
-        minimizer: Optional[Type[Minimizer]] = None,
-        **execute_options,
+        self, minimizer: Optional[Type[Minimizer]] = None, **execute_options,
     ):
 
         minimizer_cls = minimizer or self.get_minimizer()

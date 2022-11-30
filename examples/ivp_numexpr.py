@@ -30,7 +30,7 @@ class MarkovIVPNumExpr(NumExprBase):
         self.y0 = to_numerical(y0)
         self.domain = domain
 
-        ivp_defaults = {'method': 'Radau'}
+        ivp_defaults = {"method": "Radau"}
         self.ivp_defaults = ivp_defaults | ivp_kwargs
 
     @property
@@ -48,9 +48,8 @@ class MarkovIVPNumExpr(NumExprBase):
             domain,
             y0=y0,
             t_eval=kwargs[self.t_var.name],
-            args=(trs_matrix, ),
+            args=(trs_matrix,),
             **self.ivp_defaults
-
         )
 
         return sol.y.T
@@ -68,13 +67,12 @@ class MarkovIVPNumExpr(NumExprBase):
         self.y0.renew()
 
 
-
 #%%
 
 connectivity = ["A <-> B -> C"]
 m = generate_transition_matrix(connectivity)
-y0 = Matrix([[0., 1., 0.]])
-y0 = Matrix([[1., 0., 0.]])
+y0 = Matrix([[0.0, 1.0, 0.0]])
+y0 = Matrix([[1.0, 0.0, 0.0]])
 
 y0.shape
 
@@ -84,9 +82,7 @@ Parameter("k_A_B", vmin=1e-3, vmax=1e2)
 Parameter("k_B_A", vmin=1e-3, vmax=1e2)
 Parameter("k_B_C", vmin=1e-3, vmax=1e2)
 
-ivp = MarkovIVPNumExpr(
-    Variable("t"), m, y0, domain=(0.0, 11.0),
-)
+ivp = MarkovIVPNumExpr(Variable("t"), m, y0, domain=(0.0, 11.0),)
 
 ti = np.linspace(0, 11, num=250, endpoint=True)
 gt_values = {

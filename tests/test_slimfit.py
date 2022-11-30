@@ -1,14 +1,16 @@
 import pytest
-#from dont_fret.em_fit.datagen import generate_dataset
-from sympy import HadamardProduct, Matrix, exp, Symbol
-#import numpy as np
 
-#from slimfit.fit import Fit
-#from slimfit.functions import gaussian, gaussian_sympy, gaussian_numpy
-#from slimfit.loss import LogSumLoss
-#from slimfit.markov import generate_transition_matrix, extract_states
-#from slimfit.minimizer import LikelihoodOptimizer
-#from slimfit.operations import Mul, MatMul
+# from dont_fret.em_fit.datagen import generate_dataset
+from sympy import HadamardProduct, Matrix, exp, Symbol
+
+# import numpy as np
+
+# from slimfit.fit import Fit
+# from slimfit.functions import gaussian, gaussian_sympy, gaussian_numpy
+# from slimfit.loss import LogSumLoss
+# from slimfit.markov import generate_transition_matrix, extract_states
+# from slimfit.minimizer import LikelihoodOptimizer
+# from slimfit.operations import Mul, MatMul
 from slimfit.models import Model
 from slimfit.numerical import MatrixNumExpr, NumExpr, GMM
 from slimfit.symbols import (
@@ -18,6 +20,7 @@ from slimfit.symbols import (
 )
 from slimfit.parameter import Parameters, Parameter
 import numpy as np
+
 
 @pytest.mark.skip("Old test")
 class TestEMBase(object):
@@ -113,16 +116,15 @@ class TestEMBase(object):
 
 
 class TestNumExpr(object):
-
     def test_num_expr(self):
         clear_symbols()
         np.random.seed(43)
 
         x = np.arange(100).reshape(-1, 1)
-        data = {'x': x}
+        data = {"x": x}
         parameters = {
-            'a': Parameter(Symbol('a'), guess=np.array([1, 2, 3]).reshape(1, -1)),
-            'b': Parameter(Symbol('b'), guess=5.),
+            "a": Parameter(Symbol("a"), guess=np.array([1, 2, 3]).reshape(1, -1)),
+            "b": Parameter(Symbol("b"), guess=5.0),
         }
 
         expr = Symbol("a") * Symbol("x") + Symbol("b")
@@ -131,50 +133,54 @@ class TestNumExpr(object):
         assert num_expr.shape == (100, 3)
 
         a = np.random.rand(1, 3)
-        b = 5.
+        b = 5.0
         result = num_expr(a=a, b=b)
-        assert np.allclose(result, a*x+b)
+        assert np.allclose(result, a * x + b)
 
     def test_matrix_num_expr(self):
         clear_symbols()
 
-        m = Matrix([[
-            Symbol("a") * Symbol("x") + Symbol("b1"),
-            Symbol("a") * Symbol("x") + Symbol("b2"),
-            Symbol("a") * Symbol("x") + Symbol("b3"),
-        ]])
+        m = Matrix(
+            [
+                [
+                    Symbol("a") * Symbol("x") + Symbol("b1"),
+                    Symbol("a") * Symbol("x") + Symbol("b2"),
+                    Symbol("a") * Symbol("x") + Symbol("b3"),
+                ]
+            ]
+        )
 
-        data = {'x': np.arange(100).reshape(-1, 1)}
+        data = {"x": np.arange(100).reshape(-1, 1)}
         symbols = get_symbols(m)
 
         parameters = {
-            'a': Parameter(symbols['a'], guess=np.random.rand(1, 3)),
-            'b1': Parameter(symbols['b1'], guess=1.),
-            'b2': Parameter(symbols['b1'], guess=2.),
-            'b3': Parameter(symbols['b1'], guess=3.),
+            "a": Parameter(symbols["a"], guess=np.random.rand(1, 3)),
+            "b1": Parameter(symbols["b1"], guess=1.0),
+            "b2": Parameter(symbols["b1"], guess=2.0),
+            "b3": Parameter(symbols["b1"], guess=3.0),
         }
 
         m_expr = MatrixNumExpr(m, parameters, data)
         assert m_expr.shape
 
         p_values = {
-            'a': np.array([3,2,1]).reshape(1, -1),
-            'b1': 2.,
-            'b2': 3.,
-            'b3': 4.,
+            "a": np.array([3, 2, 1]).reshape(1, -1),
+            "b1": 2.0,
+            "b2": 3.0,
+            "b3": 4.0,
         }
 
         result = m_expr(**p_values, **data)
 
         assert result.shape == m_expr.shape
 
-        check = data['x'] * p_values['a'] + p_values['b1']
+        check = data["x"] * p_values["a"] + p_values["b1"]
         assert np.allclose(check, result[..., 0, 0])
 
-        check = data['x'] * p_values['a'] + p_values['b2']
+        check = data["x"] * p_values["a"] + p_values["b2"]
         assert np.allclose(check, result[..., 0, 1])
 
-        check = data['x'] * p_values['a'] + p_values['b3']
+        check = data["x"] * p_values["a"] + p_values["b3"]
         assert np.allclose(check, result[..., 0, 2])
 
     def test_lambda_numexpr(self):
@@ -184,27 +190,27 @@ class TestNumExpr(object):
         def func(x, a):
             return x ** 2 + a
 
-        data = {'x': np.arange(100)}
+        data = {"x": np.arange(100)}
 
         ld = LambdaNumExpr(
             func,
-            [Symbol('a'), Symbol('x')],
-            parameters={'a': Parameter(Symbol('a'), guess=3.)},
-            data=data
+            [Symbol("a"), Symbol("x")],
+            parameters={"a": Parameter(Symbol("a"), guess=3.0)},
+            data=data,
         )
 
         assert ld.shape == (100,)
 
-        result = ld(a=2., **data)
-        assert np.allclose(result, data['x'] ** 2 + 2.)
+        result = ld(a=2.0, **data)
+        assert np.allclose(result, data["x"] ** 2 + 2.0)
 
     def test_gmm(self):
-        states = ['A', 'B', 'C']
-        mu = symbol_matrix('mu', suffix=states)
-        sigma = symbol_matrix('sigma', suffix=states)
-        gmm = GMM(Symbol('x'), mu, sigma)
-        parameters = Parameters.from_symbols(gmm.symbols, 'mu_A mu_B mu_C sigma_A sigma_B sigma_C')
-        data = {'x': np.linspace(-0.2, 1.2, num=25)}
+        states = ["A", "B", "C"]
+        mu = symbol_matrix("mu", suffix=states)
+        sigma = symbol_matrix("sigma", suffix=states)
+        gmm = GMM(Symbol("x"), mu, sigma)
+        parameters = Parameters.from_symbols(gmm.symbols, "mu_A mu_B mu_C sigma_A sigma_B sigma_C")
+        data = {"x": np.linspace(-0.2, 1.2, num=25)}
 
         gt = {
             "mu_A": 0.23,
@@ -220,10 +226,11 @@ class TestNumExpr(object):
 
         num_gmm = gmm.to_numerical(parameters, data)
         assert num_gmm.shape == (3, 25)
-        assert isinstance(num_gmm['mu'], MatrixNumExpr)
+        assert isinstance(num_gmm["mu"], MatrixNumExpr)
 
         result = num_gmm(**gt)
         assert num_gmm.shape == (3, 25)
+
 
 class TestEMFit(object):
     @pytest.mark.skip("Old test")
@@ -331,7 +338,6 @@ class TestEMFit(object):
 
         for k in expected.keys():
             assert result.parameters[k] == pytest.approx(expected[k], rel=0.1)
-
 
     @pytest.mark.skip("Old test")
     def test_gmm_old(self):

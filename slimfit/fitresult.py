@@ -6,8 +6,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Any, Union
-import numpy as np
 
+import numpy as np
 import yaml
 
 from slimfit import Model

@@ -6,12 +6,10 @@ from typing import Iterable, Optional, OrderedDict, Any
 import numpy as np
 from sympy import Symbol
 
-from slimfit import NumExprBase, Model
+from slimfit import NumExprBase
 from slimfit.models import NumericalModel
-
 # from slimfit.operations import Mul
 from slimfit.parameter import Parameter
-from slimfit.symbols import FitSymbol
 
 
 def overlapping_model_parameters(

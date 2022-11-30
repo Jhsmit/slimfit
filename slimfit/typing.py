@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from collections import UserDict
-from typing import TypeVar, Generic, TypedDict, KeysView, ValuesView, ItemsView, Protocol
+from typing import TypeVar, KeysView, ValuesView, ItemsView, Protocol
+
 from typing_extensions import TypeVarTuple
 
 # PEP 646: https://peps.python.org/pep-0646/

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from collections import UserList, UserDict
+from collections import UserDict
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Iterable, Optional

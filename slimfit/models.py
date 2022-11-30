@@ -1,20 +1,13 @@
 from __future__ import annotations
+
 import itertools
-from functools import reduce
-from operator import or_
 from typing import Union, ItemsView, ValuesView, KeysView, Optional
 
 import numpy.typing as npt
 from sympy import Expr, MatrixBase, Symbol
 
-from slimfit.base import SymbolicBase
-from slimfit.parameter import Parameters
-from slimfit.symbols import (
-    FitSymbol,
-    get_symbols,
-)
-
 import slimfit.numerical as numerical
+from slimfit.parameter import Parameters
 
 
 class Model(numerical.CompositeExpr):

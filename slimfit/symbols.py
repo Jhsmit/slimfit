@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from numbers import Number
-from typing import Union, Optional, Any, Type
+from typing import Optional
 
 import numpy as np
 import numpy.typing as npt

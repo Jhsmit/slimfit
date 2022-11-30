@@ -15,7 +15,6 @@ from slimfit.loss import Loss
 from slimfit.models import NumericalModel
 from slimfit.operations import Mul
 from slimfit.parameter import Parameters
-from slimfit.symbols import FitSymbol
 from slimfit.utils import get_bounds, overlapping_model_parameters
 
 # TODO parameter which needs to be inferred / set somehow

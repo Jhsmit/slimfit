@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import abc
-from typing import Optional
 
 from sympy import Symbol
 
-from slimfit.parameter import Parameter, Parameters
-from slimfit.symbols import FitSymbol
+from slimfit.parameter import Parameter
+
 
 #
 # class SymbolicBase(object, metaclass=abc.ABCMeta):

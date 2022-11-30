@@ -3,15 +3,15 @@ Model operations
 Currently only multiplications for probablities
 """
 from functools import reduce
-from operator import or_, mul, add
-from typing import Optional
+from operator import mul
 
-import numpy.typing as npt
 import numpy as np
+import numpy.typing as npt
 
-from slimfit.numerical import NumExprBase, to_numerical, CompositeExpr
-from slimfit.parameter import Parameters, Parameter
+from slimfit.numerical import to_numerical, CompositeExpr
+from slimfit.parameter import Parameter
 from slimfit.typing import Shape
+
 
 # a composite expression has multiple expr elements; connected by some operation but calculation is
 # deferred so that fitting can inspect the composition and decide the best optimization strategy

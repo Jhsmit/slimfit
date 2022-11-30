@@ -5,12 +5,12 @@ from typing import Optional, Type
 
 import numpy as np
 import numpy.typing as npt
-from sympy import Expr, MatrixBase, Symbol
+from sympy import Expr
 
 from slimfit.loss import L2Loss, LogLoss, Loss
 from slimfit.minimizer import ScipyMinimizer, Minimizer
-from slimfit.models import Model, NumericalModel
-from slimfit.numerical import NumExprBase, to_numerical
+from slimfit.models import Model
+from slimfit.numerical import to_numerical
 from slimfit.parameter import Parameter, Parameters
 
 

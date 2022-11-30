@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import abc
 import itertools
 from functools import cached_property, reduce
 from operator import or_
@@ -22,11 +21,10 @@ from scipy.integrate import solve_ivp
 from sympy import Expr, MatrixBase, lambdify, HadamardProduct, Matrix, Symbol
 
 from slimfit.base import SymbolicBase
-
 # from slimfit.base import SymbolicBase
 from slimfit.parameter import Parameters, Parameter
 from slimfit.symbols import FitSymbol
-from slimfit.typing import DataType, Shape
+from slimfit.typing import Shape
 
 if TYPE_CHECKING:
     from slimfit import Model
@@ -456,12 +454,6 @@ class GMM(CompositeExpr):
                 "GMM parameter matrices must be of shape (1, N) where N is the number of states."
             )
 
-        # todo dont need these references
-        self.x = x
-        # todo i guess this should stay symbolic until conversion to numerical
-        self.mu = mu  # to_numerical(mu, parameters=parameters, data=data)
-        self.sigma = sigma  # to_numerical(sigma, parameters=parameters, data=data)
-
         expr = {"x": x, "mu": mu, "sigma": sigma}
 
         name = name or "GMM"  # counter for number of instances?
@@ -469,20 +461,14 @@ class GMM(CompositeExpr):
 
     def __call__(self, **kwargs):
         result = super().__call__(**kwargs)
-        # from slimfit.functions import gaussian
+
         x, mu, sig = result["x"], result["mu"], result["sigma"]
         return 1 / (np.sqrt(2 * np.pi) * sig) * np.exp(-np.power((x - mu) / sig, 2) / 2)
 
     def to_numerical(self, parameters: dict[str, Parameter], data: dict[str, np.ndarray]):
-        # num_expr = {k: to_numerical(expr, parameters, data) for k, expr in self.items()}
+        num_expr = {k: to_numerical(expr, parameters, data) for k, expr in self.items()}
+        instance = GMM(**num_expr)
 
-        # todo
-        # GMM(self.x, **num_expr)
-        instance = GMM(
-            to_numerical(self.x, parameters, data),
-            to_numerical(self.mu, parameters, data),
-            to_numerical(self.sigma, parameters, data),
-        )
         return instance
 
     # @property

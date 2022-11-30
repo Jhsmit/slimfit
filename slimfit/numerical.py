@@ -378,6 +378,10 @@ class CompositeExpr(SymbolicBase):
     def __getitem__(self, item) -> NumExprBase | Expr:
         return self.expr.__getitem__(item)
 
+    @property
+    def numerical(self) -> bool:
+        return all(isinstance(v, (NumExprBase, CompositeExpr)) for v in self.values())
+
     def keys(self) -> KeysView[str]:
         return self.expr.keys()
 
@@ -415,8 +419,10 @@ class CompositeExpr(SymbolicBase):
     @property
     def parameters(self) -> dict[str, Parameter]:
         """Parameters must be a subset of symbols"""
-
-        return reduce(or_, (expr.parameters for expr in self.values()))
+        if self.numerical:
+            return reduce(or_, (expr.parameters for expr in self.values()))
+        else:
+            return {}
 
     # @parameters.setter
     # def parameters(self, value: Mapping[str, Parameter]):

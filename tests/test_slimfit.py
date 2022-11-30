@@ -12,7 +12,7 @@ from sympy import HadamardProduct, Matrix, exp, Symbol
 # from slimfit.minimizer import LikelihoodOptimizer
 # from slimfit.operations import Mul, MatMul
 from slimfit.models import Model
-from slimfit.numerical import MatrixNumExpr, NumExpr, GMM
+from slimfit.numerical import MatrixNumExpr, NumExpr, GMM, to_numerical
 from slimfit.symbols import (
     symbol_matrix,
     clear_symbols,
@@ -22,50 +22,44 @@ from slimfit.parameter import Parameters, Parameter
 import numpy as np
 
 
-@pytest.mark.skip("Old test")
 class TestEMBase(object):
-    @pytest.mark.skip("Old test")
-    def test_parameter_matrix(self):
+
+    def test_symbol_matrix(self):
         clear_symbols()
         m = symbol_matrix("A", shape=(3, 3))
 
         assert m.shape == (3, 3)
         elem = m[0, 0]
         assert elem.name == "A_0_0"
-        assert elem.value == 1.0
 
         m = symbol_matrix(
             "A",
-            values=[1, 2, 3],
             shape=(1, 3),
-            suffix=["a", "b", None],
-            vmin=[None, -3, -5],  # check for assigning vmin to not a parameter element?
-            vmax=6.0,
-            as_parameter=[[True, True, False]],
+            suffix=["a", "b", "c"],
         )
 
         elem = m[0, 0]
         assert elem.name == "A_a"
-        assert elem.vmin == None
-        assert elem.vmax == 6.0
 
         elem = m[0, 1]
         assert elem.name == "A_b"
-        assert elem.vmin == -3
-        assert elem.vmax == 6.0
 
-        elem = m[0, 2]
-        assert elem == 3
+        parameters = {
+            'A_a': Parameter(m[0, 0], guess=2.),
+            'A_b': Parameter(m[0, 1]),
+            'A_c': Parameter(m[0, 2])
+        }
 
-        m = convert_callable(symbol_matrix("A", values=np.arange(9), shape=(3, 3)))
-        for v, (i, j) in enumerate(np.ndindex(m.shape)):
-            assert m.expr[i, j].value == v
-            assert m[i, j].value == v
-            assert m.kind == "constant"
-            assert np.allclose(m(**m.guess), np.arange(9).reshape(3, 3))
+        m_num = to_numerical(m, parameters, {})
+        values = {
+            'A_a': 1,
+            'A_b': 2,
+            'A_c': 3.5
+        }
 
-        b = convert_callable(symbol_matrix("B", shape=(5, 2), rand_init=True, norm=True))
-        assert b(**b.guess).sum() == pytest.approx(1.0)
+        result = m_num(**values)
+        assert result.shape == (1, 3)
+        assert np.allclose(result, np.array([1., 2., 3.5]).reshape(1, 3))
 
     @pytest.mark.skip("Old test")
     def test_model(self):

@@ -27,13 +27,11 @@ class Minimizer(metaclass=abc.ABCMeta):
         self,
         model: NumericalModel,
         parameters: Parameters,
-        xdata: dict[str, np.array],
         ydata: dict[str, np.array],
         loss: Loss,
     ):
         self.model = model
         self.parameters = parameters
-        self.xdata = xdata
         self.ydata = ydata
         self.loss = loss
 
@@ -51,7 +49,6 @@ class ScipyMinimizer(Minimizer):
             x,
             args=(
                 self.parameters,
-                self.xdata,
                 self.ydata,
                 self.model,
                 self.loss,
@@ -82,7 +79,6 @@ class ScipyMinimizer(Minimizer):
             parameters=parameter_values,
             gof_qualifiers=gof_qualifiers,
             guess=self.parameters.guess,
-            data={**self.xdata, **self.ydata},
             base_result=result,
         )
 
@@ -413,13 +409,12 @@ def minfunc_expectation(
 def minfunc(
     x: np.ndarray,  # array of parameters
     parameters: Parameters,  # parameter names
-    independent_data: dict,  # measurement points
     dependent_data: dict,  # corresponding measurements; target data
     model: Model,
     loss: Loss,
 ) -> float:
 
     parameter_values = parameters.unpack(x)
-    predicted = model(**independent_data, **parameter_values)
+    predicted = model(**parameter_values)
 
     return loss(dependent_data, predicted)

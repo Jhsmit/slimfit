@@ -1,26 +1,27 @@
 import pytest
-from dont_fret.em_fit.datagen import generate_dataset
-from sympy import HadamardProduct, Matrix, exp
+#from dont_fret.em_fit.datagen import generate_dataset
+from sympy import HadamardProduct, Matrix, exp, Symbol
+#import numpy as np
+
+#from slimfit.fit import Fit
+#from slimfit.functions import gaussian, gaussian_sympy, gaussian_numpy
+#from slimfit.loss import LogSumLoss
+#from slimfit.markov import generate_transition_matrix, extract_states
+#from slimfit.minimizer import LikelihoodOptimizer
+#from slimfit.operations import Mul, MatMul
+from slimfit.models import Model
+from slimfit.numerical import MatrixNumExpr, NumExpr, GMM
+from slimfit.symbols import (
+    symbol_matrix,
+    clear_symbols,
+    get_symbols,
+)
+from slimfit.parameter import Parameters, Parameter
 import numpy as np
 
-from slimfit.callable import convert_callable, GMM
-from slimfit.fit import Fit
-from slimfit.functions import gaussian, gaussian_sympy, gaussian_numpy
-from slimfit.loss import LogSumLoss
-from slimfit.markov import generate_transition_matrix, extract_states
-from slimfit.minimizer import LikelihoodOptimizer
-from slimfit.operations import Mul, MatMul
-from slimfit.models import Model
-from slimfit.symbols import (
-    Variable,
-    Probability,
-    symbol_matrix,
-    Parameter,
-    clear_symbols,
-)
-
-
+@pytest.mark.skip("Old test")
 class TestEMBase(object):
+    @pytest.mark.skip("Old test")
     def test_parameter_matrix(self):
         clear_symbols()
         m = symbol_matrix("A", shape=(3, 3))
@@ -63,6 +64,7 @@ class TestEMBase(object):
         b = convert_callable(symbol_matrix("B", shape=(5, 2), rand_init=True, norm=True))
         assert b(**b.guess).sum() == pytest.approx(1.0)
 
+    @pytest.mark.skip("Old test")
     def test_model(self):
         clear_symbols()
 
@@ -110,7 +112,121 @@ class TestEMBase(object):
         assert 1 == pytest.approx(val, 1)
 
 
+class TestNumExpr(object):
+
+    def test_num_expr(self):
+        clear_symbols()
+        np.random.seed(43)
+
+        x = np.arange(100).reshape(-1, 1)
+        data = {'x': x}
+        parameters = {
+            'a': Parameter(Symbol('a'), guess=np.array([1, 2, 3]).reshape(1, -1)),
+            'b': Parameter(Symbol('b'), guess=5.),
+        }
+
+        expr = Symbol("a") * Symbol("x") + Symbol("b")
+        num_expr = NumExpr(expr, parameters, data)
+
+        assert num_expr.shape == (100, 3)
+
+        a = np.random.rand(1, 3)
+        b = 5.
+        result = num_expr(a=a, b=b)
+        assert np.allclose(result, a*x+b)
+
+    def test_matrix_num_expr(self):
+        clear_symbols()
+
+        m = Matrix([[
+            Symbol("a") * Symbol("x") + Symbol("b1"),
+            Symbol("a") * Symbol("x") + Symbol("b2"),
+            Symbol("a") * Symbol("x") + Symbol("b3"),
+        ]])
+
+        data = {'x': np.arange(100).reshape(-1, 1)}
+        symbols = get_symbols(m)
+
+        parameters = {
+            'a': Parameter(symbols['a'], guess=np.random.rand(1, 3)),
+            'b1': Parameter(symbols['b1'], guess=1.),
+            'b2': Parameter(symbols['b1'], guess=2.),
+            'b3': Parameter(symbols['b1'], guess=3.),
+        }
+
+        m_expr = MatrixNumExpr(m, parameters, data)
+        assert m_expr.shape
+
+        p_values = {
+            'a': np.array([3,2,1]).reshape(1, -1),
+            'b1': 2.,
+            'b2': 3.,
+            'b3': 4.,
+        }
+
+        result = m_expr(**p_values, **data)
+
+        assert result.shape == m_expr.shape
+
+        check = data['x'] * p_values['a'] + p_values['b1']
+        assert np.allclose(check, result[..., 0, 0])
+
+        check = data['x'] * p_values['a'] + p_values['b2']
+        assert np.allclose(check, result[..., 0, 1])
+
+        check = data['x'] * p_values['a'] + p_values['b3']
+        assert np.allclose(check, result[..., 0, 2])
+
+    def test_lambda_numexpr(self):
+        clear_symbols()
+        np.random.seed(43)
+
+        def func(x, a):
+            return x ** 2 + a
+
+        data = {'x': np.arange(100)}
+
+        ld = LambdaNumExpr(
+            func,
+            [Symbol('a'), Symbol('x')],
+            parameters={'a': Parameter(Symbol('a'), guess=3.)},
+            data=data
+        )
+
+        assert ld.shape == (100,)
+
+        result = ld(a=2., **data)
+        assert np.allclose(result, data['x'] ** 2 + 2.)
+
+    def test_gmm(self):
+        states = ['A', 'B', 'C']
+        mu = symbol_matrix('mu', suffix=states)
+        sigma = symbol_matrix('sigma', suffix=states)
+        gmm = GMM(Symbol('x'), mu, sigma)
+        parameters = Parameters.from_symbols(gmm.symbols, 'mu_A mu_B mu_C sigma_A sigma_B sigma_C')
+        data = {'x': np.linspace(-0.2, 1.2, num=25)}
+
+        gt = {
+            "mu_A": 0.23,
+            "mu_B": 0.55,
+            "mu_C": 0.92,
+            "sigma_A": 0.1,
+            "sigma_B": 0.1,
+            "sigma_C": 0.1,
+            "c_A": 0.22,
+            "c_B": 0.53,
+            "c_C": 0.25,
+        }
+
+        num_gmm = gmm.to_numerical(parameters, data)
+        assert num_gmm.shape == (3, 25)
+        assert isinstance(num_gmm['mu'], MatrixNumExpr)
+
+        result = num_gmm(**gt)
+        assert num_gmm.shape == (3, 25)
+
 class TestEMFit(object):
+    @pytest.mark.skip("Old test")
     def test_linear_lstsq(self):
         clear_symbols()
         np.random.seed(43)
@@ -133,6 +249,7 @@ class TestEMFit(object):
         assert res.parameters["a"] == pytest.approx(gt["a"], abs=0.2)
         assert res.parameters["b"] == pytest.approx(gt["b"], abs=0.1)
 
+    @pytest.mark.skip("Old test")
     def test_likelihood_gaussian(self):
         clear_symbols()
         np.random.seed(43)
@@ -150,6 +267,7 @@ class TestEMFit(object):
         assert res.parameters["mu"] == pytest.approx(gt["mu"], abs=0.05)
         assert res.parameters["sigma"] == pytest.approx(gt["sigma"], abs=0.05)
 
+    @pytest.mark.skip("Old test")
     def test_linear_matrix(self):
         clear_symbols()
         np.random.seed(43)
@@ -172,6 +290,7 @@ class TestEMFit(object):
         for i, j in np.ndindex(x_vals.shape):
             assert x_vals[i, j] == pytest.approx(result.parameters[f"X_{i}_{j}"], rel=1e-3)
 
+    @pytest.mark.skip("Old test")
     def test_exponential_matrix(self):
         clear_symbols()
         np.random.seed(43)
@@ -213,7 +332,9 @@ class TestEMFit(object):
         for k in expected.keys():
             assert result.parameters[k] == pytest.approx(expected[k], rel=0.1)
 
-    def test_gmm(self):
+
+    @pytest.mark.skip("Old test")
+    def test_gmm_old(self):
         clear_symbols()
         np.random.seed(43)
 
@@ -224,7 +345,6 @@ class TestEMFit(object):
             "sigma_A": 0.1,
             "sigma_B": 0.1,
             "sigma_C": 0.1,
-            "sigma_D": 0.2,
             "c_A": 0.22,
             "c_B": 0.53,
             "c_C": 0.25,
@@ -306,6 +426,7 @@ class TestEMFit(object):
         for k in expected_fixed.keys():
             assert result.fixed_parameters[k] == pytest.approx(expected_fixed[k], rel=0.1)
 
+    @pytest.mark.skip("Old test")
     def test_global_gmm(self):
         """Test fitting of multiple GMM datasets with overlapping populations"""
         clear_symbols()

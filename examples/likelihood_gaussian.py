@@ -24,12 +24,13 @@ fit = Fit(model, parameters, data={'x': xdata}, loss=LogLoss())
 result = fit.execute()
 
 #%%
-num_model = fit.numerical_model
 data = {"x": np.linspace(0.0, 5.0, num=100)}
 
+num_model = model.to_numerical(parameters, data)
+
 fig, ax = pplt.subplots()
-ax.plot(data["x"], num_model(**data, **gt_params)["p"], color="r")
-ax.plot(data["x"], num_model(**data, **result.parameters)["p"], linestyle="--", color="k")
+ax.plot(data["x"], num_model(**gt_params)["p"], color="r")
+ax.plot(data["x"], num_model(**result.parameters)["p"], linestyle="--", color="k")
 ax.hist(xdata, bins="fd", density=True, color="grey")
 
 pplt.show()

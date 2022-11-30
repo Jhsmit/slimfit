@@ -24,13 +24,13 @@ class Fit(object):
     def __init__(
         self,
         model: Model,
-        parameters: Parameters | list[Parameter],
+        parameters: dict[str, Parameter],
         data: dict[str | Expr, npt.ArrayLike],
         loss: Optional[Loss] = L2Loss(),
     ):
 
         self.symbolic_model = model
-        self.parameters = Parameters(parameters)
+        self.parameters = parameters
 
         data: dict[str, np.ndarray] = {getattr(k, 'name', k): np.asarray(v) for k, v in data.items()}
         self.loss = loss
@@ -46,8 +46,9 @@ class Fit(object):
         #     raise KeyError(f"Missing independent data: {k}") from k
 
     @cached_property
-    def numerical_model(self) -> NumericalModel:
-        return to_numerical(self.symbolic_model, self.parameters)
+    def numerical_model(self) -> Model:
+        #TODO parameters type
+        return to_numerical(self.symbolic_model, self.parameters, self.xdata)
 
     def execute(
         self,
@@ -57,7 +58,7 @@ class Fit(object):
 
         minimizer_cls = minimizer or self.get_minimizer()
         minimizer_instance = minimizer_cls(
-            self.numerical_model, self.parameters, self.xdata, self.ydata, self.loss,
+            self.numerical_model, Parameters(self.parameters), self.ydata, self.loss,
         )
 
         result = minimizer_instance.execute(**execute_options)

@@ -10,20 +10,20 @@ from sympy import Expr, MatrixBase, Symbol
 from slimfit.base import SymbolicBase
 from slimfit.parameter import Parameters
 from slimfit.symbols import (
-    FitSymbol,
+    FitSymbol, get_symbols,
 )
 
 import slimfit.numerical as numerical
 
 
-class Model(SymbolicBase):
+class Model(numerical.CompositeExpr):
     def __init__(
-        self, model_dict: dict[Symbol, Expr | numerical.NumExprBase | MatrixBase],
+        self, model_dict: dict[Symbol | str, Expr | numerical.NumExprBase | MatrixBase],
     ):
 
-        #!! symbolic or numerical models distinction
-        # Dict of original Sympy expressions
-        self.model_dict = model_dict
+        # currently typing has a small problem where keys are expected to be `str`, not symbol
+        super().__init__(model_dict)
+
 
 
         # Dict of converted numerical expressions
@@ -33,7 +33,7 @@ class Model(SymbolicBase):
         # }
 
     def __repr__(self):
-        return f"Model({self.model_dict.__repr__()})"
+        return f"Model({self.expr.__repr__()})"
 
     def __getitem__(self, item: Union[str, Symbol]) -> numerical.NumExprBase:
         if isinstance(item, str):
@@ -41,53 +41,21 @@ class Model(SymbolicBase):
 
         return self.model_dict[item]
 
-    def items(self) -> ItemsView:
-        return self.model_dict.items()
 
-    def values(self) -> ValuesView:
-        return self.model_dict.values()
-
-    def keys(self) -> KeysView:
-        return self.model_dict.keys()
-
-    @property
-    def symbols(self) -> dict[str, Symbol]:
-        """Return symbols in the model.
-        sorting is by dependent_variables, variables, parameters, then by alphabet
-        """
-
-        # this fails because `free_symbols` is a dict on NumExpr but `set` on Expr
-
-        symbols = set()
-        for rhs in self.model_dict.values():
-            try:
-                # rhs is a sympy `Expr` and has `free_symbols` as a set
-                symbols |= rhs.free_symbols
-            except TypeError:
-                # rhs is a slimfit `NumExpr` and has a `free_symbols` dictionary
-                symbols |= set(rhs.free_symbols.values())
-
-        rhs_symbols = {s.name: s for s in sorted(symbols, key=str)}
-
-        return self.dependent_symbols | rhs_symbols
-
-    #TODO
-    # refactor: 'keys', 'ysymbols', 'lhs_symbols' ?
-    # add 'rhs_symbols ?
-    # used to split data in xdata / ydata
     @property
     def dependent_symbols(self) -> dict[str, Symbol]:
         """Variables corresponding to dependent (measured) data, given as keys in the model dict"""
 
-        return {symbol.name: symbol for symbol in self.model_dict.keys()}
+        return {symbol.name: symbol for symbol in self.expr.keys()}
 
-    def to_numerical(self, parameters: Optional[Parameters] = None) -> NumericalModel:
-        return NumericalModel(model_dict=self.model_dict, parameters=parameters)
+    # def to_numerical(self, parameters: Optional[Parameters] = None) -> NumericalModel:
+    #     return NumericalModel(model_dict=self.model_dict, parameters=parameters)
 
 
 class NumericalModel(numerical.NumExprBase):
 
     # TODO or should the init convert to numerical model? probably yes
+    #actually no! it should be a composite where its elements ahve parameters
     def __init__(self,
                  model_dict: dict[Symbol, Expr | numerical.NumExprBase | MatrixBase],
                  parameters: Optional[Parameters] = None):

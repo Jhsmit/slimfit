@@ -5,16 +5,31 @@ from typing import Union, Optional, Any, Type
 
 import numpy as np
 import numpy.typing as npt
-from sympy import Symbol, zeros
+from sympy import Symbol, zeros, Expr, MatrixBase
 from sympy.core.cache import clear_cache
 
 
-def get_symbols(symbol_type: Optional[Type[FitSymbol]] = None) -> dict[str, FitSymbol]:
-    """Returns a dictionary of all symbols created in the session"""
-    if symbol_type is None:
+def get_symbols(symbolic_object=None) -> dict[str, Symbol]:
+    """Returns a dictionary of symbols
+    if no object is given, only returns FitSymbols
+    otherwise returns dict of symbols in the object
+    """
+    if symbolic_object is None:
         return FitSymbol._instances
+    elif isinstance(symbolic_object, dict):
+        symbols = set()
+        for entry in itertools.chain(symbolic_object.keys(), symbolic_object.values()):
+            try:
+                # rhs is a sympy `Expr` and has `free_symbols` as a set
+                symbols |= rhs.free_symbols
+            except TypeError:
+                # rhs is a slimfit `NumExpr` and has a `free_symbols` dictionary
+                symbols |= set(rhs.free_symbols.values())
+        return {symbol.name: symbol for symbol in sorted(symbols, key=str)}
+    elif isinstance(symbolic_object, (Expr, MatrixBase)):
+        return {symbol.name: symbol for symbol in sorted(symbolic_object.free_symbols, key=str)}
     else:
-        return {k: v for k, v in FitSymbol._instances.items() if isinstance(v, symbol_type)}
+        raise TypeError(f"Invalid type {type(symbolic_object)!r}")
 
 
 def symbol_dict(expr: Expr) -> dict[str, Symbol]:

@@ -23,7 +23,9 @@ class Parameter:
     guess: float | int | np.ndarray = field(default=1.)
     lower_bound: float | int | np.ndarray = field(default=None)
     upper_bound: float | int | np.ndarray = field(default=None)
-    fixed: bool | np.ndarray = field(default=False)
+    # TODO partially fixing an array parameter is not supported
+    # perhaps users should use Matrix instead if they want this type of functionality
+    fixed: bool = field(default=False)
     param_type: ParamType = field(init=False)
 
     def __post_init__(self):
@@ -53,10 +55,10 @@ class Parameter:
             return shape
         elif shape := getattr(self.guess, 'shape', None):
             return shape
-        else:
-            # when the parameter is a scalar, return an empty tuple, which is the same shape as
-            # returned by np.asarray(3.).shape
-            return tuple()
+
+        # when the parameter is a scalar, return an empty tuple, which is the same shape as
+        # returned by np.asarray(3.).shape
+        return tuple()
 
     @property
     def name(self) -> str:

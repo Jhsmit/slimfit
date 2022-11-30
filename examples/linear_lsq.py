@@ -31,5 +31,5 @@ result = fit.execute()
 #%%
 fig, ax = pplt.subplots()
 ax.scatter(DATA["x"], DATA["y"])
-ax.plot(DATA["x"], model.to_numerical()(**fit.xdata, **result.parameters)["y"], color="r")
+ax.plot(DATA["x"], model.to_numerical(parameters, DATA)(**result.parameters)["y"], color="r")
 pplt.show()

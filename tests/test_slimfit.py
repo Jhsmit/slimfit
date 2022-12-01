@@ -19,6 +19,7 @@ from slimfit.symbols import (
     clear_symbols,
     get_symbols,
 )
+from slimfit.markov import generate_transition_matrix, extract_states
 from slimfit.parameter import Parameters, Parameter
 import numpy as np
 
@@ -284,7 +285,6 @@ class TestEMFit(object):
         for i, j in np.ndindex(x_vals.shape):
             assert x_vals[i, j] == pytest.approx(result.parameters[f"X_{i}_{j}"], rel=1e-3)
 
-    @pytest.mark.skip("Old test")
     def test_exponential_matrix(self):
         clear_symbols()
         np.random.seed(43)
@@ -302,26 +302,24 @@ class TestEMFit(object):
         m = generate_transition_matrix(connectivity)
         states = extract_states(connectivity)
 
-        xt = exp(m * Variable("t"))
-        y0 = symbol_matrix(name="y0", shape=(3, 1), suffix=states, rand_init=True, norm=True)
-        model = Model({Variable("y"): xt @ y0})
+        xt = exp(m * Symbol("t"))
+        y0 = symbol_matrix(name="y0", shape=(3, 1), suffix=states)
+        model = Model({Symbol("y"): xt @ y0})
+
+        rate_params = Parameters.from_symbols(get_symbols(m))
+        y0_params = Parameters.from_symbols(get_symbols(y0))
+        parameters = rate_params | y0_params
 
         num = 50
-        t = np.linspace(0, 11, num=num)
-        populations = model(t=t, **gt_values)["y"]
-        data = populations + np.random.normal(0, 0.05, size=num * 3).reshape(populations.shape)
+        xdata = {'t': np.linspace(0, 11, num=num)}
+        num_model = model.to_numerical(parameters, xdata)
+        populations = num_model(**gt_values)["y"]
+        ydata = {'y': populations + np.random.normal(0, 0.05, size=num * 3).reshape(populations.shape)}
 
-        fit = Fit(model, y=data, t=t)
+        fit = Fit(model, parameters, data={**xdata, **ydata})
         result = fit.execute()
 
-        expected = {
-            "k_A_B": 1.0871957340661365,
-            "k_B_A": 0.09590932036496363,
-            "k_B_C": 0.5062539695609674,
-            "y0_A": 1.02597395255225,
-            "y0_B": -0.025642535216578468,
-            "y0_C": -0.0022023742693679043,
-        }
+        expected = {'k_A_B': 1.0926495267297978, 'k_B_A': 0.02553115392319696, 'k_B_C': 0.48848195581215753, 'y0_A': 1.0144580699136068, 'y0_B': -0.011557732388925912, 'y0_C': -0.006383620511149652}
 
         for k in expected.keys():
             assert result.parameters[k] == pytest.approx(expected[k], rel=0.1)

@@ -72,6 +72,10 @@ fit = Fit(model, parameters, data={**xdata, **ydata})
 result = fit.execute()
 
 #%%
+
+print(result.parameters)
+
+#%%
 # Compare fit result with ground truth parameters
 for k, v in result.parameters.items():
     print(f"{k:5}: {v:10.2}, ({gt_values[k]:10.2})")

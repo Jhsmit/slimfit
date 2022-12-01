@@ -23,12 +23,14 @@ STATE_AXIS = -2
 
 class Minimizer(metaclass=abc.ABCMeta):
     def __init__(
-        self, model: NumericalModel, parameters: Parameters, ydata: dict[str, np.array], loss: Loss,
+        self, model: Model, loss: Loss, ydata: dict[str, np.array],
     ):
+        if not model.numerical:
+            raise ValueError("The given model should be numerical")
         self.model = model
-        self.parameters = parameters
-        self.ydata = ydata
         self.loss = loss
+        self.ydata = ydata
+
 
     @abc.abstractmethod
     def execute(self, **minimizer_options) -> FitResult:
@@ -37,13 +39,13 @@ class Minimizer(metaclass=abc.ABCMeta):
 
 class ScipyMinimizer(Minimizer):
     def execute(self, **minimizer_options):
-        x = self.parameters.pack()
+        x = self.model.parameters.pack()
 
         result = minimize(
             minfunc,
             x,
-            args=(self.parameters, self.ydata, self.model, self.loss,),
-            bounds=self.parameters.get_bounds(),
+            args=(self.model, self.loss, self.ydata,),
+            bounds=self.model.parameters.get_bounds(),
             **self.rename_options(minimizer_options)
         )
 
@@ -61,7 +63,7 @@ class ScipyMinimizer(Minimizer):
     def to_fitresult(self, result) -> FitResult:
         parameter_values = {
             name: arr.item() if arr.size == 1 else arr
-            for name, arr in self.parameters.unpack(result.x).items()
+            for name, arr in self.model.parameters.unpack(result.x).items()
         }
 
         gof_qualifiers = {
@@ -71,7 +73,7 @@ class ScipyMinimizer(Minimizer):
         fit_result = FitResult(
             parameters=parameter_values,
             gof_qualifiers=gof_qualifiers,
-            guess=self.parameters.guess,
+            guess=self.model.parameters.guess,
             base_result=result,
         )
 
@@ -97,7 +99,6 @@ class LikelihoodOptimizer(Minimizer):
 
         # Find the sets of components which have common parameters and thus need to be optimized together
         sub_models = overlapping_model_parameters(components)
-        # loop here
 
         pbar = trange(max_iter, disable=not verbose)
         t0 = time.time()
@@ -106,9 +107,10 @@ class LikelihoodOptimizer(Minimizer):
         prev_loss = 0.0
         no_progress = 0
         for i in pbar:
-            result = self.model(**self.xdata, **parameters_current)
+            result = self.model(**parameters_current)
             loss = self.loss(self.ydata, result)
             # posterior dict has values with shapes equal to eval
+            # which is (dataopints, states, 1)
             posterior = {k: v / v.sum(axis=STATE_AXIS, keepdims=True) for k, v in result.items()}
 
             # At the moment we assume all callables in the sub models to be MatrixCallables
@@ -119,10 +121,10 @@ class LikelihoodOptimizer(Minimizer):
                 kinds = [c.kind for c in sub_model.values()]
                 print("CHECK IF THIS STILL WORKS !!")
                 if all(k == "constant" for k in kinds):
-                    opt = ConstantOptimizer(sub_model, self.xdata, {}, posterior, loss=self.loss)
+                    opt = ConstantOptimizer(sub_model, {}, posterior, loss=self.loss)
                     parameters = opt.step()
                 elif all(k == "gmm" for k in kinds):
-                    opt = GMMOptimizer(sub_model, self.xdata, {}, posterior, loss=self.loss)
+                    opt = GMMOptimizer(sub_model, {}, posterior, loss=self.loss)
                     parameters = opt.step()
                 else:
                     guess = {k: parameters_current[k] for k in sub_model.free_parameters}
@@ -174,7 +176,7 @@ class EMOptimizer(Minimizer):
     def __init__(
         self,
         model: Model,
-        xdata: dict[str, np.array],
+        parameters: Parameters, # we dont need parameters because the model has the parameters
         ydata: dict[str, np.array],
         posterior: dict[str, np.array],
         loss: Loss,
@@ -182,7 +184,7 @@ class EMOptimizer(Minimizer):
     ):
         self.posterior = posterior
         super().__init__(
-            model=model, xdata=xdata, ydata=ydata, loss=loss, guess=guess,
+            model=model, ydata=ydata, loss=loss,
         )
 
     @abc.abstractmethod
@@ -251,7 +253,7 @@ class GMMOptimizer(EMOptimizer):
         for p_name in mu_parameters:
             num, denom = 0.0, 0.0
             for lhs, gmm_rhs in self.model.items():
-                # check if the curret mu parameter in this GMM
+                # check if the current mu parameter in this GMM
                 if p_name in gmm_rhs.mu.parameters:
                     state_index, col = gmm_rhs.mu.index(p_name)
                     T_i = np.take(self.posterior[lhs.name], state_index, axis=STATE_AXIS)
@@ -379,13 +381,12 @@ def minfunc_expectation(
 
 def minfunc(
     x: np.ndarray,  # array of parameters
-    parameters: Parameters,  # parameter names
-    dependent_data: dict,  # corresponding measurements; target data
     model: Model,
     loss: Loss,
+    dependent_data: dict,  # corresponding measurements; target data
 ) -> float:
 
-    parameter_values = parameters.unpack(x)
+    parameter_values = model.parameters.unpack(x)
     predicted = model(**parameter_values)
 
     return loss(dependent_data, predicted)

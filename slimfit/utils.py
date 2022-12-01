@@ -7,7 +7,8 @@ import numpy as np
 from sympy import Symbol
 
 from slimfit import NumExprBase
-from slimfit.models import NumericalModel
+from slimfit.models import Model
+from slimfit.operations import Mul
 
 # from slimfit.operations import Mul
 from slimfit.parameter import Parameter
@@ -15,23 +16,24 @@ from slimfit.parameter import Parameter
 
 def overlapping_model_parameters(
     model_callables: list[tuple[Symbol, NumExprBase]]
-) -> list[NumericalModel]:
+) -> list[Model]:
 
     seen_models = []
     seen_sets = []
-    for lhs, mc in model_callables:
-        items = set(mc.free_parameters.keys())
+    for lhs, num_expr in model_callables:
+        param_set = set(num_expr.free_parameters.keys())
 
         found = False
         # look for sets of parameters we've seen so far, if found, append to the list of sets
-        for i, s in enumerate(seen_sets):
-            if items & s:
-                s |= items  # add in additional items
-                seen_models[i].append((lhs, mc))
+        for i, test_set in enumerate(seen_sets):
+            if param_set & test_set:
+                # add additional items to this set of parameters
+                test_set |= param_set
+                seen_models[i].append((lhs, num_expr))
                 found = True
         if not found:
-            seen_sets.append(items)
-            seen_models.append([(lhs, mc)])
+            seen_sets.append(param_set)
+            seen_models.append([(lhs, num_expr)])
 
     # Next, piece together the dependent model parts as Model objects, restoring original multiplications
     sub_models = []
@@ -43,7 +45,7 @@ def overlapping_model_parameters(
         model_dict = {
             lhs: rhs[0] if len(rhs) == 1 else Mul(*rhs) for lhs, rhs in model_dict.items()
         }
-        sub_models.append(NumericalModel(model_dict))
+        sub_models.append(Model(model_dict))
 
     return sub_models
 

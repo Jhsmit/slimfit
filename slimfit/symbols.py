@@ -8,28 +8,33 @@ from sympy import Symbol, zeros, Expr, MatrixBase
 from sympy.core.cache import clear_cache
 
 
-def get_symbols(symbolic_object=None) -> dict[str, Symbol]:
+def get_symbols(*symbolic_objects) -> dict[str, Symbol]:
     """Returns a dictionary of symbols
     if no object is given, only returns FitSymbols
     otherwise returns dict of symbols in the object
     """
-    if symbolic_object is None:
+    if len(symbolic_objects) == 0:
         return FitSymbol._instances
-    elif isinstance(symbolic_object, dict):
-        symbols = set()
-        for entry in itertools.chain(symbolic_object.keys(), symbolic_object.values()):
-            try:
-                # rhs is a sympy `Expr` and has `free_symbols` as a set
-                symbols |= rhs.free_symbols
-            except TypeError:
-                # rhs is a slimfit `NumExpr` and has a `free_symbols` dictionary
-                symbols |= set(rhs.free_symbols.values())
-        return {symbol.name: symbol for symbol in sorted(symbols, key=str)}
-    elif isinstance(symbolic_object, (Expr, MatrixBase)):
-        return {symbol.name: symbol for symbol in sorted(symbolic_object.free_symbols, key=str)}
     else:
-        raise TypeError(f"Invalid type {type(symbolic_object)!r}")
+        symbols = set()
+        for symbolic_object in symbolic_objects:
+            if isinstance(symbolic_object, dict):
+                symbols = set()
+                for entry in itertools.chain(symbolic_object.keys(), symbolic_object.values()):
+                    try:
+                        # rhs is a sympy `Expr` and has `free_symbols` as a set
+                        symbols |= rhs.free_symbols
+                    except TypeError:
+                        # rhs is a slimfit `NumExpr` and has a `free_symbols` dictionary
+                        symbols |= set(rhs.free_symbols.values())
+                return
+            elif isinstance(symbolic_object, (Expr, MatrixBase)):
+                symbols |= symbolic_object.free_symbols
+                # return {symbol.name: symbol for symbol in sorted(symbolic_object.free_symbols, key=str)}
+            else:
+                raise TypeError(f"Invalid type {type(symbolic_object)!r}")
 
+        return {symbol.name: symbol for symbol in sorted(symbols, key=str)}
 
 def symbol_dict(expr: Expr) -> dict[str, Symbol]:
     return {symbol.name: symbol for symbol in sorted(expr.free_symbols, key=str)}

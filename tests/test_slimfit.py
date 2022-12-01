@@ -175,7 +175,7 @@ class TestNumExpr(object):
         states = ['A', 'B', 'C']
         c = symbol_matrix(name="c", shape=shape, suffix=states)
         assert c[0, 0] == Symbol('c_A')
-        
+
         num_c = to_numerical(c, {}, {})
 
         assert num_c.kind == 'constant'

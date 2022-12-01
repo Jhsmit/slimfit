@@ -24,7 +24,7 @@ class Fit(object):
     def __init__(
         self,
         model: Model,
-        parameters: dict[str, Parameter],
+        parameters: Parameters,
         data: dict[str | Expr, npt.ArrayLike],
         loss: Optional[Loss] = L2Loss(),
     ):
@@ -58,7 +58,7 @@ class Fit(object):
 
         minimizer_cls = minimizer or self.get_minimizer()
         minimizer_instance = minimizer_cls(
-            self.numerical_model, Parameters(self.parameters), self.ydata, self.loss,
+            self.numerical_model, self.loss, self.ydata
         )
 
         result = minimizer_instance.execute(**execute_options)

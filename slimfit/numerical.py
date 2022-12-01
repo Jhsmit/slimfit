@@ -38,10 +38,10 @@ class NumExprBase(SymbolicBase):
 
     def __init__(
         self,
-        parameters: Optional[dict[str, Parameter]] = None,
+        parameters: Optional[Parameters] = None,
         data: Optional[dict[str, np.ndarray]] = None,
     ):
-        self.parameters = parameters or {}
+        self.parameters = parameters or Parameters()
         self.data = data or {}
 
         # Accepted parameters are a subset of `symbols`
@@ -49,13 +49,13 @@ class NumExprBase(SymbolicBase):
         # self.parameters = Parameters({name: p for name, p in parameters.items() if name in self.symbols})
 
     @property
-    def parameters(self) -> dict[str, Parameter]:
+    def parameters(self) -> Parameters:
         """Parameters must be a subset of symbols"""
         return self._parameters
 
     @parameters.setter
     def parameters(self, value: Mapping[str, Parameter]):
-        self._parameters = {name: p for name, p in value.items() if name in self.symbols}
+        self._parameters = Parameters({name: p for name, p in value.items() if name in self.symbols})
 
     @property
     def data(self) -> dict[str, np.ndarray]:
@@ -112,7 +112,7 @@ class NumExpr(NumExprBase):
     def __init__(
         self,
         expr: Expr,
-        parameters: Optional[dict[str, Parameter]] = None,
+        parameters: Optional[Parameters] = None,
         data: Optional[dict[str, np.ndarray]] = None,
     ):
         if not isinstance(expr, (Expr, MatrixBase)):
@@ -145,6 +145,8 @@ class NumExpr(NumExprBase):
         val = self.lambdified(**parameters, **self.fixed_parameters, **self.data)
         return val
 
+    def __repr__(self):
+        return f"NumExpr({self.expr})"
 
 # todo name via kwargs to super
 # = composite num expr"?
@@ -152,7 +154,7 @@ class MatrixNumExpr(NumExpr):
     def __init__(
         self,
         expr: MatrixBase,
-        parameters: Optional[dict[str, Parameter]] = None,
+        parameters: Optional[Parameters] = None,
         data: Optional[dict[str, np.ndarray]] = None,
         name: Optional[str] = None,
         kind: Optional[str] = None,
@@ -394,7 +396,7 @@ class CompositeExpr(SymbolicBase):
     def items(self) -> ItemsView[str, NumExprBase, Expr]:
         return self.expr.items()
 
-    def to_numerical(self, parameters: dict[str, Parameter], data: dict[str, np.ndarray]):
+    def to_numerical(self, parameters: Parameters, data: dict[str, np.ndarray]):
         num_expr = {str(k): to_numerical(expr, parameters, data) for k, expr in self.items()}
 
         instance = self.__class__(num_expr)
@@ -422,11 +424,11 @@ class CompositeExpr(SymbolicBase):
         return {s.name: s for s in sorted(symbols, key=str)}
 
     @property
-    def parameters(self) -> dict[str, Parameter]:
+    def parameters(self) -> Parameters:
         """Parameters must be a subset of symbols"""
         if self.numerical:
             return reduce(or_, (expr.parameters for expr in self.values()))
-        return {}
+        return Parameters()
 
     @property
     def data(self) -> dict[str, np.ndarray]:
@@ -472,7 +474,10 @@ class GMM(CompositeExpr):
         # exponentiation model
         return np.expand_dims(output, -1)
 
-    def to_numerical(self, parameters: dict[str, Parameter], data: dict[str, np.ndarray]) -> GMM:
+    def __repr__(self):
+        return f"GMM({self.expr['x']}, {self.expr['mu']}, {self.expr['sigma']})"
+
+    def to_numerical(self, parameters: Parameters, data: dict[str, np.ndarray]) -> GMM:
         # todo probably this is the same as the super class method
         num_expr = {k: to_numerical(expr, parameters, data) for k, expr in self.items()}
         instance = GMM(**num_expr)
@@ -531,7 +536,7 @@ class MarkovIVP(CompositeExpr):
         return np.expand_dims(sol.y.T, -1)
 
     def to_numerical(
-        self, parameters: dict[str, Parameter], data: dict[str, np.ndarray]
+        self, parameters: Parameters, data: dict[str, np.ndarray]
     ) -> MarkovIVP:
         num_expr = {k: to_numerical(expr, parameters, data) for k, expr in self.items()}
         instance = MarkovIVP(**num_expr, domain=self.domain, **self.ivp_defaults)
@@ -570,7 +575,7 @@ def identify_expression_kind(sympy_expression: Union[Expr, MatrixBase]) -> str:
 # todo behaviour for `None` ?
 def to_numerical(
     expression: Union[NumExprBase, Expr, MatrixBase | Model | CompositeExpr],
-    parameters: dict[str, Parameter],
+    parameters: Parameters,
     data: dict[str, np.ndarray],
 ) -> NumExprBase:
     """Converts sympy expression to slimfit numerical expression

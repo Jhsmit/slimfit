@@ -49,9 +49,6 @@ for st, var, N in zip(all_states, vars, Ns):
         ]
     ).reshape(-1, 1)
 
-#%%
-data
-
 # %%
 guess = {
     "mu_A": 0.2,
@@ -87,11 +84,10 @@ c = symbol_matrix(name="c", shape=c_shape, suffix=states)
 model_dict[Symbol("p2")] = Mul(c, GMM(Symbol("x2"), mu, sigma))
 
 model = Model(model_dict)
-model
 #%%
 
 # create parameters from the symbols in the model if they are in the guess dictionary
-parameters = Parameters.from_symbols(model.symbols, gt)
+parameters = Parameters.from_symbols(model.symbols, guess)
 fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
 result = fit.execute(minimizer=LikelihoodOptimizer)
 
@@ -99,14 +95,11 @@ result = fit.execute(minimizer=LikelihoodOptimizer)
 for k, v in result.parameters.items():
     print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")
 
-# %%
+#%%
 
 x_point = np.linspace(-0.5, 1.5, num=250).reshape(-1, 1)
 eval_data = {'x1': x_point, 'x2': x_point}
 num_model = model.to_numerical(parameters, eval_data)
-
-
-#%%
 
 ans = num_model(**result.parameters)
 gt_ans = num_model(**gt)
@@ -123,14 +116,9 @@ for i, ax in enumerate(axes):
         ax.plot(x_point, gt_ans[f"p{i + 1}"][:, j], color=colors[state], linestyle='--')
     ax.format(title=f"Dataset {i + 1}")
 pplt.show()
-#
-#
-# #%%
-#
+
 # Fitting only dataset two
 model_ds2 = Model({Symbol("p2"): model_dict[Symbol("p2")]})
-#
-model_ds2.symbols
 
 #%%
 guess = {

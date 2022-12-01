@@ -485,7 +485,6 @@ class TestEMFit(object):
         for fixed_param in ['mu_A', 'sigma_B']:
             assert result.fixed_parameters[fixed_param] == guess[fixed_param]
 
-    @pytest.mark.skip("Old test")
     def test_global_gmm(self):
         """Test fitting of multiple GMM datasets with overlapping populations"""
         clear_symbols()
@@ -497,11 +496,11 @@ class TestEMFit(object):
             "mu_A": 0.23,
             "mu_B": 0.55,
             "mu_C": 0.92,
-            "mu_D": 0.15,
+            "mu_D": 0.32,
             "sigma_A": 0.1,
             "sigma_B": 0.1,
             "sigma_C": 0.1,
-            "sigma_D": 0.1,
+            "sigma_D": 0.2,
             "c_A": 0.22,
             "c_B": 0.53,
             "c_C": 0.25,
@@ -519,7 +518,7 @@ class TestEMFit(object):
                     )
                     for s in st
                 ]
-            )
+            ).reshape(-1, 1)
 
         guess = {
             "mu_A": 0.2,
@@ -539,37 +538,26 @@ class TestEMFit(object):
         model_dict = {}
 
         states = ["A", "B", "C"]
-        mu = symbol_matrix(name="mu", shape=(3, 1), suffix=states, rand_init=True)
-        sigma = symbol_matrix(name="sigma", shape=(3, 1), suffix=states, rand_init=True)
-        c = symbol_matrix(name="c", shape=(3, 1), suffix=states, norm=True)
-        model_dict[Probability("p1")] = Mul(c, GMM(Variable("x1"), mu, sigma))
+        g_shape = (1, 3)
+        c_shape = (3, 1)
+        mu = symbol_matrix(name="mu", shape=g_shape, suffix=states)
+        sigma = symbol_matrix(name="sigma", shape=g_shape, suffix=states)
+        c = symbol_matrix(name="c", shape=c_shape, suffix=states)
+        model_dict[Symbol("p1")] = Mul(c, GMM(Symbol("x1"), mu, sigma))
 
         states = ["B", "C", "D"]
-        mu = symbol_matrix(name="mu", shape=(3, 1), suffix=states, rand_init=True)
-        sigma = symbol_matrix(name="sigma", shape=(3, 1), suffix=states, rand_init=True)
-        c = symbol_matrix(name="c", shape=(3, 1), suffix=states, norm=True)
-        model_dict[Probability("p2")] = Mul(c, GMM(Variable("x2"), mu, sigma))
+        mu = symbol_matrix(name="mu", shape=g_shape, suffix=states)
+        sigma = symbol_matrix(name="sigma", shape=g_shape, suffix=states)
+        c = symbol_matrix(name="c", shape=c_shape, suffix=states)
+        model_dict[Symbol("p2")] = Mul(c, GMM(Symbol("x2"), mu, sigma))
 
         model = Model(model_dict)
 
-        loss = LogSumLoss()
-        opt = LikelihoodOptimizer(model, data, {}, loss=loss, guess=guess)
-        result = opt.execute(max_iter=200, patience=5)
+        parameters = Parameters.from_symbols(model.symbols, gt)
+        fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
+        result = fit.execute(minimizer=LikelihoodOptimizer)
 
-        expected = {
-            "c_A": 0.22343642747136802,
-            "c_B": 0.5292727366643867,
-            "c_C": 0.24741157906292643,
-            "c_D": 0.22323518880689952,
-            "mu_C": 0.9195236095835075,
-            "mu_A": 0.23544605174817337,
-            "mu_B": 0.5556571686778503,
-            "mu_D": 0.15689741329079615,
-            "sigma_B": 0.09974632654431646,
-            "sigma_D": 0.10460963367572337,
-            "sigma_C": 0.09482194155204957,
-            "sigma_A": 0.09952476600824725,
-        }
+        expected = {'c_A': 0.2146783006888742, 'c_B': 0.5418633676210778, 'c_C': 0.24177790608861852, 'c_D': 0.21747901002459014, 'mu_B': 0.5528955016879634, 'mu_A': 0.2296754306071527, 'mu_D': 0.3386833210125317, 'mu_C': 0.9223072648993988, 'sigma_C': 0.093230280142199, 'sigma_A': 0.0962655449677717, 'sigma_B': 0.10288003410897235, 'sigma_D': 0.21816387196646111}
 
         for k in expected.keys():
             assert result.parameters[k] == pytest.approx(expected[k], rel=0.1)

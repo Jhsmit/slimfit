@@ -1,17 +1,16 @@
 from functools import reduce
 from operator import add
-from typing import Optional, Callable
+from typing import Optional, Callable, Type
 
 import numpy as np
-from sympy import Matrix, zeros
-
-from slimfit.symbols import Parameter
+from sympy import Matrix, zeros, Symbol
 
 OPERATORS = ["<->", "<-", "->"]
 
 
 def generate_transition_matrix(
-    connectivity: list[str], parameter_prefix="k", check_mass_balance=True
+    connectivity: list[str], parameter_prefix="k", check_mass_balance=True,
+    symbol_class: Type[Symbol] = Symbol,
 ):
     all_states = extract_states(connectivity)
 
@@ -35,12 +34,12 @@ def generate_transition_matrix(
                 other_idx = all_states.index(other_state)
                 if op in ["->", "<->"]:  # flux from other state to current state
                     # elem = self.create_element(other_state, current_state)
-                    elem = Parameter(f"{parameter_prefix}_{other_state}_{current_state}")
+                    elem = symbol_class(f"{parameter_prefix}_{other_state}_{current_state}")
                     trs_matrix[current_idx, other_idx] += elem
 
                 if op in ["<-", "<->"]:  # flux from current state to other state
                     # elem = self.create_element(current_state, other_state)
-                    elem = Parameter(f"{parameter_prefix}_{current_state}_{other_state}")
+                    elem = symbol_class(f"{parameter_prefix}_{current_state}_{other_state}")
                     trs_matrix[current_idx, current_idx] -= elem
 
             # look to the right
@@ -51,11 +50,11 @@ def generate_transition_matrix(
 
                 if op in ["<-", "<->"]:  # flux from other state to current state
                     # elem = self.create_element(other_state, current_state)
-                    elem = Parameter(f"{parameter_prefix}_{other_state}_{current_state}")
+                    elem = symbol_class(f"{parameter_prefix}_{other_state}_{current_state}")
                     trs_matrix[current_idx, other_idx] += elem
                 if op in ["->", "<->"]:  # flux from current state to other state
                     # elem = self.create_element(current_state, other_state)
-                    elem = Parameter(f"{parameter_prefix}_{current_state}_{other_state}")
+                    elem = symbol_class(f"{parameter_prefix}_{current_state}_{other_state}")
                     trs_matrix[current_idx, current_idx] -= elem
 
     return trs_matrix

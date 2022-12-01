@@ -383,7 +383,7 @@ class ScipyEMOptimizer(EMOptimizer):
             gof_qualifiers=gof_qualifiers,
             guess=self.guess,
             data={**self.independent_data, **self.dependent_data},
-            _result=result,
+            base_result=result,
         )
 
         return fit_result

@@ -1,5 +1,5 @@
 from slimfit import Parameter, Probability
-from slimfit.callable import GMM
+from slimfit.numerical import GMM
 
 from slimfit.fit import Fit
 from slimfit.loss import LogSumLoss

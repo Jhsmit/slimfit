@@ -77,7 +77,7 @@ class Parameters(UserDict):
         return {p.name: np.asarray(p.guess) for p in self.values() if not p.fixed}
 
     def get_bounds(self) -> list[tuple[float | None, float | None]] | None:
-        bounds = [(p.lower_bound, p.upper_bound) for p in self.values()]
+        bounds = [(p.lower_bound, p.upper_bound) for p in self.values() if not p.fixed]
 
         if all((None, None) == b for b in bounds):
             return None
@@ -107,10 +107,11 @@ class Parameters(UserDict):
             parameter name: parameter_value where parameter values are cast back to their
             specified shapes.
         """
-        sizes = [int(np.product(p.shape)) for p in self.values()]
+        free_parameters = [p for p in self.values() if not p.fixed]
+        sizes = [int(np.product(p.shape)) for p in free_parameters]
 
         x_split = np.split(x, np.cumsum(sizes))
-        p_values = {p.name: arr.reshape(p.shape) for arr, p in zip(x_split, self.values())}
+        p_values = {p.name: arr.reshape(p.shape) for arr, p in zip(x_split, free_parameters)}
 
         return p_values
 

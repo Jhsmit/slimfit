@@ -26,6 +26,7 @@ STATE_AXIS = -2
 class Minimizer(metaclass=abc.ABCMeta):
     def __init__(
         self, model: Model, loss: Loss, ydata: dict[str, np.array],
+            guess: Optional[dict[str, np.ndarray]] = None,
     ):
         if not model.numerical:
             raise ValueError("The given model should be numerical")
@@ -33,16 +34,16 @@ class Minimizer(metaclass=abc.ABCMeta):
         self.model = model
         self.loss = loss
         self.ydata = ydata
-
+        self.guess = guess or self.model.parameters.guess
 
     @abc.abstractmethod
     def execute(self, **minimizer_options) -> FitResult:
         ...
 
-
+#TODO: MINIMIZERS NEED GUESSES
 class ScipyMinimizer(Minimizer):
     def execute(self, **minimizer_options):
-        x = self.model.parameters.pack()
+        x = self.model.parameters.pack(self.guess)
 
         result = minimize(
             minfunc,
@@ -77,7 +78,7 @@ class ScipyMinimizer(Minimizer):
             parameters=parameter_values,
             fixed_parameters=self.model.fixed_parameters,
             gof_qualifiers=gof_qualifiers,
-            guess=self.model.parameters.guess,
+            guess=self.guess,
             base_result=result,
         )
 
@@ -107,7 +108,7 @@ class LikelihoodOptimizer(Minimizer):
         pbar = trange(max_iter, disable=not verbose)
         t0 = time.time()
 
-        parameters_current = self.model.parameters.guess  # initialize parameters
+        parameters_current = self.guess  # initialize parameters
         prev_loss = 0.0
         no_progress = 0
         for i in pbar:
@@ -133,18 +134,22 @@ class LikelihoodOptimizer(Minimizer):
                     opt = GMMOptimizer(sub_model, self.loss, {}, posterior)
                     parameters = opt.step()
                 else:
-                    raise NotImplementedError("Not yet")
                     guess = {k: parameters_current[k] for k in sub_model.free_parameters}
                     # todo loss is not used; should be EM loss while the main loop uses Log likelihood loss
                     opt = ScipyEMOptimizer(
-                        sub_model, self.xdata, {}, posterior, loss=self.loss, guess=guess,
+                        sub_model, self.loss, {}, posterior, guess=guess
                     )
+
+                    # opt = ScipyEMOptimizer(
+                    #     sub_model, self.xdata, {}, posterior, loss=self.loss, guess=guess,
+                    # )
                     scipy_result = opt.execute()
                     parameters = scipy_result.parameters
                     base_result['scipy'] = scipy_result
 
                 # collect parameters of this sub_model into parmaeters dict
                 parameters_step |= parameters
+
 
             # update for next iteration
             parameters_current = parameters_step
@@ -153,13 +158,16 @@ class LikelihoodOptimizer(Minimizer):
             improvement = prev_loss - loss
             prev_loss = loss
             pbar.set_postfix({"improvement": improvement})
-            if improvement < stop_loss:
+            if np.isnan(improvement):
+                break
+            elif improvement < stop_loss:
                 no_progress += 1
             else:
                 no_progress = 0
 
             if no_progress > patience:
                 break
+
 
         tdelta = time.time() - t0
         gof_qualifiers = {
@@ -174,7 +182,7 @@ class LikelihoodOptimizer(Minimizer):
             parameters=parameters_current,
             fixed_parameters=self.model.fixed_parameters,
             gof_qualifiers=gof_qualifiers,
-            guess=self.model.parameters.guess,
+            guess=self.guess,
             base_result=base_result,
         )
 
@@ -188,10 +196,11 @@ class EMOptimizer(Minimizer):
         loss: Loss,
         ydata: dict[str, np.array],
         posterior: dict[str, np.array],
+        guess: dict[str, np.array] = None,
     ):
         self.posterior = posterior
         super().__init__(
-            model=model, loss=loss, ydata=ydata,
+            model=model, loss=loss, ydata=ydata, guess=guess
         )
 
     @abc.abstractmethod
@@ -199,11 +208,11 @@ class EMOptimizer(Minimizer):
         return {}
 
     def execute(self, max_iter=250, patience=5, stop_loss=1e-7, verbose=True) -> FitResult:
-
+        raise NotImplementedError("Not yet")
         pbar = trange(max_iter, disable=not verbose)
         t0 = time.time()
 
-        parameters_current = self.model.parameters.guess  # initialize parameters
+        parameters_current = self.guess  # initialize parameters
         prev_loss = 0.0
         no_progress = 0
         # cache dict?
@@ -220,7 +229,9 @@ class EMOptimizer(Minimizer):
             improvement = prev_loss - loss
             prev_loss = loss
             pbar.set_postfix({"improvement": improvement})
-            if improvement < stop_loss:
+            if np.isnan(improvement):
+                break
+            elif improvement < stop_loss:
                 no_progress += 1
             else:
                 no_progress = 0
@@ -239,8 +250,9 @@ class EMOptimizer(Minimizer):
 
         result = FitResult(
             parameters=parameters_current,
+            fixed_parameters=self.model.fixed_parameters,
             gof_qualifiers=gof_qualifiers,
-            guess=self.model.parameters.guess,
+            guess=self.guess,
             # model=self.model,
             # data={**self.xdata, **self.ydata},
         )
@@ -249,7 +261,10 @@ class EMOptimizer(Minimizer):
 
 
 class GMMOptimizer(EMOptimizer):
-    """optimizes parameter values of GMM (sub) model"""
+    """optimizes parameter values of GMM (sub) model
+    doesnt use guess directly but instead finds next values for parmater from posterior probabilities
+
+    """
 
     # TODO create `step` method which only does one step', execute should be full loop
 
@@ -299,7 +314,6 @@ class GMMOptimizer(EMOptimizer):
                         T_i * (self.model.data[gmm_rhs['x'].name].reshape(T_i.shape) - mu_value) ** 2
                     )
 
-
                     denom += np.sum(T_i)
 
             parameters[p_name] = np.sqrt(num / denom)
@@ -339,16 +353,21 @@ class ScipyEMOptimizer(EMOptimizer):
         ...
 
     def execute(self, **minimizer_options):
-        x = np.array([self.guess[p_name] for p_name in self.parameter_names])
+        x = self.model.parameters.pack(self.guess)
+        # x = np.array([self.guess[p_name] for p_name in self.parameter_names])
 
         # options = {"method": "SLSQP"} | minimizer_options
         options = minimizer_options
-
+        bounds = self.model.parameters.get_bounds()
+        # todo what if users wants different bounds to pass to the minimizer?
+        # perhaps that should also be passed, same as guess?
+        # what about the pack / unpack?
         result = minimize(
             minfunc_expectation,
             x,
-            args=(self.parameter_names, self.xdata, self.posterior, self.model, self.loss,),
-            bounds=get_bounds(self.model.free_parameters.values()),
+            args=(self.model, self.loss, self.posterior),
+            # args=(self.parameter_names, self.xdata, self.posterior, self.model, self.loss,),
+            bounds=self.model.parameters.get_bounds(),
             **options
         )
 
@@ -356,7 +375,7 @@ class ScipyEMOptimizer(EMOptimizer):
 
     # TODO duplicate code
     def to_fitresult(self, result) -> FitResult:
-        parameters = {k: xi for k, xi in zip(self.parameter_names, result.x)}
+        parameters = self.model.parameters.unpack(result.x)
 
         gof_qualifiers = {
             "loss": result["fun"],
@@ -366,8 +385,7 @@ class ScipyEMOptimizer(EMOptimizer):
             parameters=parameters,
             gof_qualifiers=gof_qualifiers,
             guess=self.guess,
-            data={**self.xdata, **self.ydata},
-            _result=result,
+            base_result=result
         )
 
         return fit_result
@@ -378,15 +396,14 @@ MIN_PROB = 1e-9  # Minimal probability value (> 0.) to enter into np.log
 
 def minfunc_expectation(
     x: np.ndarray,  # array of parameters
-    x_names,  # parameter names
-    independent_data: dict,  # measurement points
+    model: Model,  # parameter names
+    loss: Loss, # currently not used
     posterior: dict,  # posterior probabilities
-    model: Model,
-    loss: Loss,
 ):
-    params = {name: value for name, value in zip(x_names, x)}
-    probability = model(**independent_data, **params)
+    params = model.parameters.unpack(x)
+    probability = model(**params)
 
+    #Todo do this in a `loss`
     expectation = {
         lhs: posterior[lhs] * np.log(np.clip(prob, a_min=MIN_PROB, a_max=1.0))
         for lhs, prob in probability.items()

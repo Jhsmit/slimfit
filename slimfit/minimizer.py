@@ -75,6 +75,7 @@ class ScipyMinimizer(Minimizer):
 
         fit_result = FitResult(
             parameters=parameter_values,
+            fixed_parameters=self.model.fixed_parameters,
             gof_qualifiers=gof_qualifiers,
             guess=self.model.parameters.guess,
             base_result=result,
@@ -171,6 +172,7 @@ class LikelihoodOptimizer(Minimizer):
 
         result = FitResult(
             parameters=parameters_current,
+            fixed_parameters=self.model.fixed_parameters,
             gof_qualifiers=gof_qualifiers,
             guess=self.model.parameters.guess,
             base_result=base_result,
@@ -288,7 +290,10 @@ class GMMOptimizer(EMOptimizer):
 
                     # Take the corresponding value from the current parameters dict, if its not
                     # there, it must be in the fixed parameters of the model
-                    mu_value = parameters.get(mu_name, self.model.fixed_parameters.get(mu_name))
+                    try:
+                        mu_value = parameters[mu_name]
+                    except KeyError:
+                        mu_value = self.model.fixed_parameters[mu_name]
 
                     num += np.sum(
                         T_i * (self.model.data[gmm_rhs['x'].name].reshape(T_i.shape) - mu_value) ** 2

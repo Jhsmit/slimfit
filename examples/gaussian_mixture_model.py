@@ -51,101 +51,67 @@ guess = {
     "sigma_A": 0.1,
     "sigma_B": 0.1,
     "sigma_C": 0.1,
-    # "c_A": 0.33,
-    # "c_B": 0.33,
-    # "c_C": 0.33,
+    "c_A": 0.33,
+    "c_B": 0.33,
+    "c_C": 0.33,
 }
 
 #%%
-
-y = data["x"] * np.random.rand(3).reshape(1, 3)
-y.shape
-
-# %%
 clear_symbols()
 
-shape = (1, 3)
-mu = symbol_matrix(name="mu", shape=shape, suffix=states)
-sigma = symbol_matrix(name="sigma", shape=shape, suffix=states)
-c = symbol_matrix(name="c", shape=shape, suffix=states)
+g_shape = (1, 3)
+c_shape = (3, 1)
+mu = symbol_matrix(name="mu", shape=g_shape, suffix=states)
+sigma = symbol_matrix(name="sigma", shape=g_shape, suffix=states)
+c = symbol_matrix(name="c", shape=c_shape, suffix=states)
 gmm = GMM(Symbol("x"), mu, sigma)
 model = Model({Symbol("p"): Mul(c, gmm)})
 
 #%%
 symbols = get_symbols(mu, sigma, c)
-parameters = Parameters.from_symbols(symbols)
-
-#%%
-num_model = model.to_numerical(parameters, data)
+parameters = Parameters.from_symbols(symbols, guess)
 
 #%%
 
-components: list[tuple[Symbol, NumExprBase]] = []  # todo tuple LHS as variable
+fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
+result = fit.execute(minimizer=LikelihoodOptimizer)
 
-for lhs, rhs in num_model.items():
-    if isinstance(rhs, Mul):
-        components += [(lhs, elem) for elem in rhs.values()]
-    else:
-        components.append((lhs, rhs))
-components
-#%%
-
-model_callables = components
-
-#def overlapping_model_parameters(model_callables):
-seen_models = []
-seen_sets = []
-for lhs, mc in model_callables:
-    items = set(mc.free_parameters.keys())
-
-    found = False
-    # look for sets of parameters we've seen so far, if found, append to the list of sets
-    for i, s in enumerate(seen_sets):
-        if items & s:
-            s |= items  # add in additional items
-            seen_models[i].append((lhs, mc))
-            found = True
-    if not found:
-        seen_sets.append(items)
-        seen_models.append([(lhs, mc)])
-
-seen_models, seen_sets
-
-
-#     # Next, piece together the dependent model parts as Model objects, restoring original multiplications
-
-#%%
-sub_models = []
-for components in seen_models:
-    model_dict = defaultdict(list)
-    for lhs, rhs in components:
-        model_dict[lhs].append(rhs)
-
-    model_dict = {
-        lhs: rhs[0] if len(rhs) == 1 else Mul(*rhs) for lhs, rhs in model_dict.items()
-    }
-    sub_models.append(model_dict)
-
-sub_models
-
-#     return sub_models
-# #
+print(result.parameters)
 #
-# #%%
-#
-# fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
-# result = fit.execute(minimizer=LikelihoodOptimizer, )
-
 # # Compare fit result with ground truth parameters
 # for k, v in result.parameters.items():
 #     print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")
-#
-# # %%
-# # repeat the fit with one of the parameters fixed
-# # Parameter("mu_A", value=0.2, fixed=True)
-# # Parameter("sigma_B", value=0.13, fixed=True)
-# # #%%
-# # result_fixed = fit.execute(guess=guess, minimizer=LikelihoodOptimizer, loss=LogSumLoss(sum_axis=1))
 # #
-# # for k, v in result_fixed.parameters.items():
-# #     print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")
+# # %%
+# #repeat the fit with one of the parameters fixed
+parameters['mu_A'].fixed = True
+fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
+#
+result = fit.execute(minimizer=LikelihoodOptimizer)
+print(result.parameters)
+#
+#
+# for k, v in result.parameters.items():
+#     print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")
+#
+# print("Fixed:")
+# for k, v in result.fixed_parameters.items():
+#     print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")
+#
+# #%%
+# # also fix sigma B:
+#
+parameters['sigma_B'].fixed = True
+fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
+#
+result = fit.execute(minimizer=LikelihoodOptimizer)
+print(result.parameters)
+#
+#
+# for k, v in result.parameters.items():
+#     print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")
+#
+# print("Fixed:")
+# for k, v in result.fixed_parameters.items():
+#     print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")
+#

@@ -136,7 +136,7 @@ class NumExpr(NumExprBase):
 
     @cached_property
     def lambdified(self) -> Callable:
-        ld = lambdify(self.free_symbols.values(), self.expr)
+        ld = lambdify(self.symbols.values(), self.expr)
 
         return ld
 
@@ -232,7 +232,7 @@ class MatrixNumExpr(NumExpr):
         lambdas = np.empty(self.expr.shape, dtype=object)
         # todo might go wrong when not all elements have the same parameters
         for i, j in np.ndindex(self.expr.shape):
-            lambdas[i, j] = lambdify(self.free_symbols.values(), self.expr[i, j])
+            lambdas[i, j] = lambdify(self.symbols.values(), self.expr[i, j])
 
         return lambdas
 
@@ -248,7 +248,7 @@ class MatrixNumExpr(NumExpr):
         # Prepare kwargs for lambdified
         try:
             parameters: dict[str, np.ndarray | float] = {
-                k: kwargs[k] for k in self.parameters.keys()
+                k: kwargs[k] for k in self.free_parameters.keys()
             }
         except KeyError as e:
             raise KeyError(f"Missing value for parameter {e}") from e

@@ -3,6 +3,7 @@ from __future__ import annotations
 import abc
 
 from sympy import Symbol
+import numpy as np
 
 from slimfit.parameter import Parameter
 
@@ -38,8 +39,8 @@ class SymbolicBase(metaclass=abc.ABCMeta):
         ...
 
     @property
-    def fixed_parameters(self) -> dict[str, Parameter]:
-        return {name: p for name, p in self.parameters.items() if p.fixed}
+    def fixed_parameters(self) -> dict[str, np.ndarray | float]:
+        return {name: p.guess for name, p in self.parameters.items() if p.fixed}
 
     @property
     def free_parameters(self) -> dict[str, Parameter]:

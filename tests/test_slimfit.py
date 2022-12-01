@@ -19,6 +19,8 @@ from slimfit.symbols import (
     clear_symbols,
     get_symbols,
 )
+from slimfit.loss import LogSumLoss
+from slimfit.minimizer import LikelihoodOptimizer
 from slimfit.markov import generate_transition_matrix, extract_states
 from slimfit.parameter import Parameters, Parameter
 import numpy as np
@@ -180,7 +182,6 @@ class TestNumExpr(object):
 
         assert num_c.kind == 'constant'
         assert num_c.name == 'c'
-
 
     def test_lambda_numexpr(self):
         clear_symbols()
@@ -396,8 +397,7 @@ class TestEMFit(object):
         for k in expected.keys():
             assert result.parameters[k] == pytest.approx(expected[k], rel=0.1)
 
-    @pytest.mark.skip("Old test")
-    def test_gmm_old(self):
+    def test_gmm(self):
         clear_symbols()
         np.random.seed(43)
 
@@ -426,7 +426,7 @@ class TestEMFit(object):
         )
 
         np.random.shuffle(xdata)
-        data = {"x": xdata}
+        data = {"x": xdata.reshape(-1, 1)}
 
         guess = {
             "mu_A": 0.2,
@@ -438,56 +438,52 @@ class TestEMFit(object):
             "c_A": 0.33,
             "c_B": 0.33,
             "c_C": 0.33,
-            "c_D": 0.33,
         }
 
-        mu = symbol_matrix(name="mu", shape=(3, 1), suffix=states, rand_init=True)
-        sigma = symbol_matrix(name="sigma", shape=(3, 1), suffix=states, rand_init=True)
-        c = symbol_matrix(name="c", shape=(3, 1), suffix=states, norm=True)
-        model = Model({Probability("p"): Mul(c, GMM(Variable("x"), mu, sigma))})
+        g_shape = (1, 3)
+        c_shape = (3, 1)
+        mu = symbol_matrix(name="mu", shape=g_shape, suffix=states)
+        sigma = symbol_matrix(name="sigma", shape=g_shape, suffix=states)
+        c = symbol_matrix(name="c", shape=c_shape, suffix=states)
 
-        fit = Fit(model, **data)
-        result = fit.execute(
-            guess=guess, minimizer=LikelihoodOptimizer, loss=LogSumLoss(sum_axis=1), verbose=False
-        )
+        model = Model({Symbol("p"): Mul(c, GMM(Symbol("x"), mu, sigma))})
 
-        expected = {
-            "c_A": 0.2180794404877423,
-            "c_B": 0.5351105112590985,
-            "c_C": 0.2468100482531592,
-            "mu_A": 0.23155221598099562,
-            "mu_B": 0.5508567564172897,
-            "mu_C": 0.9204744537231175,
-            "sigma_A": 0.09704934271877942,
-            "sigma_B": 0.09910459765563108,
-            "sigma_C": 0.09877267156818359,
-        }
+        symbols = get_symbols(mu, sigma, c)
+        parameters = Parameters.from_symbols(symbols, guess)
+
+        fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
+        result = fit.execute(minimizer=LikelihoodOptimizer, verbose=False)
+
+        expected = {'c_A': 0.21807944048774222, 'c_B': 0.5351105112590985, 'c_C': 0.24681004825315928, 'mu_A': 0.23155221598099554, 'mu_B': 0.5508567564172897, 'mu_C': 0.9204744537231175, 'sigma_A': 0.09704934271877938, 'sigma_B': 0.09910459765563108, 'sigma_C': 0.09877267156818363}
+
         for k in expected.keys():
             assert result.parameters[k] == pytest.approx(expected[k], rel=0.1)
 
-        # repeat the fit with some of the parameters fixed
-        Parameter("mu_A", value=0.2, fixed=True)
-        Parameter("sigma_B", value=0.13, fixed=True)
+        # Repeat with fixed parameters
 
-        result = fit.execute(
-            guess=guess, minimizer=LikelihoodOptimizer, loss=LogSumLoss(sum_axis=1), verbose=False
-        )
-        expected = {
-            "c_A": 0.16735154876375555,
-            "c_B": 0.6152426323837681,
-            "c_C": 0.21740581885247645,
-            "mu_B": 0.544103348133505,
-            "mu_C": 0.9377787616082948,
-            "sigma_A": 0.08280331849224268,
-            "sigma_C": 0.08907335472319457,
-        }
+        # fix mu A
+        parameters['mu_A'].fixed = True
+        fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
+        result = fit.execute(minimizer=LikelihoodOptimizer, verbose=False)
+
+        expected = {'c_A': 0.18205289103947245, 'c_B': 0.5822954009717819, 'c_C': 0.23565170798874566, 'mu_B': 0.5427685760300586, 'mu_C': 0.9273517146087585, 'sigma_A': 0.08436777980742473, 'sigma_B': 0.11294214298924928, 'sigma_C': 0.09474026756245091}
         for k in expected.keys():
             assert result.parameters[k] == pytest.approx(expected[k], rel=0.1)
 
-        expected_fixed = {"mu_A": 0.2, "sigma_B": 0.13}
+        for fixed_param in ['mu_A']:
+            assert result.fixed_parameters[fixed_param] == guess[fixed_param]
 
-        for k in expected_fixed.keys():
-            assert result.fixed_parameters[k] == pytest.approx(expected_fixed[k], rel=0.1)
+        # fix sigma B
+        parameters['sigma_B'].fixed = True
+        fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
+        result = fit.execute(minimizer=LikelihoodOptimizer)
+
+        expected = {'c_A': 0.1940912954966998, 'c_B': 0.5552712770246595, 'c_C': 0.25063742747864065, 'mu_B': 0.5418477340418327, 'mu_C': 0.9177305634612395, 'sigma_A': 0.08718283966513221, 'sigma_C': 0.10072652395544755}
+        for k in expected.keys():
+            assert result.parameters[k] == pytest.approx(expected[k], rel=0.1)
+
+        for fixed_param in ['mu_A', 'sigma_B']:
+            assert result.fixed_parameters[fixed_param] == guess[fixed_param]
 
     @pytest.mark.skip("Old test")
     def test_global_gmm(self):

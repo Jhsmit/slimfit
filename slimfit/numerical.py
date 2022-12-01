@@ -21,6 +21,7 @@ from scipy.integrate import solve_ivp
 from sympy import Expr, MatrixBase, lambdify, HadamardProduct, Matrix, Symbol
 
 from slimfit.base import SymbolicBase
+
 # from slimfit.base import SymbolicBase
 from slimfit.parameter import Parameters, Parameter
 from slimfit.symbols import FitSymbol
@@ -466,7 +467,7 @@ class GMM(CompositeExpr):
         return 1 / (np.sqrt(2 * np.pi) * sig) * np.exp(-np.power((x - mu) / sig, 2) / 2)
 
     def to_numerical(self, parameters: dict[str, Parameter], data: dict[str, np.ndarray]) -> GMM:
-        #todo probably this is the same as the super class method
+        # todo probably this is the same as the super class method
         num_expr = {k: to_numerical(expr, parameters, data) for k, expr in self.items()}
         instance = GMM(**num_expr)
 
@@ -490,7 +491,7 @@ class MarkovIVP(CompositeExpr):
         **ivp_kwargs,
     ):
 
-        expr = {'t': t, 'trs_matrix': trs_matrix, 'y0': y0}
+        expr = {"t": t, "trs_matrix": trs_matrix, "y0": y0}
 
         super().__init__(expr)
 
@@ -498,26 +499,27 @@ class MarkovIVP(CompositeExpr):
         self.ivp_defaults = ivp_defaults | ivp_kwargs
         self.domain = domain
 
-
     def __call__(self, **kwargs):
         result = super().__call__(**kwargs)
 
         # if `self['t']` does not depend on any parameters; domain can be precomputed and
         # does not have to be determined for every call
         # although its every fast to do so
-        domain = self.domain or self.get_domain(result['t'])
+        domain = self.domain or self.get_domain(result["t"])
         sol = solve_ivp(
             self.grad_func,
             domain,
-            y0=result['y0'],
-            t_eval=result['t'],
-            args=(result['trs_matrix'],),
+            y0=result["y0"],
+            t_eval=result["t"],
+            args=(result["trs_matrix"],),
             **self.ivp_defaults,
         )
 
         return np.expand_dims(sol.y.T, -1)
 
-    def to_numerical(self, parameters: dict[str, Parameter], data: dict[str, np.ndarray]) -> MarkovIVP:
+    def to_numerical(
+        self, parameters: dict[str, Parameter], data: dict[str, np.ndarray]
+    ) -> MarkovIVP:
         num_expr = {k: to_numerical(expr, parameters, data) for k, expr in self.items()}
         instance = MarkovIVP(**num_expr, domain=self.domain, ivp_defaults=self.ivp_defaults)
 

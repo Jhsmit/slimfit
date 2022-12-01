@@ -50,7 +50,7 @@ parameters
 #%%
 # Generate data with 50 datapoints per population
 num = 50
-xdata = {'t': np.linspace(0, 11, num=num)}
+xdata = {"t": np.linspace(0, 11, num=num)}
 
 # Calling a matrix based model expands the dimensions of the matrix on the first axis to
 # match the shape of input variables or parameters.
@@ -62,8 +62,8 @@ populations.shape
 #%%
 
 # # add noise to populations
-ydata = {'y': populations + np.random.normal(0, 0.05, size=num * 3).reshape(populations.shape)}
-ydata['y'].shape  # shape of the data is (50, 3, 1)
+ydata = {"y": populations + np.random.normal(0, 0.05, size=num * 3).reshape(populations.shape)}
+ydata["y"].shape  # shape of the data is (50, 3, 1)
 
 
 #%%
@@ -85,18 +85,17 @@ for k, v in result.parameters.items():
 color = ["#7FACFA", "#FA654D", "#8CAD36"]
 cycle = pplt.Cycle(color=color)
 
-eval_data = {'t': np.linspace(0, 11, 1000)}
+eval_data = {"t": np.linspace(0, 11, 1000)}
 eval_model = model.to_numerical(parameters, eval_data)
 y_eval = eval_model(**result.parameters)["y"]
 
 fig, ax = pplt.subplots()
 c_iter = iter(cycle)
-for pop in ydata['y'].squeeze().T:
-    ax.scatter(xdata['t'], pop, **next(c_iter))
+for pop in ydata["y"].squeeze().T:
+    ax.scatter(xdata["t"], pop, **next(c_iter))
 
 c_iter = iter(cycle)
 for pop in y_eval.squeeze().T:
-    ax.line(eval_data['t'], pop, **next(c_iter))
+    ax.line(eval_data["t"], pop, **next(c_iter))
 ax.format(xlabel="Time", ylabel="Population Fraction")
 pplt.show()
-

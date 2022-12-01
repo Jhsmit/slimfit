@@ -311,15 +311,24 @@ class TestEMFit(object):
         parameters = rate_params | y0_params
 
         num = 50
-        xdata = {'t': np.linspace(0, 11, num=num)}
+        xdata = {"t": np.linspace(0, 11, num=num)}
         num_model = model.to_numerical(parameters, xdata)
         populations = num_model(**gt_values)["y"]
-        ydata = {'y': populations + np.random.normal(0, 0.05, size=num * 3).reshape(populations.shape)}
+        ydata = {
+            "y": populations + np.random.normal(0, 0.05, size=num * 3).reshape(populations.shape)
+        }
 
         fit = Fit(model, parameters, data={**xdata, **ydata})
         result = fit.execute()
 
-        expected = {'k_A_B': 1.0926495267297978, 'k_B_A': 0.02553115392319696, 'k_B_C': 0.48848195581215753, 'y0_A': 1.0144580699136068, 'y0_B': -0.011557732388925912, 'y0_C': -0.006383620511149652}
+        expected = {
+            "k_A_B": 1.0926495267297978,
+            "k_B_A": 0.02553115392319696,
+            "k_B_C": 0.48848195581215753,
+            "y0_A": 1.0144580699136068,
+            "y0_B": -0.011557732388925912,
+            "y0_C": -0.006383620511149652,
+        }
 
         for k in expected.keys():
             assert result.parameters[k] == pytest.approx(expected[k], rel=0.1)

@@ -465,29 +465,15 @@ class GMM(CompositeExpr):
         x, mu, sig = result["x"], result["mu"], result["sigma"]
         return 1 / (np.sqrt(2 * np.pi) * sig) * np.exp(-np.power((x - mu) / sig, 2) / 2)
 
-    def to_numerical(self, parameters: dict[str, Parameter], data: dict[str, np.ndarray]):
+    def to_numerical(self, parameters: dict[str, Parameter], data: dict[str, np.ndarray]) -> GMM:
+        #todo probably this is the same as the super class method
         num_expr = {k: to_numerical(expr, parameters, data) for k, expr in self.items()}
         instance = GMM(**num_expr)
 
         return instance
 
-    # @property
-    # def symbols(self) ->  dict[str, Symbol]:
-    #     symbols = super().symbols | {self.x.name: self.x}
-    #
-    #     return {symbol_name: symbols[symbol_name] for symbol_name in sorted(symbols)}
 
-
-class Mul(CompositeExpr):
-    def __init__(self):
-        ...
-
-
-class MatMul(CompositeExpr):
-    ...
-
-
-class MarkovIVPNumExpr(NumExprBase):
+class MarkovIVP(CompositeExpr):
     """Uses scipy.integrate.solve_ivp to numerically find time evolution of a markov process
         given a transition rate matrix.
 
@@ -497,46 +483,49 @@ class MarkovIVPNumExpr(NumExprBase):
 
     def __init__(
         self,
-        t_var: Symbol,
-        trs_matrix: Matrix,
-        y0: Matrix,
-        parameters: Optional[Parameters] = None,
+        t: Symbol | NumExpr,
+        trs_matrix: Matrix | MatrixNumExpr,
+        y0: Matrix | MatrixNumExpr,
         domain: Optional[tuple[float, float]] = None,
         **ivp_kwargs,
     ):
-        super().__init__(parameters)
-        self.t_var = t_var
-        self.trs_matrix = to_numerical(trs_matrix, parameters)
-        self.y0 = to_numerical(y0, parameters)
-        self.domain = domain
+
+        expr = {'t': t, 'trs_matrix': trs_matrix, 'y0': y0}
+
+        super().__init__(expr)
 
         ivp_defaults = {"method": "Radau"}
         self.ivp_defaults = ivp_defaults | ivp_kwargs
+        self.domain = domain
 
-    @property
-    def symbols(self) -> dict[str, FitSymbol]:
-        symbols = self.trs_matrix.symbols | self.y0.symbols | {self.t_var.name: self.t_var}
-        return {s.name: s for s in sorted(symbols.values(), key=str)}
 
     def __call__(self, **kwargs):
-        trs_matrix = self.trs_matrix(**kwargs)
-        y0 = self.y0(**kwargs).squeeze()
+        result = super().__call__(**kwargs)
 
-        domain = self.domain or self.get_domain(**kwargs)
+        # if `self['t']` does not depend on any parameters; domain can be precomputed and
+        # does not have to be determined for every call
+        # although its every fast to do so
+        domain = self.domain or self.get_domain(result['t'])
         sol = solve_ivp(
             self.grad_func,
             domain,
-            y0=y0,
-            t_eval=kwargs[self.t_var.name],
-            args=(trs_matrix,),
+            y0=result['y0'],
+            t_eval=result['t'],
+            args=(result['trs_matrix'],),
             **self.ivp_defaults,
         )
 
         return np.expand_dims(sol.y.T, -1)
 
-    def get_domain(self, **kwargs) -> tuple[float, float]:
-        dpts = kwargs[self.t_var.name]
-        return dpts.min(), dpts.max()
+    def to_numerical(self, parameters: dict[str, Parameter], data: dict[str, np.ndarray]) -> MarkovIVP:
+        num_expr = {k: to_numerical(expr, parameters, data) for k, expr in self.items()}
+        instance = MarkovIVP(**num_expr, domain=self.domain, ivp_defaults=self.ivp_defaults)
+
+        return instance
+
+    def get_domain(self, arr: np.ndarray) -> tuple[float, float]:
+        # padding?
+        return arr[0], arr[-1]
 
     @staticmethod
     def grad_func(t, y, trs_matrix):

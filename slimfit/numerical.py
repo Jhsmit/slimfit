@@ -509,19 +509,21 @@ class MarkovIVP(CompositeExpr):
         sol = solve_ivp(
             self.grad_func,
             domain,
-            y0=result["y0"],
+            y0=result["y0"].squeeze(),
             t_eval=result["t"],
             args=(result["trs_matrix"],),
             **self.ivp_defaults,
         )
 
+        # shape is modified to match the output shape of matrix exponentiation model
+        # exp(m*t) @ y0, which is (datapoints, states, 1)
         return np.expand_dims(sol.y.T, -1)
 
     def to_numerical(
         self, parameters: dict[str, Parameter], data: dict[str, np.ndarray]
     ) -> MarkovIVP:
         num_expr = {k: to_numerical(expr, parameters, data) for k, expr in self.items()}
-        instance = MarkovIVP(**num_expr, domain=self.domain, ivp_defaults=self.ivp_defaults)
+        instance = MarkovIVP(**num_expr, domain=self.domain, **self.ivp_defaults)
 
         return instance
 

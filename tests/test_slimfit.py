@@ -13,7 +13,7 @@ from slimfit.loss import LogLoss
 # from slimfit.minimizer import LikelihoodOptimizer
 from slimfit.operations import Mul, MatMul
 from slimfit.models import Model
-from slimfit.numerical import MatrixNumExpr, NumExpr, GMM, to_numerical, LambdaNumExpr
+from slimfit.numerical import MatrixNumExpr, NumExpr, GMM, to_numerical, LambdaNumExpr, MarkovIVP
 from slimfit.symbols import (
     symbol_matrix,
     clear_symbols,
@@ -328,6 +328,56 @@ class TestEMFit(object):
             "y0_A": 1.0144580699136068,
             "y0_B": -0.011557732388925912,
             "y0_C": -0.006383620511149652,
+        }
+
+        for k in expected.keys():
+            assert result.parameters[k] == pytest.approx(expected[k], rel=0.1)
+
+    def test_markov_ivp(self):
+        clear_symbols()
+        np.random.seed(43)
+
+        gt_values = {
+            "k_A_B": 1e0,
+            "k_B_A": 5e-2,
+            "k_B_C": 5e-1,
+            "y0_A": 1.0,
+            "y0_B": 0.0,
+            "y0_C": 0.0,
+        }
+
+        connectivity = ["A <-> B -> C"]
+        m = generate_transition_matrix(connectivity)
+        states = extract_states(connectivity)
+
+        y0 = symbol_matrix(name="y0", shape=(3, 1), suffix=states)
+        model = Model({Symbol("y"): MarkovIVP(Symbol("t"), m, y0)})
+
+        rate_params = Parameters.from_symbols(get_symbols(m))
+        y0_params = Parameters.from_symbols(get_symbols(y0))
+        parameters = rate_params | y0_params
+
+        num = 50
+        xdata = {"t": np.linspace(0, 11, num=num)}
+
+        num_model = model.to_numerical(parameters, xdata)
+        populations = num_model(**gt_values)["y"]
+
+        ydata = {
+            "y": populations + np.random.normal(0, 0.05, size=num * 3).reshape(populations.shape)
+        }
+        ydata["y"].shape  # shape of the data is (50, 3, 1)
+
+        fit = Fit(model, parameters, data={**xdata, **ydata})
+        result = fit.execute()
+
+        expected = {
+            "k_A_B": 1.0928473669526968,
+            "k_B_A": 0.025697062159894243,
+            "k_B_C": 0.4884426216496761,
+            "y0_A": 1.0144463997001603,
+            "y0_B": -0.011475371097876597,
+            "y0_C": -0.006402646431591074,
         }
 
         for k in expected.keys():

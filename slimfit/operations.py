@@ -38,8 +38,6 @@ class CompositeArgsExpr(CompositeExpr):
 
     def to_numerical(self, parameters: dict[str, Parameter], data: dict[str, np.ndarray]):
         args = (to_numerical(expr, parameters, data) for expr in self.values())
-        args = list(args)
-        print(args)
         instance = self.__class__(*args)
 
         return instance

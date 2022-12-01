@@ -26,6 +26,13 @@ DATA = {"x": xdata, "y": ydata}
 parameters = Parameters.from_symbols(model.symbols, "a b")
 
 fit = Fit(model, parameters=parameters, data=DATA)
+#%%
+
+#%%
+
+fit.numerical_model.parameters
+
+#%%
 result = fit.execute()
 
 #%%

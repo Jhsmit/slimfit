@@ -122,6 +122,12 @@ class NumExpr(NumExprBase):
 
         super().__init__(parameters, data)
 
+    @property
+    def name(self) -> str:
+        # if _name: ... -> superclass
+        if isinstance(self.expr, Symbol):
+            return self.expr.name
+
     # is same as callablematrix
     @property
     def symbols(self) -> dict[str, Symbol]:
@@ -211,14 +217,12 @@ class MatrixNumExpr(NumExpr):
         Dictionary mapping parameter name to matrix indices
         """
 
-        raise NotImplementedError("Elements is not implemented")
-
-        # element_mapping = {}
-        # for i, j in np.ndindex(self.shape):
-        #     elem = self.expr[i, j]
-        #     if isinstance(elem, Parameter):
-        #         element_mapping[elem.name] = (i, j)
-        # return element_mapping
+        element_mapping = {}
+        for i, j in np.ndindex(self.shape):
+            elem = self.expr[i, j]
+            if isinstance(elem, Symbol):
+                 element_mapping[elem.name] = (i, j)
+        return element_mapping
 
     @cached_property
     def lambdified(self) -> np.ndarray:

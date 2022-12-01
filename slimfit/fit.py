@@ -27,6 +27,7 @@ class Fit(object):
         parameters: Parameters,
         data: dict[str | Expr, npt.ArrayLike],
         loss: Optional[Loss] = L2Loss(),
+        # posterior: Optional[CompositeNumExpr],
     ):
 
         self.symbolic_model = model
@@ -53,7 +54,10 @@ class Fit(object):
         return to_numerical(self.symbolic_model, self.parameters, self.xdata)
 
     def execute(
-        self, minimizer: Optional[Type[Minimizer]] = None, **execute_options,
+        self,
+            minimizer: Optional[Type[Minimizer]] = None,
+            # loss = Optional[Loss] = None
+            **execute_options,
     ):
 
         minimizer_cls = minimizer or self.get_minimizer()

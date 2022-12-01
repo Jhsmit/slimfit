@@ -154,21 +154,21 @@ class LogSumLoss(Loss):
         self, dependent_data: dict[str, np.ndarray], target_data: dict[str, np.ndarray]
     ) -> np.ndarray | float:
 
-        from slimfit.minimizer import MIN_PROB
-
+        # from slimfit.minimizer import MIN_PROB
         if self.weights is None:
             log_vals = {
                 k: np.log(
-
-                    np.clip(target_data[k].sum(axis=self.sum_axis), a_min=MIN_PROB, a_max=None)
-
+                    target_data[k].sum(axis=self.sum_axis),
+                    #np.clip(target_data[k].sum(axis=self.sum_axis), a_min=MIN_PROB, a_max=None)
                 ) for k in target_data.keys()
             }
 
         else:
             log_vals = {
                 k: np.log(
-                    np.clip(target_data[k].sum(axis=self.sum_axis)) * self.weights[k], a_min=MIN_PROB, a_max=None)
+                    # np.clip(target_data[k].sum(axis=self.sum_axis)) * self.weights[k], a_min=MIN_PROB, a_max=None)
+                    target_data[k].sum(axis=self.sum_axis) * self.weights[k]
+                )
                 for k in target_data.keys()
             }
 

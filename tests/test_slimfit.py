@@ -170,6 +170,18 @@ class TestNumExpr(object):
         check = data["x"] * p_values["a"] + p_values["b3"]
         assert np.allclose(check, result[..., 0, 2])
 
+        # test symbol matrix factory function
+        shape = (1, 3)
+        states = ['A', 'B', 'C']
+        c = symbol_matrix(name="c", shape=shape, suffix=states)
+        assert c[0, 0] == Symbol('c_A')
+        
+        num_c = to_numerical(c, {}, {})
+
+        assert num_c.kind == 'constant'
+        assert num_c.name == 'c'
+
+
     def test_lambda_numexpr(self):
         clear_symbols()
         np.random.seed(43)
@@ -212,11 +224,12 @@ class TestNumExpr(object):
         }
 
         num_gmm = gmm.to_numerical(parameters, data)
-        assert num_gmm.shape == (25, 3)
+        assert gmm.kind == 'gmm'
+        assert num_gmm.shape == (25, 3, 1)
         assert isinstance(num_gmm["mu"], MatrixNumExpr)
 
         result = num_gmm(**gt)
-        assert num_gmm.shape == (25, 3)
+        assert num_gmm.shape == (25, 3, 1)
 
 
 class TestEMFit(object):

@@ -177,8 +177,8 @@ class MatrixNumExpr(NumExpr):
         if self._name:
             return self._name
         if self.kind == "constant":
-            p_names = list(self.parameters.keys())
-            prefix = [name.split("_")[0] for name in p_names]
+            symbol_names = [str(symbol) for symbol in self.expr]
+            prefix = [name.split("_")[0] for name in symbol_names]
             if len(set(prefix)) == 1:  # All prefixes are identical, prefix is the name
                 return prefix[0]
         else:
@@ -457,14 +457,20 @@ class GMM(CompositeExpr):
 
         expr = {"x": x, "mu": mu, "sigma": sigma}
 
+        # todo some kind of properties object for this metadata
         name = name or "GMM"  # counter for number of instances?
+        self.kind = 'gmm'
         super().__init__(expr)
 
     def __call__(self, **kwargs):
         result = super().__call__(**kwargs)
 
         x, mu, sig = result["x"], result["mu"], result["sigma"]
-        return 1 / (np.sqrt(2 * np.pi) * sig) * np.exp(-np.power((x - mu) / sig, 2) / 2)
+        output = 1 / (np.sqrt(2 * np.pi) * sig) * np.exp(-np.power((x - mu) / sig, 2) / 2)
+
+        # Output shape is (datapoints, states, 1) to match output shape of matrix
+        # exponentiation model
+        return np.expand_dims(output, -1)
 
     def to_numerical(self, parameters: dict[str, Parameter], data: dict[str, np.ndarray]) -> GMM:
         # todo probably this is the same as the super class method
@@ -472,6 +478,11 @@ class GMM(CompositeExpr):
         instance = GMM(**num_expr)
 
         return instance
+
+    @property
+    def shape(self) -> Shape:
+        shape = super().shape
+        return shape + (1,)
 
 
 class MarkovIVP(CompositeExpr):
@@ -539,16 +550,19 @@ class MarkovIVP(CompositeExpr):
 def identify_expression_kind(sympy_expression: Union[Expr, MatrixBase]) -> str:
     """Find the type of expression
 
-    Not implemented, currently always returns generic
+    Only implemented for 'constant' kind, otherwise return is generic
 
     """
 
+    # check for gaussian mixture model ...
+
     if isinstance(sympy_expression, MatrixBase):
-        # check for gaussian mixture model ...
         ...
-        #
-        # if all(isinstance(elem, (Number, Parameter)) for elem in sympy_expression):
-        #     return "constant"
+
+        if all(isinstance(elem, Symbol) for elem in sympy_expression):
+            # this should also check the symbols for their shapes, for it to be constant
+            # the elements should all be scalars
+            return "constant"
 
     return "generic"
 

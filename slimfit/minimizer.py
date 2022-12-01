@@ -163,9 +163,7 @@ class LikelihoodOptimizer(Minimizer):
         result = FitResult(
             parameters=parameters_current,
             gof_qualifiers=gof_qualifiers,
-            guess=self.guess,
-            model=self.model,
-            data={**self.xdata, **self.ydata},
+            guess=self.parameters.guess,
             base_result={"scipy": scipy_result},
         )
 

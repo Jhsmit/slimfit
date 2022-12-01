@@ -74,7 +74,7 @@ class Parameters(UserDict):
 
     @property
     def guess(self) -> dict[str, np.ndarray]:
-        return {p.name: np.asarray(p.guess) for p in self.values()}
+        return {p.name: np.asarray(p.guess) for p in self.values() if not p.fixed}
 
     def get_bounds(self) -> list[tuple[float | None, float | None]] | None:
         bounds = [(p.lower_bound, p.upper_bound) for p in self.values()]

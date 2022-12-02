@@ -1,32 +1,34 @@
 import numpy as np
 import proplot as pplt
 
-from slimfit import Variable, Parameter, Model, Probability
+from slimfit import Symbol, Model
 from slimfit.fit import Fit
 from slimfit.functions import gaussian_sympy
+from slimfit.loss import LogLoss
+from slimfit.parameter import Parameters
 
 #%%
 
 gt_params = {"mu": 2.4, "sigma": 0.7}
 
 xdata = np.random.normal(gt_params["mu"], scale=gt_params["sigma"], size=500)
-model = Model(
-    {Probability("p"): gaussian_sympy(Variable("x"), Parameter("mu"), Parameter("sigma"))}
-)
-
+model = Model({Symbol("p"): gaussian_sympy(Symbol("x"), Symbol("mu"), Symbol("sigma"))})
 
 #%%
+parameters = Parameters.from_symbols(model.symbols, "mu sigma")
+#%%
 
-fit = Fit(model, x=xdata)
+fit = Fit(model, parameters, data={"x": xdata}, loss=LogLoss())
 result = fit.execute()
 
 #%%
-
 data = {"x": np.linspace(0.0, 5.0, num=100)}
 
+num_model = model.to_numerical(parameters, data)
+
 fig, ax = pplt.subplots()
-ax.plot(data["x"], model(**data, **gt_params)["p"], color="r")
-ax.plot(data["x"], model(**data, **result.parameters)["p"], linestyle="--", color="k")
+ax.plot(data["x"], num_model(**gt_params)["p"], color="r")
+ax.plot(data["x"], num_model(**result.parameters)["p"], linestyle="--", color="k")
 ax.hist(xdata, bins="fd", density=True, color="grey")
 
 pplt.show()

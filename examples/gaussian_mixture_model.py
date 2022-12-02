@@ -1,17 +1,19 @@
+from collections import defaultdict
+
 import numpy as np
+from sympy import Symbol
+
 from slimfit import Model
 
-from slimfit.numerical import GMM
+from slimfit.numerical import GMM, NumExprBase, to_numerical
 from slimfit.fit import Fit
 from slimfit.loss import LogSumLoss
 from slimfit.minimizer import LikelihoodOptimizer
 from slimfit.operations import Mul
+from slimfit.parameter import Parameters
 from slimfit.symbols import (
-    parameter_matrix,
-    Variable,
-    Probability,
-    clear_symbols,
-    Parameter,
+    symbol_matrix,
+    clear_symbols, get_symbols,
 )
 
 # %%
@@ -39,7 +41,7 @@ xdata = np.concatenate(
 )
 
 np.random.shuffle(xdata)
-data = {"x": xdata}
+data = {"x": xdata.reshape(-1, 1)}
 
 # %%
 guess = {
@@ -52,31 +54,64 @@ guess = {
     "c_A": 0.33,
     "c_B": 0.33,
     "c_C": 0.33,
-    "c_D": 0.33,
 }
 
-# %%
+#%%
 clear_symbols()
 
-mu = parameter_matrix(name="mu", shape=(3, 1), suffix=states, rand_init=True)
-sigma = parameter_matrix(name="sigma", shape=(3, 1), suffix=states, rand_init=True)
-c = parameter_matrix(name="c", shape=(3, 1), suffix=states, norm=True)
-model = Model({Probability("p"): Mul(c, GMM(Variable("x"), mu, sigma))})
+g_shape = (1, 3)
+c_shape = (3, 1)
+mu = symbol_matrix(name="mu", shape=g_shape, suffix=states)
+sigma = symbol_matrix(name="sigma", shape=g_shape, suffix=states)
+c = symbol_matrix(name="c", shape=c_shape, suffix=states)
+gmm = GMM(Symbol("x"), mu, sigma)
+model = Model({Symbol("p"): Mul(c, gmm)})
 
-# %%
-fit = Fit(model, **data)
-result = fit.execute(guess=guess, minimizer=LikelihoodOptimizer, loss=LogSumLoss(sum_axis=1))
-
-# Compare fit result with ground truth parameters
-for k, v in result.parameters.items():
-    print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")
-
-# %%
-# repeat the fit with one of the parameters fixed
-Parameter("mu_A", value=0.2, fixed=True)
-Parameter("sigma_B", value=0.13, fixed=True)
 #%%
-result_fixed = fit.execute(guess=guess, minimizer=LikelihoodOptimizer, loss=LogSumLoss(sum_axis=1))
+symbols = get_symbols(mu, sigma, c)
+parameters = Parameters.from_symbols(symbols, guess)
 
-for k, v in result_fixed.parameters.items():
-    print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")
+#%%
+
+fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
+result = fit.execute(minimizer=LikelihoodOptimizer)
+
+print(result.parameters)
+#
+# # Compare fit result with ground truth parameters
+# for k, v in result.parameters.items():
+#     print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")
+# #
+# # %%
+# #repeat the fit with one of the parameters fixed
+parameters['mu_A'].fixed = True
+fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
+#
+result = fit.execute(minimizer=LikelihoodOptimizer)
+print(result.parameters)
+#
+#
+# for k, v in result.parameters.items():
+#     print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")
+#
+# print("Fixed:")
+# for k, v in result.fixed_parameters.items():
+#     print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")
+#
+# #%%
+# # also fix sigma B:
+#
+parameters['sigma_B'].fixed = True
+fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
+#
+result = fit.execute(minimizer=LikelihoodOptimizer)
+print(result.parameters)
+#
+#
+# for k, v in result.parameters.items():
+#     print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")
+#
+# print("Fixed:")
+# for k, v in result.fixed_parameters.items():
+#     print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")
+#

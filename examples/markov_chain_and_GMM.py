@@ -8,6 +8,7 @@ from slimfit.models import Model
 from slimfit.operations import Mul
 from slimfit.parameter import Parameters, Parameter
 from slimfit.symbols import clear_symbols, symbol_matrix, Symbol
+#from slimfit.symbols import FitSymbol as Symbol
 
 from sympy import Matrix, exp
 import numpy as np
@@ -36,7 +37,7 @@ guess_values = {
     "k_B_A": 1e-1,
     "k_B_C": 1e-1,
     "y0_A": 0.6,
-    "y0_B": 0.2,
+    "y0_B": 0.0,
     "mu_A": 0.7,
     "mu_B": 0.05,
     "mu_C": 0.4,
@@ -89,7 +90,7 @@ parameters['k_B_C'].lower_bound = 1e-3
 parameters['k_B_C'].upper_bound = 1e2
 
 #%%
-# To calculate the likelihood for a measurement i we need to sum the individual probabilities for all states
+# To calculate the likelihood for a measurement we need to sum the individual probabilities for all states
 # Thus we need to define which axis this is in the model
 STATE_AXIS = 1
 
@@ -117,20 +118,19 @@ grid
 #%%
 # since the `Mul` component of the model functions as a normal 'pyton' lazy multiplication,
 # we can make use of numpy broadcasting to evaluate the model on a 100x100 datapoint grid
-#
 
 #%%
-# timing: 3.45 ms
+# timing: 2.33 ms
 data_eval = {'t': ti.reshape(-1, 1), 'e': ei.reshape(-1, 1)}
 num_model = model.to_numerical(parameters, data_eval)
 ans = num_model(**result.parameters)
 ans['p'].shape
 
-
+#%%
 # output shape is (N, N, 3, 1), we sum and squeeze to create the NxN grid
 array = ans["p"].sum(axis=-2).squeeze()
-#
-# #%%
+
+#%%
 import proplot as pplt
 
 fig, ax = pplt.subplots()

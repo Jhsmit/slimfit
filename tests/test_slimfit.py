@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 # from dont_fret.em_fit.datagen import generate_dataset
@@ -25,6 +27,7 @@ from slimfit.markov import generate_transition_matrix, extract_states
 from slimfit.parameter import Parameters, Parameter
 import numpy as np
 
+root_dir = Path(__file__).parent.parent
 
 class TestEMBase(object):
     def test_symbol_matrix(self):
@@ -562,46 +565,73 @@ class TestEMFit(object):
         for k in expected.keys():
             assert result.parameters[k] == pytest.approx(expected[k], rel=0.1)
 
-    @pytest.mark.skip("Long execution time")
+    # @pytest.mark.skip("Long execution time")
     def test_markov_gmm(self):
-        ds = generate_dataset("single_dynamic")
+        arr = np.genfromtxt(root_dir / 'examples' / "data/GMM_dynamics.txt")
+        data = {"e": arr[:, 0].reshape(-1, 1), "t": arr[:, 1]}
+
+        guess_values = {
+            "k_A_B": 1e-1,
+            "k_B_A": 1e-1,
+            "k_B_C": 1e-1,
+            "y0_A": 0.6,
+            "y0_B": 0.0,
+            "mu_A": 0.7,
+            "mu_B": 0.05,
+            "mu_C": 0.4,
+            "sigma_A": 0.1,
+            "sigma_B": 0.2,
+            "sigma_C": 0.1,
+        }
+
         clear_symbols()
-        np.random.seed(43)
+        # np.random.seed(43)
 
         connectivity = ["A <-> B -> C"]
         m = generate_transition_matrix(connectivity)
         states = extract_states(connectivity)
 
         # Temporal part
-        xt = exp(m * Variable("t"))
-        y0 = Matrix(
-            [[Parameter("y0_A"), Parameter("y0_B"), 1 - Parameter("y0_A") - Parameter("y0_B"),]]
-        ).T
+        xt = exp(m * Symbol("t"))
+
+        # Future implementation needs constraints here, sum of y0 should be 1.
+        y0 = Matrix([[Symbol("y0_A"), Symbol("y0_B"), 1 - Symbol("y0_A") - Symbol("y0_B")]]).T
 
         # Gaussian mixture model part
-        mu = symbol_matrix("mu", shape=(3, 1), suffix=states)
-        sigma = symbol_matrix("sigma", shape=(3, 1), suffix=states)
-        gmm = GMM(Variable("e"), mu=mu, sigma=sigma)
+        mu = symbol_matrix("mu", shape=(1, 3), suffix=states)
+        sigma = symbol_matrix("sigma", shape=(1, 3), suffix=states)
+        gmm = GMM(Symbol("e"), mu=mu, sigma=sigma)
 
-        model = Model({Probability("p"): Mul(xt @ y0, gmm)})
+        model = Model({Symbol("p"): Mul(xt @ y0, gmm)})
 
-        # Future implementation needs constraints here
-        Parameter("y0_A", value=1.0, fixed=False, vmin=0.0, vmax=1.0)
-        Parameter("y0_B", value=0.0, fixed=True, vmin=0.0, vmax=1.0)
-        # y0_C is given by 1 - y0_A - y0_B
+        parameters = Parameters.from_symbols(model.symbols, guess_values)
 
-        Parameter("k_A_B", vmin=1e-3, vmax=1e2)
-        Parameter("k_B_A", vmin=1e-3, vmax=1e2)
-        Parameter("k_B_C", vmin=1e-3, vmax=1e2)
+        parameters['y0_A'].lower_bound = 0.0
+        parameters['y0_A'].upper_bound = 1.0
 
+        parameters['y0_B'].lower_bound = 0.0
+        parameters['y0_B'].upper_bound = 1.0
+        parameters['y0_B'].fixed = True
+
+        # Set bounds on rates
+        parameters['k_A_B'].lower_bound = 1e-3
+        parameters['k_A_B'].upper_bound = 1e2
+
+        parameters['k_B_A'].lower_bound = 1e-3
+        parameters['k_B_A'].upper_bound = 1e2
+
+        parameters['k_B_C'].lower_bound = 1e-3
+        parameters['k_B_C'].upper_bound = 1e2
+
+        # To calculate the likelihood for a measurement we need to sum the individual probabilities for all states
+        # Thus we need to define which axis this is in the model
         STATE_AXIS = 1
-        fit = Fit(model, **ds.data)
+
+        fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=STATE_AXIS))
         result = fit.execute(
-            guess=ds.guess,
             minimizer=LikelihoodOptimizer,
-            max_iter=100,
+            max_iter=200,
             verbose=True,
-            loss=LogSumLoss(sum_axis=STATE_AXIS),
         )
 
         expected = {
@@ -616,6 +646,8 @@ class TestEMFit(object):
             "sigma_B": 0.12251906102401328,
             "sigma_C": 0.07922175330380453,
         }
+
+        print(result.parameters)
 
         for k in expected.keys():
             assert result.parameters[k] == pytest.approx(expected[k], rel=0.1)

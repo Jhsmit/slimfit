@@ -36,6 +36,7 @@ class Model(numerical.CompositeExpr):
     # def to_numerical(self, parameters: Optional[Parameters] = None) -> NumericalModel:
     #     return NumericalModel(model_dict=self.model_dict, parameters=parameters)
 
+
 #
 # class NumericalModel(numerical.NumExprBase):
 #

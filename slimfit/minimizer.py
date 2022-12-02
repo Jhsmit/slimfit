@@ -14,6 +14,7 @@ from tqdm.auto import trange
 from slimfit import Model, NumExprBase
 from slimfit.fitresult import FitResult
 from slimfit.loss import Loss
+
 # from slimfit.models import NumericalModel
 from slimfit.operations import Mul
 from slimfit.parameter import Parameters
@@ -25,8 +26,11 @@ STATE_AXIS = -2
 
 class Minimizer(metaclass=abc.ABCMeta):
     def __init__(
-        self, model: Model, loss: Loss, ydata: dict[str, np.array],
-            guess: Optional[dict[str, np.ndarray]] = None,
+        self,
+        model: Model,
+        loss: Loss,
+        ydata: dict[str, np.array],
+        guess: Optional[dict[str, np.ndarray]] = None,
     ):
         if not model.numerical:
             raise ValueError("The given model should be numerical")
@@ -40,7 +44,8 @@ class Minimizer(metaclass=abc.ABCMeta):
     def execute(self, **minimizer_options) -> FitResult:
         ...
 
-#TODO: MINIMIZERS NEED GUESSES
+
+# TODO: MINIMIZERS NEED GUESSES
 class ScipyMinimizer(Minimizer):
     def execute(self, **minimizer_options):
         x = self.model.parameters.pack(self.guess)
@@ -83,6 +88,7 @@ class ScipyMinimizer(Minimizer):
         )
 
         return fit_result
+
 
 # should take an optional CompositeNumExpr which returns the posterior
 class LikelihoodOptimizer(Minimizer):
@@ -136,20 +142,17 @@ class LikelihoodOptimizer(Minimizer):
                 else:
                     guess = {k: parameters_current[k] for k in sub_model.free_parameters}
                     # todo loss is not used; should be EM loss while the main loop uses Log likelihood loss
-                    opt = ScipyEMOptimizer(
-                        sub_model, self.loss, {}, posterior, guess=guess
-                    )
+                    opt = ScipyEMOptimizer(sub_model, self.loss, {}, posterior, guess=guess)
 
                     # opt = ScipyEMOptimizer(
                     #     sub_model, self.xdata, {}, posterior, loss=self.loss, guess=guess,
                     # )
                     scipy_result = opt.execute()
                     parameters = scipy_result.parameters
-                    base_result['scipy'] = scipy_result
+                    base_result["scipy"] = scipy_result
 
                 # collect parameters of this sub_model into parmaeters dict
                 parameters_step |= parameters
-
 
             # update for next iteration
             parameters_current = parameters_step
@@ -167,7 +170,6 @@ class LikelihoodOptimizer(Minimizer):
 
             if no_progress > patience:
                 break
-
 
         tdelta = time.time() - t0
         gof_qualifiers = {
@@ -199,9 +201,7 @@ class EMOptimizer(Minimizer):
         guess: dict[str, np.array] = None,
     ):
         self.posterior = posterior
-        super().__init__(
-            model=model, loss=loss, ydata=ydata, guess=guess
-        )
+        super().__init__(model=model, loss=loss, ydata=ydata, guess=guess)
 
     @abc.abstractmethod
     def step(self) -> dict[str, float]:
@@ -271,37 +271,39 @@ class GMMOptimizer(EMOptimizer):
     def step(self) -> dict[str, float]:
         parameters = {}  # output parameters dictionary
 
-        mu_parameters = reduce(or_, [rhs['mu'].free_parameters.keys() for rhs in self.model.values()])
+        mu_parameters = reduce(
+            or_, [rhs["mu"].free_parameters.keys() for rhs in self.model.values()]
+        )
         for p_name in mu_parameters:
             num, denom = 0.0, 0.0
             for lhs, gmm_rhs in self.model.items():
                 # check if the current mu parameter in this GMM
-                if p_name in gmm_rhs['mu'].free_parameters:
-                    col, state_index = gmm_rhs['mu'].index(p_name)
+                if p_name in gmm_rhs["mu"].free_parameters:
+                    col, state_index = gmm_rhs["mu"].index(p_name)
                     T_i = np.take(self.posterior[str(lhs)], state_index, axis=STATE_AXIS)
 
                     # independent data should be given in the same shape as T_i
                     # which is typically (N, 1), to be sure shapes match we reshape independent data
-                    num += np.sum(T_i * self.model.data[gmm_rhs['x'].name].reshape(T_i.shape))
+                    num += np.sum(T_i * self.model.data[gmm_rhs["x"].name].reshape(T_i.shape))
                     denom += np.sum(T_i)
 
             parameters[p_name] = num / denom
 
         sigma_parameters = reduce(
-            or_, [rhs['sigma'].free_parameters.keys() for rhs in self.model.values()]
+            or_, [rhs["sigma"].free_parameters.keys() for rhs in self.model.values()]
         )
         for p_name in sigma_parameters:
             num, denom = 0.0, 0.0
             # LHS in numerical models are `str` (at the moment)
             for lhs, gmm_rhs in self.model.items():
                 # check if the current sigma parameter in this GMM
-                if p_name in gmm_rhs['sigma'].free_parameters:
-                    col, state_index = gmm_rhs['sigma'].index(p_name)
+                if p_name in gmm_rhs["sigma"].free_parameters:
+                    col, state_index = gmm_rhs["sigma"].index(p_name)
 
                     T_i = np.take(self.posterior[str(lhs)], state_index, axis=STATE_AXIS)
 
                     # Indexing of the MatrixExpr returns elements of its expr
-                    mu_name: str = gmm_rhs['mu'][col, state_index].name
+                    mu_name: str = gmm_rhs["mu"][col, state_index].name
 
                     # Take the corresponding value from the current parameters dict, if its not
                     # there, it must be in the fixed parameters of the model
@@ -311,7 +313,8 @@ class GMMOptimizer(EMOptimizer):
                         mu_value = self.model.fixed_parameters[mu_name]
 
                     num += np.sum(
-                        T_i * (self.model.data[gmm_rhs['x'].name].reshape(T_i.shape) - mu_value) ** 2
+                        T_i
+                        * (self.model.data[gmm_rhs["x"].name].reshape(T_i.shape) - mu_value) ** 2
                     )
 
                     denom += np.sum(T_i)
@@ -385,7 +388,7 @@ class ScipyEMOptimizer(EMOptimizer):
             parameters=parameters,
             gof_qualifiers=gof_qualifiers,
             guess=self.guess,
-            base_result=result
+            base_result=result,
         )
 
         return fit_result
@@ -397,13 +400,13 @@ MIN_PROB = 1e-9  # Minimal probability value (> 0.) to enter into np.log
 def minfunc_expectation(
     x: np.ndarray,  # array of parameters
     model: Model,  # parameter names
-    loss: Loss, # currently not used
+    loss: Loss,  # currently not used
     posterior: dict,  # posterior probabilities
 ):
     params = model.parameters.unpack(x)
     probability = model(**params)
 
-    #Todo do this in a `loss`
+    # Todo do this in a `loss`
     expectation = {
         lhs: posterior[lhs] * np.log(np.clip(prob, a_min=MIN_PROB, a_max=1.0))
         for lhs, prob in probability.items()

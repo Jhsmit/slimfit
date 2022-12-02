@@ -54,16 +54,11 @@ class Fit(object):
         return to_numerical(self.symbolic_model, self.parameters, self.xdata)
 
     def execute(
-        self,
-            minimizer: Optional[Type[Minimizer]] = None,
-            # loss = Optional[Loss] = None
-            **execute_options,
+        self, minimizer: Optional[Type[Minimizer]] = None, **execute_options,
     ):
 
         minimizer_cls = minimizer or self.get_minimizer()
-        minimizer_instance = minimizer_cls(
-            self.numerical_model, self.loss, self.ydata
-        )
+        minimizer_instance = minimizer_cls(self.numerical_model, self.loss, self.ydata)
 
         result = minimizer_instance.execute(**execute_options)
 
@@ -74,6 +69,7 @@ class Fit(object):
         return ScipyMinimizer
 
     def get_loss(self, **kwargs):
+        raise NotImplementedError()
         if self.model.probabilistic:
             return LogLoss(**kwargs)
         else:

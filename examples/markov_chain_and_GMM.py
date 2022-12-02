@@ -8,7 +8,8 @@ from slimfit.models import Model
 from slimfit.operations import Mul
 from slimfit.parameter import Parameters, Parameter
 from slimfit.symbols import clear_symbols, symbol_matrix, Symbol
-#from slimfit.symbols import FitSymbol as Symbol
+
+# from slimfit.symbols import FitSymbol as Symbol
 
 from sympy import Matrix, exp
 import numpy as np
@@ -71,23 +72,23 @@ parameters = Parameters.from_symbols(model.symbols, guess_values)
 #%%
 
 # Future implementation needs constraints here
-parameters['y0_A'].lower_bound = 0.0
-parameters['y0_A'].upper_bound = 1.0
+parameters["y0_A"].lower_bound = 0.0
+parameters["y0_A"].upper_bound = 1.0
 
-parameters['y0_B'].lower_bound = 0.0
-parameters['y0_B'].upper_bound = 1.0
-parameters['y0_B'].fixed = True
+parameters["y0_B"].lower_bound = 0.0
+parameters["y0_B"].upper_bound = 1.0
+parameters["y0_B"].fixed = True
 
 #%%
 # Set bounds on rates
-parameters['k_A_B'].lower_bound = 1e-3
-parameters['k_A_B'].upper_bound = 1e2
+parameters["k_A_B"].lower_bound = 1e-3
+parameters["k_A_B"].upper_bound = 1e2
 
-parameters['k_B_A'].lower_bound = 1e-3
-parameters['k_B_A'].upper_bound = 1e2
+parameters["k_B_A"].lower_bound = 1e-3
+parameters["k_B_A"].upper_bound = 1e2
 
-parameters['k_B_C'].lower_bound = 1e-3
-parameters['k_B_C'].upper_bound = 1e2
+parameters["k_B_C"].lower_bound = 1e-3
+parameters["k_B_C"].upper_bound = 1e2
 
 #%%
 # To calculate the likelihood for a measurement we need to sum the individual probabilities for all states
@@ -96,11 +97,7 @@ STATE_AXIS = 1
 
 #%%
 fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=STATE_AXIS))
-result = fit.execute(
-    minimizer=LikelihoodOptimizer,
-    max_iter=200,
-    verbose=True,
-)
+result = fit.execute(minimizer=LikelihoodOptimizer, max_iter=200, verbose=True,)
 
 #%%
 for k, v in result.parameters.items():
@@ -121,10 +118,10 @@ grid
 
 #%%
 # timing: 2.33 ms
-data_eval = {'t': ti.reshape(-1, 1), 'e': ei.reshape(-1, 1)}
+data_eval = {"t": ti.reshape(-1, 1), "e": ei.reshape(-1, 1)}
 num_model = model.to_numerical(parameters, data_eval)
 ans = num_model(**result.parameters)
-ans['p'].shape
+ans["p"].shape
 
 #%%
 # output shape is (N, N, 3, 1), we sum and squeeze to create the NxN grid

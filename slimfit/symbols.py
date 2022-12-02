@@ -36,6 +36,7 @@ def get_symbols(*symbolic_objects) -> dict[str, Symbol]:
 
         return {symbol.name: symbol for symbol in sorted(symbols, key=str)}
 
+
 def symbol_dict(expr: Expr) -> dict[str, Symbol]:
     return {symbol.name: symbol for symbol in sorted(expr.free_symbols, key=str)}
 

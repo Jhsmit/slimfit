@@ -13,7 +13,8 @@ from slimfit.operations import Mul
 from slimfit.parameter import Parameters
 from slimfit.symbols import (
     symbol_matrix,
-    clear_symbols, get_symbols,
+    clear_symbols,
+    get_symbols,
 )
 
 # %%
@@ -84,7 +85,7 @@ print(result.parameters)
 # #
 # # %%
 # #repeat the fit with one of the parameters fixed
-parameters['mu_A'].fixed = True
+parameters["mu_A"].fixed = True
 fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
 #
 result = fit.execute(minimizer=LikelihoodOptimizer)
@@ -101,7 +102,7 @@ print(result.parameters)
 # #%%
 # # also fix sigma B:
 #
-parameters['sigma_B'].fixed = True
+parameters["sigma_B"].fixed = True
 fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
 #
 result = fit.execute(minimizer=LikelihoodOptimizer)

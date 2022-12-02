@@ -37,9 +37,7 @@ class NumExprBase(SymbolicBase):
     """
 
     def __init__(
-        self,
-        parameters: Optional[Parameters] = None,
-        data: Optional[dict[str, np.ndarray]] = None,
+        self, parameters: Optional[Parameters] = None, data: Optional[dict[str, np.ndarray]] = None,
     ):
         self.parameters = parameters or Parameters()
         self.data = data or {}
@@ -55,7 +53,9 @@ class NumExprBase(SymbolicBase):
 
     @parameters.setter
     def parameters(self, value: Mapping[str, Parameter]):
-        self._parameters = Parameters({name: p for name, p in value.items() if name in self.symbols})
+        self._parameters = Parameters(
+            {name: p for name, p in value.items() if name in self.symbols}
+        )
 
     @property
     def data(self) -> dict[str, np.ndarray]:
@@ -154,6 +154,7 @@ class NumExpr(NumExprBase):
     def __repr__(self):
         return f"NumExpr({self.expr})"
 
+
 # todo name via kwargs to super
 # = composite num expr"?
 class MatrixNumExpr(NumExpr):
@@ -221,7 +222,7 @@ class MatrixNumExpr(NumExpr):
         for i, j in np.ndindex(self.shape):
             elem = self.expr[i, j]
             if isinstance(elem, Symbol):
-                 element_mapping[elem.name] = (i, j)
+                element_mapping[elem.name] = (i, j)
         return element_mapping
 
     @cached_property
@@ -465,7 +466,7 @@ class GMM(CompositeExpr):
 
         # todo some kind of properties object for this metadata
         name = name or "GMM"  # counter for number of instances?
-        self.kind = 'gmm'
+        self.kind = "gmm"
         super().__init__(expr)
 
     def __call__(self, **kwargs):
@@ -539,9 +540,7 @@ class MarkovIVP(CompositeExpr):
         # exp(m*t) @ y0, which is (datapoints, states, 1)
         return np.expand_dims(sol.y.T, -1)
 
-    def to_numerical(
-        self, parameters: Parameters, data: dict[str, np.ndarray]
-    ) -> MarkovIVP:
+    def to_numerical(self, parameters: Parameters, data: dict[str, np.ndarray]) -> MarkovIVP:
         num_expr = {k: to_numerical(expr, parameters, data) for k, expr in self.items()}
         instance = MarkovIVP(**num_expr, domain=self.domain, **self.ivp_defaults)
 

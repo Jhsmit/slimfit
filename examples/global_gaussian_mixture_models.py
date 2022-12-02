@@ -5,6 +5,7 @@ import proplot as pplt
 from sympy import Symbol
 
 from slimfit import Model
+
 # from slimfit.models import NumericalModel
 from slimfit.numerical import GMM, NumExprBase
 from slimfit.fit import Fit
@@ -98,7 +99,7 @@ for k, v in result.parameters.items():
 #%%
 
 x_point = np.linspace(-0.5, 1.5, num=250).reshape(-1, 1)
-eval_data = {'x1': x_point, 'x2': x_point}
+eval_data = {"x1": x_point, "x2": x_point}
 num_model = model.to_numerical(parameters, eval_data)
 
 ans = num_model(**result.parameters)
@@ -110,10 +111,10 @@ colors = {"A": "g", "B": "b", "C": "cyan", "D": "magenta"}
 for i, ax in enumerate(axes):
 
     ax.hist(data[f"x{i + 1}"].squeeze(), bins="fd", density=True, color="gray")
-    ax.plot(x_point, ans[f"p{i + 1}"].sum(axis=1), color='k')
+    ax.plot(x_point, ans[f"p{i + 1}"].sum(axis=1), color="k")
     for j, state in enumerate(all_states[i]):
         ax.plot(x_point, ans[f"p{i + 1}"][:, j], color=colors[state])
-        ax.plot(x_point, gt_ans[f"p{i + 1}"][:, j], color=colors[state], linestyle='--')
+        ax.plot(x_point, gt_ans[f"p{i + 1}"][:, j], color=colors[state], linestyle="--")
     ax.format(title=f"Dataset {i + 1}")
 pplt.show()
 
@@ -137,7 +138,7 @@ parameters = Parameters.from_symbols(model_ds2.symbols, guess)
 
 #%%
 
-fit = Fit(model_ds2, parameters, {'x2': data['x2']}, loss=LogSumLoss(sum_axis=1))
+fit = Fit(model_ds2, parameters, {"x2": data["x2"]}, loss=LogSumLoss(sum_axis=1))
 result = fit.execute(minimizer=LikelihoodOptimizer)
 
 print(result.gof_qualifiers)

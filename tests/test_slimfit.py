@@ -29,6 +29,7 @@ import numpy as np
 
 root_dir = Path(__file__).parent.parent
 
+
 class TestEMBase(object):
     def test_symbol_matrix(self):
         clear_symbols()
@@ -177,14 +178,14 @@ class TestNumExpr(object):
 
         # test symbol matrix factory function
         shape = (1, 3)
-        states = ['A', 'B', 'C']
+        states = ["A", "B", "C"]
         c = symbol_matrix(name="c", shape=shape, suffix=states)
-        assert c[0, 0] == Symbol('c_A')
+        assert c[0, 0] == Symbol("c_A")
 
         num_c = to_numerical(c, {}, {})
 
-        assert num_c.kind == 'constant'
-        assert num_c.name == 'c'
+        assert num_c.kind == "constant"
+        assert num_c.name == "c"
 
     def test_lambda_numexpr(self):
         clear_symbols()
@@ -228,7 +229,7 @@ class TestNumExpr(object):
         }
 
         num_gmm = gmm.to_numerical(parameters, data)
-        assert gmm.kind == 'gmm'
+        assert gmm.kind == "gmm"
         assert num_gmm.shape == (25, 3, 1)
         assert isinstance(num_gmm["mu"], MatrixNumExpr)
 
@@ -457,7 +458,17 @@ class TestEMFit(object):
         fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
         result = fit.execute(minimizer=LikelihoodOptimizer, verbose=False)
 
-        expected = {'c_A': 0.21807944048774222, 'c_B': 0.5351105112590985, 'c_C': 0.24681004825315928, 'mu_A': 0.23155221598099554, 'mu_B': 0.5508567564172897, 'mu_C': 0.9204744537231175, 'sigma_A': 0.09704934271877938, 'sigma_B': 0.09910459765563108, 'sigma_C': 0.09877267156818363}
+        expected = {
+            "c_A": 0.21807944048774222,
+            "c_B": 0.5351105112590985,
+            "c_C": 0.24681004825315928,
+            "mu_A": 0.23155221598099554,
+            "mu_B": 0.5508567564172897,
+            "mu_C": 0.9204744537231175,
+            "sigma_A": 0.09704934271877938,
+            "sigma_B": 0.09910459765563108,
+            "sigma_C": 0.09877267156818363,
+        }
 
         for k in expected.keys():
             assert result.parameters[k] == pytest.approx(expected[k], rel=0.1)
@@ -465,27 +476,44 @@ class TestEMFit(object):
         # Repeat with fixed parameters
 
         # fix mu A
-        parameters['mu_A'].fixed = True
+        parameters["mu_A"].fixed = True
         fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
         result = fit.execute(minimizer=LikelihoodOptimizer, verbose=False)
 
-        expected = {'c_A': 0.18205289103947245, 'c_B': 0.5822954009717819, 'c_C': 0.23565170798874566, 'mu_B': 0.5427685760300586, 'mu_C': 0.9273517146087585, 'sigma_A': 0.08436777980742473, 'sigma_B': 0.11294214298924928, 'sigma_C': 0.09474026756245091}
+        expected = {
+            "c_A": 0.18205289103947245,
+            "c_B": 0.5822954009717819,
+            "c_C": 0.23565170798874566,
+            "mu_B": 0.5427685760300586,
+            "mu_C": 0.9273517146087585,
+            "sigma_A": 0.08436777980742473,
+            "sigma_B": 0.11294214298924928,
+            "sigma_C": 0.09474026756245091,
+        }
         for k in expected.keys():
             assert result.parameters[k] == pytest.approx(expected[k], rel=0.1)
 
-        for fixed_param in ['mu_A']:
+        for fixed_param in ["mu_A"]:
             assert result.fixed_parameters[fixed_param] == guess[fixed_param]
 
         # fix sigma B
-        parameters['sigma_B'].fixed = True
+        parameters["sigma_B"].fixed = True
         fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
         result = fit.execute(minimizer=LikelihoodOptimizer)
 
-        expected = {'c_A': 0.1940912954966998, 'c_B': 0.5552712770246595, 'c_C': 0.25063742747864065, 'mu_B': 0.5418477340418327, 'mu_C': 0.9177305634612395, 'sigma_A': 0.08718283966513221, 'sigma_C': 0.10072652395544755}
+        expected = {
+            "c_A": 0.1940912954966998,
+            "c_B": 0.5552712770246595,
+            "c_C": 0.25063742747864065,
+            "mu_B": 0.5418477340418327,
+            "mu_C": 0.9177305634612395,
+            "sigma_A": 0.08718283966513221,
+            "sigma_C": 0.10072652395544755,
+        }
         for k in expected.keys():
             assert result.parameters[k] == pytest.approx(expected[k], rel=0.1)
 
-        for fixed_param in ['mu_A', 'sigma_B']:
+        for fixed_param in ["mu_A", "sigma_B"]:
             assert result.fixed_parameters[fixed_param] == guess[fixed_param]
 
     def test_global_gmm(self):
@@ -560,14 +588,27 @@ class TestEMFit(object):
         fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
         result = fit.execute(minimizer=LikelihoodOptimizer)
 
-        expected = {'c_A': 0.2146783006888742, 'c_B': 0.5418633676210778, 'c_C': 0.24177790608861852, 'c_D': 0.21747901002459014, 'mu_B': 0.5528955016879634, 'mu_A': 0.2296754306071527, 'mu_D': 0.3386833210125317, 'mu_C': 0.9223072648993988, 'sigma_C': 0.093230280142199, 'sigma_A': 0.0962655449677717, 'sigma_B': 0.10288003410897235, 'sigma_D': 0.21816387196646111}
+        expected = {
+            "c_A": 0.2146783006888742,
+            "c_B": 0.5418633676210778,
+            "c_C": 0.24177790608861852,
+            "c_D": 0.21747901002459014,
+            "mu_B": 0.5528955016879634,
+            "mu_A": 0.2296754306071527,
+            "mu_D": 0.3386833210125317,
+            "mu_C": 0.9223072648993988,
+            "sigma_C": 0.093230280142199,
+            "sigma_A": 0.0962655449677717,
+            "sigma_B": 0.10288003410897235,
+            "sigma_D": 0.21816387196646111,
+        }
 
         for k in expected.keys():
             assert result.parameters[k] == pytest.approx(expected[k], rel=0.1)
 
     # @pytest.mark.skip("Long execution time")
     def test_markov_gmm(self):
-        arr = np.genfromtxt(root_dir / 'examples' / "data/GMM_dynamics.txt")
+        arr = np.genfromtxt(root_dir / "examples" / "data/GMM_dynamics.txt")
         data = {"e": arr[:, 0].reshape(-1, 1), "t": arr[:, 1]}
 
         guess_values = {
@@ -606,33 +647,29 @@ class TestEMFit(object):
 
         parameters = Parameters.from_symbols(model.symbols, guess_values)
 
-        parameters['y0_A'].lower_bound = 0.0
-        parameters['y0_A'].upper_bound = 1.0
+        parameters["y0_A"].lower_bound = 0.0
+        parameters["y0_A"].upper_bound = 1.0
 
-        parameters['y0_B'].lower_bound = 0.0
-        parameters['y0_B'].upper_bound = 1.0
-        parameters['y0_B'].fixed = True
+        parameters["y0_B"].lower_bound = 0.0
+        parameters["y0_B"].upper_bound = 1.0
+        parameters["y0_B"].fixed = True
 
         # Set bounds on rates
-        parameters['k_A_B'].lower_bound = 1e-3
-        parameters['k_A_B'].upper_bound = 1e2
+        parameters["k_A_B"].lower_bound = 1e-3
+        parameters["k_A_B"].upper_bound = 1e2
 
-        parameters['k_B_A'].lower_bound = 1e-3
-        parameters['k_B_A'].upper_bound = 1e2
+        parameters["k_B_A"].lower_bound = 1e-3
+        parameters["k_B_A"].upper_bound = 1e2
 
-        parameters['k_B_C'].lower_bound = 1e-3
-        parameters['k_B_C'].upper_bound = 1e2
+        parameters["k_B_C"].lower_bound = 1e-3
+        parameters["k_B_C"].upper_bound = 1e2
 
         # To calculate the likelihood for a measurement we need to sum the individual probabilities for all states
         # Thus we need to define which axis this is in the model
         STATE_AXIS = 1
 
         fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=STATE_AXIS))
-        result = fit.execute(
-            minimizer=LikelihoodOptimizer,
-            max_iter=200,
-            verbose=True,
-        )
+        result = fit.execute(minimizer=LikelihoodOptimizer, max_iter=200, verbose=True,)
 
         expected = {
             "k_A_B": 0.5415993464686054,

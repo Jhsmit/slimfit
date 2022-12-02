@@ -159,15 +159,17 @@ class LogSumLoss(Loss):
             log_vals = {
                 k: np.log(
                     target_data[k].sum(axis=self.sum_axis),
-                    #np.clip(target_data[k].sum(axis=self.sum_axis), a_min=MIN_PROB, a_max=None)
-                ) for k in target_data.keys()
+                    # np.clip(target_data[k].sum(axis=self.sum_axis), a_min=MIN_PROB, a_max=None)
+                )
+                for k in target_data.keys()
             }
 
         else:
             log_vals = {
                 k: np.log(
                     # np.clip(target_data[k].sum(axis=self.sum_axis)) * self.weights[k], a_min=MIN_PROB, a_max=None)
-                    target_data[k].sum(axis=self.sum_axis) * self.weights[k]
+                    target_data[k].sum(axis=self.sum_axis)
+                    * self.weights[k]
                 )
                 for k in target_data.keys()
             }

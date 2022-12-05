@@ -217,10 +217,19 @@ class LikelihoodOptimizer(Minimizer):
                     opt = GMMOptimizer(sub_model, sub_parameters, **common_kwargs)
                     parameters = opt.step()
                 else:
-                    updated_parameters = [
-                        Parameter(**(asdict(p) | {"guess": parameters_current[p.name]}))
-                        for p in sub_parameters
-                    ]
+                    #TODO: parameters.set_guess( )
+                    # not really needed to update the guess for fixed parmaeter as it oesnt change
+                    # but swah
+
+                    # updated_parameters = [
+                    #     Parameter(**(asdict(p) | {"guess": parameters_current.get(p.name) or self.fixed_parameters.guess[p.name]  }))
+                    #     for p in sub_parameters
+                    # ]
+
+                    # not sure if better but works
+                    current_sub = {k: v for k, v in parameters_current.items() if k in sub_parameters._names}
+                    updated_parameters = sub_parameters.update_guess(current_sub)
+
                     # guess = {k: parameters_current[k] for k in sub_model.free_parameters}
                     # todo loss is not used; should be EM loss while the main loop uses Log likelihood loss
                     opt = ScipyEMOptimizer(sub_model, updated_parameters, **common_kwargs)
@@ -276,7 +285,7 @@ class EMOptimizer(Minimizer):
     def __init__(
         self,
         numerical_model: Model,
-        parameters: list[Parameter],
+        parameters: list[Parameter], # Parameters?
         loss: Loss,
         xdata: dict[str, np.array],
         ydata: dict[str, np.array],

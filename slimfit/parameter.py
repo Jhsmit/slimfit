@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from collections import UserDict, UserList
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from enum import Enum
 from functools import cached_property
 from typing import Iterable, Optional
@@ -73,11 +73,9 @@ class Parameter:
 class Parameters(UserList):
     """Parameter list object
 
-    For now convenience
+    or maybe it should be a dict?
     Could potentially help the `Objective` to/from flat array of guesses for argument of scipy.minimize
     """
-
-
 
     @classmethod
     def from_symbols(
@@ -101,13 +99,51 @@ class Parameters(UserList):
         return cls(p_list)
 
     @property
+    def _symbols(self) -> list[Symbol]:
+        return [p.symbol for p in self]
+
+    @property
+    def _names(self) -> list[str]:
+        return [p.name for p in self]
+
+    def index(self, item: Parameter | Symbol | str, *args) -> int:
+        # are you really sure it shoulnt be a dict?
+        # perhaps not since they 'keys' could be str or symbols ?
+        if isinstance(item, Parameter):
+            return super().index(item, *args)
+        elif isinstance(item, Symbol):
+            return self._symbols.index(item, *args)
+        else:
+            return self._names.index(item, *args)
+
+    def set(self, symbol_or_name: Symbol | str, **kwargs):
+        idx = self.index(symbol_or_name)
+        # if isinstance(symbol_or_name, Symbol):
+        #     idx = self._symbols.index(symbol_or_name)
+        # else:
+        #     idx = self._names.index(symbol_or_name)
+
+        # todo sanitize kwargs
+        self[idx] = Parameter(**(asdict(self[idx]) | kwargs))
+
+    def update_guess(self, guess: dict[str | Symbol, np.ndarray |float]) -> Parameters:
+        """returns a new parameters object where """
+
+        p_out = Parameters(self)
+        for identifier, value in guess.items():
+            idx = p_out.index(identifier)
+            p_out[idx] = Parameter(**(asdict(self[idx]) | dict(guess=value)))
+
+        return p_out
+
+    @property
     def guess(self) -> dict[str, np.ndarray]:
         # todo now also on minimizer
         # includes guess of fixed parameters
         # which makes sense because then you can do model(**parameters.guess, **data)
         return {p.name: np.asarray(p.guess) for p in self}
 
-    @cached_property
+    @property
     def symbols(self) -> set[Symbol]:
         return set(p.symbol for p in self)
 

@@ -31,6 +31,9 @@ class Fit(object):
     ):
 
         self.symbolic_model = model
+
+        # make a new instance such that external modification does not affect the
+        # copy stored here
         self.parameters = Parameters(parameters)
 
         data: dict[str, np.ndarray] = {

@@ -15,8 +15,7 @@ from slimfit.parameter import Parameter
 
 
 def overlapping_model_parameters(
-        model_callables: list[tuple[Symbol, NumExprBase]],
-        symbols: set[Symbol],
+    model_callables: list[tuple[Symbol, NumExprBase]], symbols: set[Symbol],
 ) -> list[Model]:
 
     seen_models = []

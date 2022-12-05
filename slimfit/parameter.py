@@ -30,7 +30,6 @@ class Parameter:
 
     def __post_init__(self):
 
-
         # If the `guess` has a shape, it must be the same as the symbol shape,
         # if it has any.
         guess_shape = getattr(self.guess, "shape", None)
@@ -67,6 +66,7 @@ class Parameter:
     def name(self) -> str:
         # Do symbols always have names?
         return self.symbol.name
+
 
 # frozen?
 # frozen might not be nessecary but fit should make a copy to prevent modification
@@ -126,7 +126,7 @@ class Parameters(UserList):
         # todo sanitize kwargs
         self[idx] = Parameter(**(asdict(self[idx]) | kwargs))
 
-    def update_guess(self, guess: dict[str | Symbol, np.ndarray |float]) -> Parameters:
+    def update_guess(self, guess: dict[str | Symbol, np.ndarray | float]) -> Parameters:
         """returns a new parameters object where """
 
         p_out = Parameters(self)
@@ -146,4 +146,3 @@ class Parameters(UserList):
     @property
     def symbols(self) -> set[Symbol]:
         return set(p.symbol for p in self)
-

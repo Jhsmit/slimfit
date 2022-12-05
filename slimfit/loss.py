@@ -81,8 +81,7 @@ class L2Loss(Loss):
             residuals = {k: (y_model[k] - y_data[k]) ** 2 for k in y_model.keys()}
         else:
             residuals = {
-                k: ((y_model[k] - y_data[k]) * self.weights[k]) ** 2
-                for k in y_model.keys()
+                k: ((y_model[k] - y_data[k]) * self.weights[k]) ** 2 for k in y_model.keys()
             }
 
         return self.reduce(residuals)

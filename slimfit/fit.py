@@ -62,11 +62,8 @@ class Fit(object):
 
         minimizer_cls = minimizer or self.get_minimizer()
         minimizer_instance = minimizer_cls(
-            self.symbolic_model.to_numerical(),
-            self.parameters,
-            self.loss,
-            self.xdata,
-            self.ydata)
+            self.symbolic_model.to_numerical(), self.parameters, self.loss, self.xdata, self.ydata
+        )
 
         result = minimizer_instance.execute(**execute_options)
 

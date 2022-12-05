@@ -53,9 +53,7 @@ class NumExprBase(SymbolicBase):
     def parse_kwargs(self, **kwargs) -> dict[str, np.ndarray]:
         """Parse kwargs and take only the ones in `free_parameters`"""
         try:
-            arguments: dict[str, np.ndarray | float] = {
-                k: kwargs[k] for k in self.symbol_names
-            }
+            arguments: dict[str, np.ndarray | float] = {k: kwargs[k] for k in self.symbol_names}
         except KeyError as e:
             print(kwargs.keys())
             raise KeyError(f"Missing value for parameter {e}") from e
@@ -85,11 +83,11 @@ class ArrayNumExpr(DummyNumExpr):
     def shape(self) -> Shape:
         return self.obj.shape
 
+
 # TODO frozen dataclass?
 class NumExpr(NumExprBase):
     def __init__(
-        self,
-        expr: Expr,
+        self, expr: Expr,
     ):
         if not isinstance(expr, (Expr, MatrixBase)):
             # TODO subclass such that typing is correct
@@ -135,10 +133,7 @@ class NumExpr(NumExprBase):
 # = composite num expr"?
 class MatrixNumExpr(NumExpr):
     def __init__(
-        self,
-        expr: MatrixBase,
-        name: Optional[str] = None,
-        kind: Optional[str] = None,
+        self, expr: MatrixBase, name: Optional[str] = None, kind: Optional[str] = None,
     ):
 
         if not isinstance(expr, MatrixBase):
@@ -242,7 +237,9 @@ class MatrixNumExpr(NumExpr):
         #     # Shape is given be pre-specified shape
         #     shape = self.shape
         # except AttributeError:
-        base_shape = np.broadcast_shapes(*(getattr(value, 'shape', tuple()) for value in ld_kwargs.values()))
+        base_shape = np.broadcast_shapes(
+            *(getattr(value, "shape", tuple()) for value in ld_kwargs.values())
+        )
 
         # squeeze last dim if shape is (1,)
         base_shape = () if base_shape == (1,) else base_shape
@@ -250,9 +247,7 @@ class MatrixNumExpr(NumExpr):
 
         out = np.empty(shape)
         for i, j in np.ndindex(self.expr.shape):
-            out[..., i, j] = self.lambdified[i, j](
-                **ld_kwargs
-            )
+            out[..., i, j] = self.lambdified[i, j](**ld_kwargs)
 
         return out
 
@@ -335,11 +330,7 @@ class DummyVariableMatrix(MatrixNumExpr):
 
 # different class for Symbolic / Numerical ?
 class LambdaNumExpr(NumExprBase):
-    def __init__(
-        self,
-        func,
-        symbols: Iterable[Symbol],
-    ) -> None:
+    def __init__(self, func, symbols: Iterable[Symbol],) -> None:
         self.func = func
         self._symbols = set(symbols)
 
@@ -422,7 +413,7 @@ class CompositeExpr(SymbolicBase):
     @property
     def shapes(self) -> dict[str, Shape]:
         """shapes of symbols"""
-        return reduce(or_ (expr.shapes for expr in self.expr.values()))
+        return reduce(or_(expr.shapes for expr in self.expr.values()))
 
     @property
     def shape(self) -> Shape:
@@ -586,9 +577,7 @@ def to_numerical(
         raise NotImplementedError("Not yet")
         from slimfit.operations import Mul
 
-        return Mul(
-            *(to_numerical(arg) for arg in expression.args)
-        )
+        return Mul(*(to_numerical(arg) for arg in expression.args))
     elif isinstance(expression, MatrixBase):
         return MatrixNumExpr(expression)
     elif isinstance(expression, Expr):

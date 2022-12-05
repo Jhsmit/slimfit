@@ -11,7 +11,6 @@ from slimfit.typing import Shape
 
 
 class SymbolicBase(metaclass=abc.ABCMeta):
-
     @cached_property
     @abc.abstractmethod
     def symbols(self) -> set[Symbol]:
@@ -20,7 +19,6 @@ class SymbolicBase(metaclass=abc.ABCMeta):
     @cached_property
     def symbol_names(self) -> set[str]:
         return set(s.name for s in self.symbols)
-
 
     @property
     def shapes(self) -> dict[str, Shape]:

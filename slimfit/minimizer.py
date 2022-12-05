@@ -58,7 +58,7 @@ class Minimizer(metaclass=abc.ABCMeta):
         # todo also on self.parameters.guess
         raise NotImplementedError("Use `free_parameters.guess")
 
-        print('guess on minimizer')
+        print("guess on minimizer")
         for p in self.parameters:
             print(p.name, p.fixed)
 
@@ -120,8 +120,6 @@ class ScipyMinimizer(Minimizer):
         return FitResult(**result_dict)
 
         # return self.to_fitresult(result)
-
-
 
     def rename_options(self, options: dict[str, Any]) -> dict[str, Any]:
         # todo parse options more generally
@@ -217,7 +215,7 @@ class LikelihoodOptimizer(Minimizer):
                     opt = GMMOptimizer(sub_model, sub_parameters, **common_kwargs)
                     parameters = opt.step()
                 else:
-                    #TODO: parameters.set_guess( )
+                    # TODO: parameters.set_guess( )
                     # not really needed to update the guess for fixed parmaeter as it oesnt change
                     # but swah
 
@@ -227,7 +225,9 @@ class LikelihoodOptimizer(Minimizer):
                     # ]
 
                     # not sure if better but works
-                    current_sub = {k: v for k, v in parameters_current.items() if k in sub_parameters._names}
+                    current_sub = {
+                        k: v for k, v in parameters_current.items() if k in sub_parameters._names
+                    }
                     updated_parameters = sub_parameters.update_guess(current_sub)
 
                     # guess = {k: parameters_current[k] for k in sub_model.free_parameters}
@@ -285,7 +285,7 @@ class EMOptimizer(Minimizer):
     def __init__(
         self,
         numerical_model: Model,
-        parameters: list[Parameter], # Parameters?
+        parameters: list[Parameter],  # Parameters?
         loss: Loss,
         xdata: dict[str, np.array],
         ydata: dict[str, np.array],
@@ -371,7 +371,7 @@ class GMMOptimizer(EMOptimizer):
         parameters = {}  # output parameters dictionary
 
         # All symbols in all 'mu' expressions, then take intersection
-        mu_symbols = set.union(*(rhs['mu'].symbols for rhs in self.model.values()))
+        mu_symbols = set.union(*(rhs["mu"].symbols for rhs in self.model.values()))
         mu_symbols &= self.free_parameters.symbols
 
         # take only the mu symbos in the set of symbols designated as parameters
@@ -390,7 +390,7 @@ class GMMOptimizer(EMOptimizer):
                     # independent data should be given in the same shape as T_i
                     # which is typically (N, 1), to be sure shapes match we reshape independent data
                     # data = self.xdata[gmm_rhs['x'].name]
-                    num += np.sum(T_i * self.xdata[gmm_rhs['x'].name].reshape(T_i.shape))
+                    num += np.sum(T_i * self.xdata[gmm_rhs["x"].name].reshape(T_i.shape))
                     denom += np.sum(T_i)
 
             parameters[mu_symbol.name] = num / denom
@@ -422,8 +422,7 @@ class GMMOptimizer(EMOptimizer):
                         mu_value = self.fixed_parameters.guess[mu_name]
 
                     num += np.sum(
-                        T_i
-                        * (self.xdata[gmm_rhs['x'].name].reshape(T_i.shape) - mu_value) ** 2
+                        T_i * (self.xdata[gmm_rhs["x"].name].reshape(T_i.shape) - mu_value) ** 2
                     )
 
                     denom += np.sum(T_i)
@@ -468,29 +467,28 @@ class ScipyEMOptimizer(EMOptimizer):
     def execute(self, **minimizer_options):
         param_shapes = {p.name: p.shape for p in self.free_parameters}
 
-        #x = self.model.parameters.pack(self.guess)
+        # x = self.model.parameters.pack(self.guess)
         # x = np.array([self.guess[p_name] for p_name in self.parameter_names])
         # options = {"method": "SLSQP"} | minimizer_options
 
         objective = ScipyEMObjective(
             model=self.model,
-            loss=self.loss, # not used currently
+            loss=self.loss,  # not used currently
             xdata=self.xdata | self.fixed_parameters.guess,
             posterior=self.posterior,
             shapes=param_shapes,
-
         )
 
         x = pack(self.free_parameters.guess.values())
         options = minimizer_options
-        #bounds = self.model.free_parameters.get_bounds()
+        # bounds = self.model.free_parameters.get_bounds()
         # todo what if users wants different bounds to pass to the minimizer?
         # perhaps that should also be passed, same as guess?
         # what about the pack / unpack?
         result = minimize(
             objective,
             x,
-            #args=(self.model, self.loss, self.posterior),
+            # args=(self.model, self.loss, self.posterior),
             # args=(self.parameter_names, self.xdata, self.posterior, self.model, self.loss,),
             bounds=self.get_bounds(),
             **options

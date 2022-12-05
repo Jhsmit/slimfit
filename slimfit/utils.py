@@ -14,12 +14,16 @@ from slimfit.operations import Mul
 from slimfit.parameter import Parameter
 
 
-def overlapping_model_parameters(model_callables: list[tuple[Symbol, NumExprBase]]) -> list[Model]:
+def overlapping_model_parameters(
+        model_callables: list[tuple[Symbol, NumExprBase]],
+        symbols: set[Symbol],
+) -> list[Model]:
 
     seen_models = []
     seen_sets = []
     for lhs, num_expr in model_callables:
-        param_set = set(num_expr.free_parameters.keys())
+        param_set = num_expr.symbols & symbols
+        # param_set = set(num_expr.free_parameters.keys())
 
         found = False
         # look for sets of parameters we've seen so far, if found, append to the list of sets

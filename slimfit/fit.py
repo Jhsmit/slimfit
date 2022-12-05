@@ -24,14 +24,14 @@ class Fit(object):
     def __init__(
         self,
         model: Model,
-        parameters: Parameters,
+        parameters: list[Parameter] | Parameters,
         data: dict[str | Expr, npt.ArrayLike],
         loss: Optional[Loss] = L2Loss(),
         # posterior: Optional[CompositeNumExpr],
     ):
 
         self.symbolic_model = model
-        self.parameters = parameters
+        self.parameters = Parameters(parameters)
 
         data: dict[str, np.ndarray] = {
             getattr(k, "name", k): np.asarray(v) for k, v in data.items()
@@ -39,7 +39,7 @@ class Fit(object):
         self.loss = loss
 
         # 'independent' data; or 'xdata'; typically chosen measurement points
-        self.xdata = {k: v for k, v in data.items() if k in self.symbolic_model.symbols}
+        self.xdata = {k: v for k, v in data.items() if k in self.symbolic_model.symbol_names}
 
         # 'dependent' data; or 'ydata'; typically measurements
         self.ydata = {k: v for k, v in data.items() if k in self.symbolic_model.dependent_symbols}
@@ -48,17 +48,22 @@ class Fit(object):
         # except KeyError as k:
         #     raise KeyError(f"Missing independent data: {k}") from k
 
-    @cached_property
-    def numerical_model(self) -> Model:
-        # TODO parameters type
-        return to_numerical(self.symbolic_model, self.parameters, self.xdata)
+    # @cached_property
+    # def numerical_model(self) -> Model:
+    #     # TODO parameters type
+    #     return to_numerical(self.symbolic_model)
 
     def execute(
         self, minimizer: Optional[Type[Minimizer]] = None, **execute_options,
     ):
 
         minimizer_cls = minimizer or self.get_minimizer()
-        minimizer_instance = minimizer_cls(self.numerical_model, self.loss, self.ydata)
+        minimizer_instance = minimizer_cls(
+            self.symbolic_model.to_numerical(),
+            self.parameters,
+            self.loss,
+            self.xdata,
+            self.ydata)
 
         result = minimizer_instance.execute(**execute_options)
 

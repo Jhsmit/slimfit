@@ -18,8 +18,8 @@ class Model(numerical.CompositeExpr):
         # currently typing has a small problem where keys are expected to be `str`, not symbol
         super().__init__(model_dict)
 
-    def __repr__(self):
-        return f"Model({self.expr.__repr__()})"
+    # def __repr__(self):
+    #     return f"Model({self.expr.__repr__()})"
 
     def __getitem__(self, item: Union[str, Symbol]) -> numerical.NumExprBase:
         if isinstance(item, str):
@@ -29,6 +29,7 @@ class Model(numerical.CompositeExpr):
 
     @property
     def dependent_symbols(self) -> dict[str, Symbol]:
+        # todo needs to be updated
         """Variables corresponding to dependent (measured) data, given as keys in the model dict"""
 
         return {symbol.name: symbol for symbol in self.expr.keys()}

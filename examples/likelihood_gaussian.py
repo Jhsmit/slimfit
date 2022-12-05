@@ -1,7 +1,8 @@
 import numpy as np
 import proplot as pplt
 
-from slimfit import Symbol, Model
+from slimfit.symbols import Symbol
+from slimfit.models import Model
 from slimfit.fit import Fit
 from slimfit.functions import gaussian_sympy
 from slimfit.loss import LogLoss
@@ -19,16 +20,17 @@ parameters = Parameters.from_symbols(model.symbols, "mu sigma")
 #%%
 
 fit = Fit(model, parameters, data={"x": xdata}, loss=LogLoss())
+# execution time: 12.5ms
 result = fit.execute()
 
 #%%
 data = {"x": np.linspace(0.0, 5.0, num=100)}
 
-num_model = model.to_numerical(parameters, data)
+num_model = model.to_numerical()
 
 fig, ax = pplt.subplots()
-ax.plot(data["x"], num_model(**gt_params)["p"], color="r")
-ax.plot(data["x"], num_model(**result.parameters)["p"], linestyle="--", color="k")
+ax.plot(data["x"], num_model(**gt_params, **data)["p"], color="r")
+ax.plot(data["x"], num_model(**result.parameters, **data)["p"], linestyle="--", color="k")
 ax.hist(xdata, bins="fd", density=True, color="grey")
 
 pplt.show()

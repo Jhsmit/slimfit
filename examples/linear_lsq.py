@@ -26,17 +26,27 @@ DATA = {"x": xdata, "y": ydata}
 parameters = Parameters.from_symbols(model.symbols, "a b")
 
 fit = Fit(model, parameters=parameters, data=DATA)
-#%%
 
 #%%
 
-fit.numerical_model.parameters
-
-#%%
+# #%%
 result = fit.execute()
-
+result.parameters
+#
 #%%
 fig, ax = pplt.subplots()
 ax.scatter(DATA["x"], DATA["y"])
-ax.plot(DATA["x"], model.to_numerical(parameters, DATA)(**result.parameters)["y"], color="r")
+ax.plot(DATA["x"], model.to_numerical()(**result.parameters, **DATA)["y"], color="r")
 pplt.show()
+#
+#
+#%%
+from slimfit.parameter import Parameter
+
+from dataclasses import asdict
+parameter = parameters[0]
+Parameter(**(asdict(parameter) | {'fixed': True}))
+
+
+#%%
+

@@ -27,15 +27,15 @@ STATE_AXIS = -2
 class Minimizer(metaclass=abc.ABCMeta):
     def __init__(
         self,
-        model: Model,
+        numerical_model: Model,
         loss: Loss,
         ydata: dict[str, np.array],
         guess: Optional[dict[str, np.ndarray]] = None,
     ):
-        if not model.numerical:
+        if not numerical_model.numerical:
             raise ValueError("The given model should be numerical")
 
-        self.model = model
+        self.model = numerical_model
         self.loss = loss
         self.ydata = ydata
         self.guess = guess or self.model.parameters.guess
@@ -44,8 +44,6 @@ class Minimizer(metaclass=abc.ABCMeta):
     def execute(self, **minimizer_options) -> FitResult:
         ...
 
-
-# TODO: MINIMIZERS NEED GUESSES
 class ScipyMinimizer(Minimizer):
     def execute(self, **minimizer_options):
         x = self.model.parameters.pack(self.guess)
@@ -99,7 +97,6 @@ class LikelihoodOptimizer(Minimizer):
 
     def execute(self, max_iter=250, patience=5, stop_loss=1e-7, verbose=True) -> FitResult:
         # parameters which needs to be passed / inferred
-
         # Split top-level multiplications in the model as they can be optimized in log likelihood independently
         components: list[tuple[Symbol, NumExprBase]] = []  # todo tuple LHS as variable
         for lhs, rhs in self.model.items():
@@ -117,6 +114,7 @@ class LikelihoodOptimizer(Minimizer):
         parameters_current = self.guess  # initialize parameters
         prev_loss = 0.0
         no_progress = 0
+        base_result = {}
         for i in pbar:
             result = self.model(**parameters_current)
             loss = self.loss(self.ydata, result)
@@ -127,7 +125,6 @@ class LikelihoodOptimizer(Minimizer):
             # At the moment we assume all callables in the sub models to be MatrixCallables
             # dictionary of new parameter values for in this iteration
             parameters_step = {}
-            base_result = {}
             for sub_model in sub_models:
                 # determine the kind
                 kinds = [c.kind for c in sub_model.values()]
@@ -194,14 +191,14 @@ class LikelihoodOptimizer(Minimizer):
 class EMOptimizer(Minimizer):
     def __init__(
         self,
-        model: Model,
+        numerical_model: Model,
         loss: Loss,
         ydata: dict[str, np.array],
         posterior: dict[str, np.array],
         guess: dict[str, np.array] = None,
     ):
         self.posterior = posterior
-        super().__init__(model=model, loss=loss, ydata=ydata, guess=guess)
+        super().__init__(numerical_model=numerical_model, loss=loss, ydata=ydata, guess=guess)
 
     @abc.abstractmethod
     def step(self) -> dict[str, float]:

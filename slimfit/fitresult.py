@@ -32,8 +32,8 @@ class FitResult:
     guess: Optional[dict] = None
     """Initial guesses"""
 
-    model: Optional[Model] = None
-    """The fitted model"""
+    symbolic_model: Optional[Model] = None
+    """The fitted symbolic model"""
 
     data: Optional[dict] = field(default=None, repr=False)
     """Data on which the fit was performed"""
@@ -45,11 +45,6 @@ class FitResult:
     """Source fit result object. Can be dicts of sub results"""
 
     def __post_init__(self) -> None:
-        if self.fixed_parameters is None and self.model is not None and self.model.fixed_parameters:
-            self.fixed_parameters = {
-                name: p.value for name, p in self.model.fixed_parameters.items()
-            }
-
         if "datetime" not in self.metadata:
             now = datetime.now()
             self.metadata["datetime"] = now.strftime("%Y/%m/%d %H:%M:%S")
@@ -69,7 +64,7 @@ class FitResult:
         dic = clean_types(self.to_dict())
         Path(path).write_text(yaml.dump(dic, sort_keys=sort_keys))
 
-    def to_pickle(self, path: Union[os.PathLike[str], str], renew: bool = True) -> None:
+    def to_pickle(self, path: Union[os.PathLike[str], str]) -> None:
         """
         Save the fitresult as pickle
 
@@ -77,13 +72,12 @@ class FitResult:
             path: Path to save to.
         """
 
-        if self.model is not None and renew:
-            self.model.renew()
-
         with Path(path).open("wb") as f:
             pickle.dump(self, f)
 
     def __call__(self, **kwargs) -> dict[str, np.ndarray]:
+        raise NotImplementedError("Nope")
         data = self.data or {}
         kwargs = self.parameters | data | kwargs
-        return self.model(**kwargs)
+
+        return self.symbolic_model(**kwargs)

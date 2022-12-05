@@ -62,6 +62,8 @@ class Fit(object):
 
         result = minimizer_instance.execute(**execute_options)
 
+        result.symbolic_model = self.symbolic_model
+
         return result
 
     def get_minimizer(self) -> Type[Minimizer]:

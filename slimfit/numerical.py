@@ -575,7 +575,6 @@ def identify_expression_kind(sympy_expression: Union[Expr, MatrixBase]) -> str:
     return "generic"
 
 
-# todo behaviour for `None` ?
 def to_numerical(
     expression: Union[NumExprBase, Expr, MatrixBase | Model | CompositeExpr],
     parameters: Parameters,

@@ -15,7 +15,7 @@ from tqdm.auto import trange
 from slimfit import Model, NumExprBase
 from slimfit.fitresult import FitResult
 from slimfit.loss import Loss
-from slimfit.objective import ScipyObjective
+from slimfit.objective import ScipyObjective, pack, unpack, ScipyEMObjective
 
 # from slimfit.models import NumericalModel
 from slimfit.operations import Mul
@@ -64,7 +64,13 @@ class Minimizer(metaclass=abc.ABCMeta):
 
         return {p.name: np.asarray(p.guess) for p in self.parameters if not p.fixed}
 
-        # self.guess = guess or self.model.parameters.guess
+    def get_bounds(self) -> list[tuple[float | None, float | None]] | None:
+        bounds = [(p.lower_bound, p.upper_bound) for p in self.free_parameters]
+
+        if all((None, None) == b for b in bounds):
+            return None
+        else:
+            return bounds
 
     @abc.abstractmethod
     def execute(self, **minimizer_options) -> FitResult:
@@ -84,7 +90,8 @@ class ScipyMinimizer(Minimizer):
         )
         # guess = {p.name: p.guess for p in self.parameters}
 
-        x = objective.pack(self.guess.values())
+        # x = objective.pack(self.free_parameters.guess.values())
+        x = pack(self.free_parameters.guess.values())
         # x = self.model.parameters.pack(self.guess)
 
         result = minimize(
@@ -99,13 +106,13 @@ class ScipyMinimizer(Minimizer):
             "loss": result["fun"],
         }
 
-        parameter_values = objective.unpack(result.x)
+        parameter_values = unpack(result.x, param_shapes)
 
         result_dict = dict(
             parameters=parameter_values,
             fixed_parameters=self.fixed_parameters,
             gof_qualifiers=gof_qualifiers,
-            guess=self.guess,
+            guess=self.free_parameters.guess,
             base_result=result,
         )
 
@@ -114,13 +121,7 @@ class ScipyMinimizer(Minimizer):
 
         # return self.to_fitresult(result)
 
-    def get_bounds(self) -> list[tuple[float | None, float | None]] | None:
-        bounds = [(p.lower_bound, p.upper_bound) for p in self.free_parameters]
 
-        if all((None, None) == b for b in bounds):
-            return None
-        else:
-            return bounds
 
     def rename_options(self, options: dict[str, Any]) -> dict[str, Any]:
         # todo parse options more generally
@@ -217,7 +218,7 @@ class LikelihoodOptimizer(Minimizer):
                     parameters = opt.step()
                 else:
                     updated_parameters = [
-                        Parameter(**(asdict(p) | {"guess": parameters_current[p.name].guess}))
+                        Parameter(**(asdict(p) | {"guess": parameters_current[p.name]}))
                         for p in sub_parameters
                     ]
                     # guess = {k: parameters_current[k] for k in sub_model.free_parameters}
@@ -456,28 +457,57 @@ class ScipyEMOptimizer(EMOptimizer):
         ...
 
     def execute(self, **minimizer_options):
-        x = self.model.parameters.pack(self.guess)
-        # x = np.array([self.guess[p_name] for p_name in self.parameter_names])
+        param_shapes = {p.name: p.shape for p in self.free_parameters}
 
+        #x = self.model.parameters.pack(self.guess)
+        # x = np.array([self.guess[p_name] for p_name in self.parameter_names])
         # options = {"method": "SLSQP"} | minimizer_options
+
+        objective = ScipyEMObjective(
+            model=self.model,
+            loss=self.loss, # not used currently
+            xdata=self.xdata | self.fixed_parameters.guess,
+            posterior=self.posterior,
+            shapes=param_shapes,
+
+        )
+
+        x = pack(self.free_parameters.guess.values())
         options = minimizer_options
-        bounds = self.model.parameters.get_bounds()
+        #bounds = self.model.free_parameters.get_bounds()
         # todo what if users wants different bounds to pass to the minimizer?
         # perhaps that should also be passed, same as guess?
         # what about the pack / unpack?
         result = minimize(
-            minfunc_expectation,
+            objective,
             x,
-            args=(self.model, self.loss, self.posterior),
+            #args=(self.model, self.loss, self.posterior),
             # args=(self.parameter_names, self.xdata, self.posterior, self.model, self.loss,),
-            bounds=self.model.parameters.get_bounds(),
+            bounds=self.get_bounds(),
             **options
         )
 
-        return self.to_fitresult(result)
+        gof_qualifiers = {
+            "loss": result["fun"],
+        }
+
+        parameter_values = unpack(result.x, param_shapes)
+
+        result_dict = dict(
+            parameters=parameter_values,
+            fixed_parameters=self.fixed_parameters,
+            gof_qualifiers=gof_qualifiers,
+            guess=self.free_parameters.guess,
+            base_result=result,
+        )
+
+        # todo pass to superclass generalize fitresult function
+        # or functional
+        return FitResult(**result_dict)
 
     # TODO duplicate code
     def to_fitresult(self, result) -> FitResult:
+
         parameters = self.model.parameters.unpack(result.x)
 
         gof_qualifiers = {

@@ -9,6 +9,9 @@ from slimfit import Model
 from slimfit.loss import Loss
 from slimfit.typing import Shape
 
+MIN_PROB = 1e-9  # Minimal probability value (> 0.) to enter into np.log
+
+
 # py3.10:
 # from dataclasses import dataclass, field
 # from functools import cached_property
@@ -49,7 +52,6 @@ class Objective:
 #
 #         #self.sign = -1 if self.negate else 1
 
-
 class ScipyObjective(Objective):
     def __init__(
         self,
@@ -64,28 +66,65 @@ class ScipyObjective(Objective):
         self.shapes = shapes
 
     def __call__(self, x: np.ndarray) -> float:
-        parameters = self.unpack(x)
+        parameters = unpack(x, self.shapes)
 
         y_model = self.model(**parameters, **self.xdata)
         loss = self.loss(self.ydata, y_model)
 
         return self.sign * loss
 
-    def unpack(self, x: np.ndarray) -> dict[str, np.ndarray]:
-        """Unpack a ndim 1 array of concatenated parameter values into a dictionary of
-            parameter name: parameter_value where parameter values are cast back to their
-            specified shapes.
-        """
-        sizes = [int(np.product(shape)) for shape in self.shapes.values()]
 
-        x_split = np.split(x, np.cumsum(sizes))
-        p_values = {
-            name: arr.reshape(shape) for (name, shape), arr in zip(self.shapes.items(), x_split)
+class ScipyEMObjective(Objective):
+    def __init__(
+        self,
+        model: Model,
+        loss: Loss,
+        xdata: dict[str, np.ndarray],
+        posterior: dict[str, np.ndarray],
+        shapes: dict[str, Shape],
+        negate: bool = False, # todo actually use the negate bool
+    ):
+        super().__init__(model=model, loss=loss, xdata=xdata, ydata={}, negate=negate)
+        self.posterior = posterior
+        self.shapes = shapes
+
+    def __call__(self, x: np.ndarray) -> float:
+        parameters = unpack(x, self.shapes)
+
+        probability = self.model(**parameters, **self.xdata)
+
+        # y_model = self.model(**parameters, **self.xdata)
+        # loss = self.loss(self.ydata, y_model)
+
+        # Todo do this in a `loss`
+        expectation = {
+            lhs: self.posterior[lhs] * np.log(np.clip(prob, a_min=MIN_PROB, a_max=1.0))
+            for lhs, prob in probability.items()
         }
 
-        return p_values
+        # TODO: LOSS / WEIGHTS
 
-    def pack(self, parameter_values: Iterable[np.ndarray]) -> np.ndarray:
-        """Pack a dictionary of parameter_name together as array"""
+        return -sum(r.sum() for r in expectation.values())
 
-        return np.concatenate(tuple(param_value.ravel() for param_value in parameter_values))
+
+
+# seperate functions?
+def unpack(x: np.ndarray, shapes: dict[str, Shape]) -> dict[str, np.ndarray]:
+    """Unpack a ndim 1 array of concatenated parameter values into a dictionary of
+        parameter name: parameter_value where parameter values are cast back to their
+        specified shapes.
+    """
+    sizes = [int(np.product(shape)) for shape in shapes.values()]
+
+    x_split = np.split(x, np.cumsum(sizes))
+    p_values = {
+        name: arr.reshape(shape) for (name, shape), arr in zip(shapes.items(), x_split)
+    }
+
+    return p_values
+
+
+def pack(parameter_values: Iterable[np.ndarray]) -> np.ndarray:
+    """Pack a dictionary of parameter_name together as array"""
+
+    return np.concatenate(tuple(param_value.ravel() for param_value in parameter_values))

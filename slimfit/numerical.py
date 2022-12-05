@@ -242,7 +242,7 @@ class MatrixNumExpr(NumExpr):
         #     # Shape is given be pre-specified shape
         #     shape = self.shape
         # except AttributeError:
-        base_shape = np.broadcast_shapes(*(value.shape for value in ld_kwargs.values()))
+        base_shape = np.broadcast_shapes(*(getattr(value, 'shape', tuple()) for value in ld_kwargs.values()))
 
         # squeeze last dim if shape is (1,)
         base_shape = () if base_shape == (1,) else base_shape

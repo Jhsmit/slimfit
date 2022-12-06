@@ -33,7 +33,7 @@ class Loss(object):
 
     @abc.abstractmethod
     def __call__(
-        self, dependent_data: dict[str, np.ndarray], target_data: dict[str, np.ndarray]
+        self, y_data: dict[str, np.ndarray], y_model: dict[str, np.ndarray]
     ) -> np.ndarray | float:
         ...
 
@@ -74,15 +74,14 @@ class L1Loss(Loss):
 
 class L2Loss(Loss):
     def __call__(
-        self, dependent_data: dict[str, np.ndarray], target_data: dict[str, np.ndarray]
+        self, y_data: dict[str, np.ndarray], y_model: dict[str, np.ndarray]
     ) -> np.ndarray | float:
 
         if self.weights is None:
-            residuals = {k: (target_data[k] - dependent_data[k]) ** 2 for k in target_data.keys()}
+            residuals = {k: (y_model[k] - y_data[k]) ** 2 for k in y_model.keys()}
         else:
             residuals = {
-                k: ((target_data[k] - dependent_data[k]) * self.weights[k]) ** 2
-                for k in target_data.keys()
+                k: ((y_model[k] - y_data[k]) * self.weights[k]) ** 2 for k in y_model.keys()
             }
 
         return self.reduce(residuals)
@@ -112,13 +111,13 @@ class LogLoss(Loss):
         super().__init__(weights, reduction)
 
     def __call__(
-        self, dependent_data: dict[str, np.ndarray], target_data: dict[str, np.ndarray]
+        self, y_data: dict[str, np.ndarray], y_model: dict[str, np.ndarray]
     ) -> np.ndarray | float:
         if self.weights is None:
-            log_vals = {k: np.log(target_data[k]) for k in target_data.keys()}
+            log_vals = {k: np.log(y_model[k]) for k in y_model.keys()}
 
         else:
-            log_vals = {k: np.log(target_data[k] * self.weights[k]) for k in target_data.keys()}
+            log_vals = {k: np.log(y_model[k] * self.weights[k]) for k in y_model.keys()}
 
         return -self.reduce(log_vals)
 
@@ -151,27 +150,27 @@ class LogSumLoss(Loss):
         super().__init__(weights, reduction)
 
     def __call__(
-        self, dependent_data: dict[str, np.ndarray], target_data: dict[str, np.ndarray]
+        self, y_data: dict[str, np.ndarray], y_model: dict[str, np.ndarray]
     ) -> np.ndarray | float:
 
         # from slimfit.minimizer import MIN_PROB
         if self.weights is None:
             log_vals = {
                 k: np.log(
-                    target_data[k].sum(axis=self.sum_axis),
-                    # np.clip(target_data[k].sum(axis=self.sum_axis), a_min=MIN_PROB, a_max=None)
+                    y_model[k].sum(axis=self.sum_axis),
+                    # np.clip(y_model[k].sum(axis=self.sum_axis), a_min=MIN_PROB, a_max=None)
                 )
-                for k in target_data.keys()
+                for k in y_model.keys()
             }
 
         else:
             log_vals = {
                 k: np.log(
-                    # np.clip(target_data[k].sum(axis=self.sum_axis)) * self.weights[k], a_min=MIN_PROB, a_max=None)
-                    target_data[k].sum(axis=self.sum_axis)
+                    # np.clip(y_model[k].sum(axis=self.sum_axis)) * self.weights[k], a_min=MIN_PROB, a_max=None)
+                    y_model[k].sum(axis=self.sum_axis)
                     * self.weights[k]
                 )
-                for k in target_data.keys()
+                for k in y_model.keys()
             }
 
         return -self.reduce(log_vals)
@@ -199,14 +198,14 @@ class LogSumLoss(Loss):
 #         super().__init__(weights, reduction)
 #
 #     def __call__(
-#         self, ydata: dict[str, np.ndarray], target_data: dict[str, np.ndarray]
+#         self, ydata: dict[str, np.ndarray], y_model: dict[str, np.ndarray]
 #     ) -> np.ndarray | float:
 #         if self.weights is None:
-#             log_vals = {k: np.log(target_data[k]) for k in target_data.keys()}
+#             log_vals = {k: np.log(y_model[k]) for k in y_model.keys()}
 #
 #         else:
 #             log_vals = {
-#                 k: np.log(target_data[k] * self.weights[k]) for k in target_data.keys()
+#                 k: np.log(y_model[k] * self.weights[k]) for k in y_model.keys()
 #             }
 #
 #         return -self.reduce(log_vals)

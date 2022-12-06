@@ -53,56 +53,42 @@ class TestEMBase(object):
             "A_c": Parameter(m[0, 2]),
         }
 
-        m_num = to_numerical(m, parameters, {})
+        m_num = to_numerical(m)
         values = {"A_a": 1, "A_b": 2, "A_c": 3.5}
 
         result = m_num(**values)
         assert result.shape == (1, 3)
         assert np.allclose(result, np.array([1.0, 2.0, 3.5]).reshape(1, 3))
 
-    @pytest.mark.skip("Old test")
+    # @pytest.mark.skip("Old test")
     def test_model(self):
         clear_symbols()
 
         # Create GMM from sympy operations and Parameters
-        mu = Matrix([Parameter("mu_1"), Parameter("mu_2"), Parameter("mu_3")])
-        sigma = Matrix([Parameter("sigma_1"), Parameter("sigma_2"), Parameter("sigma_3")])
+        suffix = ["1", "2", "3"]
+        mu = symbol_matrix(name="mu", shape=(3, 1), suffix=suffix)
+        sigma = symbol_matrix(name="sigma", shape=(3, 1), suffix=suffix)
 
-        g = gaussian(Variable("x"), mu, sigma)
+        # elementwise gaussian
+        g = gaussian(Symbol("x"), mu, sigma)
 
-        c = Matrix([Parameter("c_1"), Parameter("c_2"), Parameter("c_3")])
-        model_dict = {Probability("p"): HadamardProduct(c, g)}
+        c = symbol_matrix(name="c", shape=(3, 1), suffix=suffix)
+        model_dict = {Symbol("p"): HadamardProduct(c, g)}
 
         model = Model(model_dict)
-        rhs = next(iter(model.model_dict.values()))
+        num_model = model.to_numerical()
+        rhs = next(iter(num_model.values()))
         assert isinstance(rhs, Mul)
 
-        # Test calling the model
-        kwargs = {"x": np.linspace(0, 1, num=100), **model.guess}
-        res = model(**kwargs)
-
-        assert res["p"].shape == (100, 3, 1)
-
-        # Create GMM with factory methods
-        mu = symbol_matrix("mu", values=[0.2, 0.4, 0.7], shape=(3, 1))
-        sigma = symbol_matrix("sigma", values=[0.1, 0.1, 0.1], shape=(3, 1))
-        x = Variable("x")
-        gmm = gaussian(x, mu, sigma)
-        c = symbol_matrix("c", values=[0.2, 0.3, 0.5], shape=(3, 1))
-
-        model_dict = {Probability("p"): Mul(c, gmm)}
-        model = Model(model_dict)
-
-        rhs = next(iter(model.model_dict.values()))
-        assert isinstance(rhs, Mul)
+        symbols = get_symbols(mu, sigma, c)
+        parameters = Parameters.from_symbols(symbols.values())
+        print(parameters.guess)
 
         # Test calling the model
-        kwargs = {"x": np.linspace(-0.5, 1.5, num=100), **model.guess}
-        res = model(**kwargs)
+        kwargs = {"x": np.linspace(0, 1, num=100), **parameters.guess}
+        res = num_model(**kwargs)
 
         assert res["p"].shape == (100, 3, 1)
-
-        # check integration to one
 
         val = sum(np.trapz(f, kwargs["x"]) for f in res["p"].squeeze().T)
         assert 1 == pytest.approx(val, 1)
@@ -121,13 +107,14 @@ class TestNumExpr(object):
         }
 
         expr = Symbol("a") * Symbol("x") + Symbol("b")
-        num_expr = NumExpr(expr, parameters, data)
+        num_expr = NumExpr(expr)
 
-        assert num_expr.shape == (100, 3)
+        # todo test shapes
+        # assert num_expr.shape == (100, 3)
 
         a = np.random.rand(1, 3)
         b = 5.0
-        result = num_expr(a=a, b=b)
+        result = num_expr(a=a, b=b, **data)
         assert np.allclose(result, a * x + b)
 
     def test_matrix_num_expr(self):
@@ -153,8 +140,9 @@ class TestNumExpr(object):
             "b3": Parameter(symbols["b1"], guess=3.0),
         }
 
-        m_expr = MatrixNumExpr(m, parameters, data)
-        assert m_expr.shape
+        m_expr = MatrixNumExpr(m)
+        # todo shapes
+        # assert m_expr.shape
 
         p_values = {
             "a": np.array([3, 2, 1]).reshape(1, -1),
@@ -165,7 +153,7 @@ class TestNumExpr(object):
 
         result = m_expr(**p_values, **data)
 
-        assert result.shape == m_expr.shape
+        # v assert result.shape == m_expr.shape
 
         check = data["x"] * p_values["a"] + p_values["b1"]
         assert np.allclose(check, result[..., 0, 0])
@@ -182,7 +170,7 @@ class TestNumExpr(object):
         c = symbol_matrix(name="c", shape=shape, suffix=states)
         assert c[0, 0] == Symbol("c_A")
 
-        num_c = to_numerical(c, {}, {})
+        num_c = to_numerical(c)
 
         assert num_c.kind == "constant"
         assert num_c.name == "c"
@@ -196,14 +184,10 @@ class TestNumExpr(object):
 
         data = {"x": np.arange(100)}
 
-        ld = LambdaNumExpr(
-            func,
-            [Symbol("a"), Symbol("x")],
-            parameters={"a": Parameter(Symbol("a"), guess=3.0)},
-            data=data,
-        )
+        ld = LambdaNumExpr(func, [Symbol("a"), Symbol("x")],)
 
-        assert ld.shape == (100,)
+        # todo shape testing
+        # assert ld.shape == (100,)
 
         result = ld(a=2.0, **data)
         assert np.allclose(result, data["x"] ** 2 + 2.0)
@@ -228,13 +212,14 @@ class TestNumExpr(object):
             "c_C": 0.25,
         }
 
-        num_gmm = gmm.to_numerical(parameters, data)
+        num_gmm = gmm.to_numerical()
         assert gmm.kind == "gmm"
-        assert num_gmm.shape == (25, 3, 1)
+        # todo shapes
+        # assert num_gmm.shape == (25, 3, 1)
         assert isinstance(num_gmm["mu"], MatrixNumExpr)
 
-        result = num_gmm(**gt)
-        assert num_gmm.shape == (25, 3, 1)
+        result = num_gmm(**gt, **data)
+        assert result.shape == (25, 3, 1)
 
 
 class TestEMFit(object):
@@ -255,7 +240,6 @@ class TestEMFit(object):
         model = Model({Symbol("y"): Symbol("a") * Symbol("x") + Symbol("b")})
         parameters = Parameters.from_symbols(model.symbols, "a b")
         fit = Fit(model, parameters, data)
-
         res = fit.execute()
 
         assert res.parameters["a"] == pytest.approx(gt["a"], abs=0.2)
@@ -294,7 +278,7 @@ class TestEMFit(object):
 
         x = symbol_matrix(name="X", shape=(3, 1))
         symbols = get_symbols(x)
-        parameters = Parameters.from_symbols(symbols)
+        parameters = Parameters.from_symbols(symbols.values())
 
         model = Model({Symbol("b"): MatMul(basis, x)})
         fit = Fit(model, parameters, data={"b": spectrum})
@@ -324,14 +308,14 @@ class TestEMFit(object):
         y0 = symbol_matrix(name="y0", shape=(3, 1), suffix=states)
         model = Model({Symbol("y"): xt @ y0})
 
-        rate_params = Parameters.from_symbols(get_symbols(m))
-        y0_params = Parameters.from_symbols(get_symbols(y0))
-        parameters = rate_params | y0_params
+        rate_params = Parameters.from_symbols(get_symbols(m).values())
+        y0_params = Parameters.from_symbols(get_symbols(y0).values())
+        parameters = rate_params + y0_params
 
         num = 50
         xdata = {"t": np.linspace(0, 11, num=num)}
-        num_model = model.to_numerical(parameters, xdata)
-        populations = num_model(**gt_values)["y"]
+        num_model = model.to_numerical()
+        populations = num_model(**gt_values, **xdata)["y"]
         ydata = {
             "y": populations + np.random.normal(0, 0.05, size=num * 3).reshape(populations.shape)
         }
@@ -348,7 +332,7 @@ class TestEMFit(object):
             "y0_C": -0.006383620511149652,
         }
 
-        for k in expected.keys():
+        for k in expected:
             assert result.parameters[k] == pytest.approx(expected[k], rel=0.1)
 
     def test_markov_ivp(self):
@@ -371,15 +355,15 @@ class TestEMFit(object):
         y0 = symbol_matrix(name="y0", shape=(3, 1), suffix=states)
         model = Model({Symbol("y"): MarkovIVP(Symbol("t"), m, y0)})
 
-        rate_params = Parameters.from_symbols(get_symbols(m))
-        y0_params = Parameters.from_symbols(get_symbols(y0))
-        parameters = rate_params | y0_params
+        rate_params = Parameters.from_symbols(get_symbols(m).values())
+        y0_params = Parameters.from_symbols(get_symbols(y0).values())
+        parameters = rate_params + y0_params
 
         num = 50
         xdata = {"t": np.linspace(0, 11, num=num)}
 
-        num_model = model.to_numerical(parameters, xdata)
-        populations = num_model(**gt_values)["y"]
+        num_model = model.to_numerical()
+        populations = num_model(**gt_values, **xdata)["y"]
 
         ydata = {
             "y": populations + np.random.normal(0, 0.05, size=num * 3).reshape(populations.shape)
@@ -398,7 +382,7 @@ class TestEMFit(object):
             "y0_C": -0.006402646431591074,
         }
 
-        for k in expected.keys():
+        for k in expected:
             assert result.parameters[k] == pytest.approx(expected[k], rel=0.1)
 
     def test_gmm(self):
@@ -453,7 +437,7 @@ class TestEMFit(object):
         model = Model({Symbol("p"): Mul(c, GMM(Symbol("x"), mu, sigma))})
 
         symbols = get_symbols(mu, sigma, c)
-        parameters = Parameters.from_symbols(symbols, guess)
+        parameters = Parameters.from_symbols(symbols.values(), guess)
 
         fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
         result = fit.execute(minimizer=LikelihoodOptimizer, verbose=False)
@@ -470,13 +454,13 @@ class TestEMFit(object):
             "sigma_C": 0.09877267156818363,
         }
 
-        for k in expected.keys():
+        for k in expected:
             assert result.parameters[k] == pytest.approx(expected[k], rel=0.1)
 
         # Repeat with fixed parameters
 
         # fix mu A
-        parameters["mu_A"].fixed = True
+        parameters.set("mu_A", fixed=True)
         fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
         result = fit.execute(minimizer=LikelihoodOptimizer, verbose=False)
 
@@ -490,14 +474,14 @@ class TestEMFit(object):
             "sigma_B": 0.11294214298924928,
             "sigma_C": 0.09474026756245091,
         }
-        for k in expected.keys():
+        for k in expected:
             assert result.parameters[k] == pytest.approx(expected[k], rel=0.1)
 
         for fixed_param in ["mu_A"]:
             assert result.fixed_parameters[fixed_param] == guess[fixed_param]
 
         # fix sigma B
-        parameters["sigma_B"].fixed = True
+        parameters.set("sigma_B", fixed=True)
         fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
         result = fit.execute(minimizer=LikelihoodOptimizer)
 
@@ -510,7 +494,7 @@ class TestEMFit(object):
             "sigma_A": 0.08718283966513221,
             "sigma_C": 0.10072652395544755,
         }
-        for k in expected.keys():
+        for k in expected:
             assert result.parameters[k] == pytest.approx(expected[k], rel=0.1)
 
         for fixed_param in ["mu_A", "sigma_B"]:
@@ -551,6 +535,7 @@ class TestEMFit(object):
                 ]
             ).reshape(-1, 1)
 
+        # todo guess is not used
         guess = {
             "mu_A": 0.2,
             "mu_B": 0.4,
@@ -647,22 +632,12 @@ class TestEMFit(object):
 
         parameters = Parameters.from_symbols(model.symbols, guess_values)
 
-        parameters["y0_A"].lower_bound = 0.0
-        parameters["y0_A"].upper_bound = 1.0
+        parameters.set("y0_A", lower_bound=0.0, upper_bound=1.0)
+        parameters.set("y0_B", lower_bound=0.0, upper_bound=1.0, fixed=True)
 
-        parameters["y0_B"].lower_bound = 0.0
-        parameters["y0_B"].upper_bound = 1.0
-        parameters["y0_B"].fixed = True
-
-        # Set bounds on rates
-        parameters["k_A_B"].lower_bound = 1e-3
-        parameters["k_A_B"].upper_bound = 1e2
-
-        parameters["k_B_A"].lower_bound = 1e-3
-        parameters["k_B_A"].upper_bound = 1e2
-
-        parameters["k_B_C"].lower_bound = 1e-3
-        parameters["k_B_C"].upper_bound = 1e2
+        parameters.set("k_A_B", lower_bound=1e-3, upper_bound=1e2)
+        parameters.set("k_B_A", lower_bound=1e-3, upper_bound=1e2)
+        parameters.set("k_B_C", lower_bound=1e-3, upper_bound=1e2)
 
         # To calculate the likelihood for a measurement we need to sum the individual probabilities for all states
         # Thus we need to define which axis this is in the model
@@ -686,5 +661,5 @@ class TestEMFit(object):
 
         print(result.parameters)
 
-        for k in expected.keys():
+        for k in expected:
             assert result.parameters[k] == pytest.approx(expected[k], rel=0.1)

@@ -13,22 +13,6 @@ from slimfit.parameter import Parameter
 from slimfit.typing import Shape
 
 
-# a composite expression has multiple expr elements; connected by some operation but calculation is
-# deferred so that fitting can inspect the composition and decide the best optimization strategy
-
-
-# class Sum(CompositeExpr):
-#     def __call__(self, **kwargs) -> npt.ArrayLike:
-#         eval_elems = (elem(**kwargs) for elem in self.elements)
-#
-#         return reduce(add, eval_elems)
-#
-#
-# # elementwise !
-
-# TODO subclass for *args based Composite
-
-
 class CompositeArgsExpr(CompositeExpr):
     """Composite expr which takes *args to init rather than dictionary of expressions"""
 
@@ -36,8 +20,8 @@ class CompositeArgsExpr(CompositeExpr):
         expr = {i: arg for i, arg in enumerate(args)}
         super().__init__(expr)
 
-    def to_numerical(self, parameters: dict[str, Parameter], data: dict[str, np.ndarray]):
-        args = (to_numerical(expr, parameters, data) for expr in self.values())
+    def to_numerical(self):
+        args = (to_numerical(expr) for expr in self.values())
         instance = self.__class__(*args)
 
         return instance

@@ -1,4 +1,5 @@
 from collections import defaultdict
+from dataclasses import asdict
 
 import numpy as np
 from sympy import Symbol
@@ -70,7 +71,7 @@ model = Model({Symbol("p"): Mul(c, gmm)})
 
 #%%
 symbols = get_symbols(mu, sigma, c)
-parameters = Parameters.from_symbols(symbols, guess)
+parameters = Parameters.from_symbols(symbols.values(), guess)
 
 #%%
 
@@ -78,41 +79,24 @@ fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
 result = fit.execute(minimizer=LikelihoodOptimizer)
 
 print(result.parameters)
-#
-# # Compare fit result with ground truth parameters
-# for k, v in result.parameters.items():
-#     print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")
-# #
-# # %%
-# #repeat the fit with one of the parameters fixed
-parameters["mu_A"].fixed = True
+
+# Compare fit result with ground truth parameters
+for k, v in result.parameters.items():
+    print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")
+
+
+#%%
+
 fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
-#
 result = fit.execute(minimizer=LikelihoodOptimizer)
+
 print(result.parameters)
-#
-#
-# for k, v in result.parameters.items():
-#     print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")
-#
-# print("Fixed:")
-# for k, v in result.fixed_parameters.items():
-#     print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")
-#
-# #%%
-# # also fix sigma B:
-#
-parameters["sigma_B"].fixed = True
-fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
-#
-result = fit.execute(minimizer=LikelihoodOptimizer)
-print(result.parameters)
-#
-#
-# for k, v in result.parameters.items():
-#     print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")
-#
-# print("Fixed:")
-# for k, v in result.fixed_parameters.items():
-#     print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")
-#
+
+# Compare fit result with ground truth parameters
+for k, v in result.parameters.items():
+    print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")
+
+
+print("Fixed:")
+for k, v in result.fixed_parameters.items():
+    print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")

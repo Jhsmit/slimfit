@@ -38,9 +38,9 @@ model = Model({Symbol("y"): xt @ y0})
 
 #%%
 
-rate_params = Parameters.from_symbols(get_symbols(m))
-y0_params = Parameters.from_symbols(get_symbols(y0))
-parameters = rate_params | y0_params
+rate_params = Parameters.from_symbols(m.free_symbols)
+y0_params = Parameters.from_symbols(y0.free_symbols)
+parameters = rate_params + y0_params
 
 parameters
 
@@ -51,8 +51,8 @@ xdata = {"t": np.linspace(0, 11, num=num)}
 
 # Calling a matrix based model expands the dimensions of the matrix on the first axis to
 # match the shape of input variables or parameters.
-num_model = model.to_numerical(parameters, xdata)
-populations = num_model(**gt_values)["y"]
+num_model = model.to_numerical()
+populations = num_model(**gt_values, **xdata)["y"]
 populations.shape
 
 
@@ -79,8 +79,8 @@ color = ["#7FACFA", "#FA654D", "#8CAD36"]
 cycle = pplt.Cycle(color=color)
 
 eval_data = {"t": np.linspace(0, 11, 1000)}
-eval_model = model.to_numerical(parameters, eval_data)
-y_eval = eval_model(**result.parameters)["y"]
+eval_model = model.to_numerical()
+y_eval = eval_model(**result.parameters, **eval_data)["y"]
 
 fig, ax = pplt.subplots()
 c_iter = iter(cycle)

@@ -71,24 +71,15 @@ parameters = Parameters.from_symbols(model.symbols, guess_values)
 
 #%%
 
-# Future implementation needs constraints here
-parameters["y0_A"].lower_bound = 0.0
-parameters["y0_A"].upper_bound = 1.0
-
-parameters["y0_B"].lower_bound = 0.0
-parameters["y0_B"].upper_bound = 1.0
-parameters["y0_B"].fixed = True
+parameters
 
 #%%
-# Set bounds on rates
-parameters["k_A_B"].lower_bound = 1e-3
-parameters["k_A_B"].upper_bound = 1e2
+parameters.set("y0_A", lower_bound=0.0, upper_bound=1.0)  # mod? set_parameter ? modify?
+parameters.set("y0_B", lower_bound=0.0, upper_bound=1.0, fixed=True)
 
-parameters["k_B_A"].lower_bound = 1e-3
-parameters["k_B_A"].upper_bound = 1e2
-
-parameters["k_B_C"].lower_bound = 1e-3
-parameters["k_B_C"].upper_bound = 1e2
+parameters.set("k_A_B", lower_bound=1e-3, upper_bound=1e2)
+parameters.set("k_B_A", lower_bound=1e-3, upper_bound=1e2)
+parameters.set("k_B_C", lower_bound=1e-3, upper_bound=1e2)
 
 #%%
 # To calculate the likelihood for a measurement we need to sum the individual probabilities for all states
@@ -102,15 +93,15 @@ result = fit.execute(minimizer=LikelihoodOptimizer, max_iter=200, verbose=True,)
 #%%
 for k, v in result.parameters.items():
     print(f"{k:5}: {v:10.2}, ({gt_values[k]:10.2})")
-
-#%%
-
-num = 100
-ti = np.linspace(0, 11, num=num, endpoint=True)
-ei = np.linspace(-0.1, 1.1, num=num, endpoint=True)
-
-grid = np.meshgrid(ti, ei, sparse=True)
-grid
+#
+# #%%
+#
+# num = 100
+# ti = np.linspace(0, 11, num=num, endpoint=True)
+# ei = np.linspace(-0.1, 1.1, num=num, endpoint=True)
+#
+# grid = np.meshgrid(ti, ei, sparse=True)
+# grid
 #
 #%%
 # since the `Mul` component of the model functions as a normal 'pyton' lazy multiplication,
@@ -118,21 +109,21 @@ grid
 
 #%%
 # timing: 2.33 ms
-data_eval = {"t": ti.reshape(-1, 1), "e": ei.reshape(-1, 1)}
-num_model = model.to_numerical(parameters, data_eval)
-ans = num_model(**result.parameters)
-ans["p"].shape
-
-#%%
-# output shape is (N, N, 3, 1), we sum and squeeze to create the NxN grid
-array = ans["p"].sum(axis=-2).squeeze()
-
-#%%
-import proplot as pplt
-
-fig, ax = pplt.subplots()
-ax.contour(ti, ei, array.T, cmap="viridis")
-ax.scatter(data["t"], data["e"], alpha=0.2, lw=0, color="k", zorder=-10)
-ax.format(xlabel="t", ylabel="e")
-fig.savefig("output/scatter_and_fit.png")
-pplt.show()
+# data_eval = {"t": ti.reshape(-1, 1), "e": ei.reshape(-1, 1)}
+# num_model = model.to_numerical(parameters, data_eval)
+# ans = num_model(**result.parameters)
+# ans["p"].shape
+#
+# #%%
+# # output shape is (N, N, 3, 1), we sum and squeeze to create the NxN grid
+# array = ans["p"].sum(axis=-2).squeeze()
+#
+# #%%
+# import proplot as pplt
+#
+# fig, ax = pplt.subplots()
+# ax.contour(ti, ei, array.T, cmap="viridis")
+# ax.scatter(data["t"], data["e"], alpha=0.2, lw=0, color="k", zorder=-10)
+# ax.format(xlabel="t", ylabel="e")
+# fig.savefig("output/scatter_and_fit.png")
+# pplt.show()

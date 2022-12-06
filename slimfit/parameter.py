@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import re
-from collections import UserDict
-from dataclasses import dataclass, field
+from collections import UserDict, UserList
+from dataclasses import dataclass, field, asdict
 from enum import Enum
+from functools import cached_property
 from typing import Iterable, Optional
 
 import numpy as np
@@ -17,7 +18,7 @@ class ParamType(Enum):
     BOOLEAN = "boolean"
 
 
-@dataclass
+@dataclass(frozen=True)
 class Parameter:
     symbol: Expr
     guess: float | int | np.ndarray = field(default=1.0)
@@ -26,15 +27,8 @@ class Parameter:
     # TODO partially fixing an array parameter is not supported
     # perhaps users should use Matrix instead if they want this type of functionality
     fixed: bool = field(default=False)
-    param_type: ParamType = field(init=False)
 
     def __post_init__(self):
-        if "boolean" in self.symbol.assumptions0:
-            self.param_type = ParamType.BOOLEAN
-        elif "integer" in self.symbol.assumptions0:
-            self.param_type = ParamType.DISCRETE
-        else:
-            self.param_type = ParamType.CONTINUOUS
 
         # If the `guess` has a shape, it must be the same as the symbol shape,
         # if it has any.
@@ -42,6 +36,15 @@ class Parameter:
         symbol_shape = getattr(self.symbol, "shape", guess_shape)
         if guess_shape != symbol_shape:
             raise ValueError(f"Guess shape for symbol {self.symbol} does not match symbol shape")
+
+    @property
+    def param_type(self) -> ParamType:
+        if "boolean" in self.symbol.assumptions0:
+            return ParamType.BOOLEAN
+        elif "integer" in self.symbol.assumptions0:
+            return ParamType.DISCRETE
+        else:
+            return ParamType.CONTINUOUS
 
     @property
     def shape(self) -> tuple[int, ...]:
@@ -65,58 +68,74 @@ class Parameter:
         return self.symbol.name
 
 
-class Parameters(UserDict):
-    """Parameter dict object
+# frozen?
+# frozen might not be nessecary but fit should make a copy to prevent modification
+class Parameters(UserList):
+    """Parameter list object
 
-    For now convenience
+    or maybe it should be a dict?
     Could potentially help the `Objective` to/from flat array of guesses for argument of scipy.minimize
     """
-
-    @property
-    def guess(self) -> dict[str, np.ndarray]:
-        return {p.name: np.asarray(p.guess) for p in self.values() if not p.fixed}
-
-    def get_bounds(self) -> list[tuple[float | None, float | None]] | None:
-        bounds = [(p.lower_bound, p.upper_bound) for p in self.values() if not p.fixed]
-
-        if all((None, None) == b for b in bounds):
-            return None
-        else:
-            return bounds
 
     @classmethod
     def from_symbols(
         cls,
-        symbols: dict[str, Symbol],
+        symbols: Iterable[Symbol],
         parameters: dict[str, npt.ArrayLike] | Iterable[str] | str = None,
     ) -> Parameters:
+
+        symbol_dict = {symbol.name: symbol for symbol in sorted(symbols, key=str)}
+
         if isinstance(parameters, str):
-            p_dict = {k: Parameter(symbols[k]) for k in re.split("; |, |\*|\s+", parameters)}
+            p_list = [Parameter(symbol_dict[k]) for k in re.split("; |, |\*|\s+", parameters)]
         elif isinstance(parameters, list):
-            p_dict = {k: Parameter(symbols[k]) for k in parameters}
+            p_list = [Parameter(symbol_dict[k]) for k in parameters]
         elif isinstance(parameters, dict):
-            p_dict = {k: Parameter(symbols[k], guess=v) for k, v in parameters.items()}
+            p_list = [Parameter(symbol_dict[k], guess=v) for k, v in parameters.items()]
         elif parameters is None:
-            p_dict = {symbol.name: Parameter(symbol) for symbol in symbols.values()}
+            p_list = [Parameter(symbol) for symbol in symbol_dict.values()]
         else:
             raise ValueError("Invalid values for 'parameters' or 'guess'")
-        return cls(p_dict)
+        return cls(p_list)
 
-    def unpack(self, x: np.ndarray) -> dict[str, np.ndarray]:
-        """Unpack a ndim 1 array of concatenated parameter values into a dictionary of
-            parameter name: parameter_value where parameter values are cast back to their
-            specified shapes.
-        """
-        free_parameters = [p for p in self.values() if not p.fixed]
-        sizes = [int(np.product(p.shape)) for p in free_parameters]
+    @property
+    def _symbols(self) -> list[Symbol]:
+        return [p.symbol for p in self]
 
-        x_split = np.split(x, np.cumsum(sizes))
-        p_values = {p.name: arr.reshape(p.shape) for arr, p in zip(x_split, free_parameters)}
+    @property
+    def _names(self) -> list[str]:
+        return [p.name for p in self]
 
-        return p_values
+    def index(self, item: Parameter | Symbol | str, *args) -> int:
+        # are you really sure it shoulnt be a dict?
+        # perhaps not since they 'keys' could be str or symbols ?
+        if isinstance(item, Parameter):
+            return super().index(item, *args)
+        elif isinstance(item, Symbol):
+            return self._symbols.index(item, *args)
+        else:
+            return self._names.index(item, *args)
 
-    def pack(self, guess: Optional[dict] = None) -> np.ndarray:
-        """Pack initial guesses together as array"""
-        guess = guess or self.guess
+    def set(self, symbol_or_name: Symbol | str, **kwargs):
+        idx = self.index(symbol_or_name)
 
-        return np.concatenate(list(v.ravel() for v in guess.values()))
+        # todo sanitize kwargs
+        self[idx] = Parameter(**(asdict(self[idx]) | kwargs))
+
+    def update_guess(self, guess: dict[str | Symbol, np.ndarray | float]) -> Parameters:
+        """returns a new parameters object where """
+
+        p_out = Parameters(self)
+        for identifier, value in guess.items():
+            idx = p_out.index(identifier)
+            p_out[idx] = Parameter(**(asdict(self[idx]) | dict(guess=value)))
+
+        return p_out
+
+    @property
+    def guess(self) -> dict[str, np.ndarray]:
+        return {p.name: np.asarray(p.guess) for p in self}
+
+    @property
+    def symbols(self) -> set[Symbol]:
+        return set(p.symbol for p in self)

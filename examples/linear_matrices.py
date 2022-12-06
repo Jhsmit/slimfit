@@ -50,12 +50,10 @@ Option 1: Create sympy Matrix with coefficients and multiply it with the array o
 # Create a sympy matrix with parameters are elements with shape (3, 1)
 x = symbol_matrix(name="X", shape=(3, 1))
 
-symbols = get_symbols(x)
-parameters = Parameters.from_symbols(symbols)
+parameters = Parameters.from_symbols(x.free_symbols)
 x, parameters
 
 #%%
-
 m = basis @ x  # Matirx multiply basis matrix with parameter vector
 model = Model(
     {Symbol("b"): basis @ x}
@@ -87,12 +85,10 @@ m = MatMul(basis, x)
 model = Model({Symbol("b"): m})
 m_callable = model.expr[Symbol("b")]
 m_callable  # = MatMul object
-
+#
 #%%
-
 fit = Fit(model, parameters, data={"b": spectrum})
-result = fit.execute()  # execution time: 13.3 ms
-
+result = fit.execute()  # execution time: 15.2 ms
 
 #%%
 for i, j in np.ndindex(x_vals.shape):
@@ -103,5 +99,5 @@ for i, j in np.ndindex(x_vals.shape):
 # plot the results
 fig, ax = pplt.subplots()
 ax.plot(wavenumber, spectrum, color="r")
-ax.plot(wavenumber, fit.numerical_model(**result.parameters)["b"], color="k", linestyle="--")
+ax.plot(wavenumber, model.to_numerical()(**result.parameters)["b"], color="k", linestyle="--")
 pplt.show()

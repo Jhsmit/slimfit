@@ -37,22 +37,6 @@ class Objective:
         self.sign = -1 if negate else 1
 
 
-# class Objective:
-#     model: Model
-#     loss: Loss
-#     xdata: dict[str, np.ndarray]
-#     ydata: dict[str, np.ndarray]
-#     negate: bool = False
-#
-#    # sign: int = field(default=1, init=False)
-#
-#     def __post_init__(self):
-#         if not self.model.numerical:
-#             raise ValueError("Objective models must be numerical")
-#
-#         #self.sign = -1 if self.negate else 1
-
-
 class ScipyObjective(Objective):
     def __init__(
         self,
@@ -93,9 +77,6 @@ class ScipyEMObjective(Objective):
         parameters = unpack(x, self.shapes)
 
         probability = self.model(**parameters, **self.xdata)
-
-        # y_model = self.model(**parameters, **self.xdata)
-        # loss = self.loss(self.ydata, y_model)
 
         # Todo do this in a `loss`
         expectation = {

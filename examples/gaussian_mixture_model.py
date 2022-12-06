@@ -84,17 +84,6 @@ print(result.parameters)
 for k, v in result.parameters.items():
     print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")
 
-#%%
-from slimfit.parameter import Parameter
-new_mu = Parameter(**(asdict(parameters[0]) | dict(fixed=True)))
-new_mu
-
-parameters[0] = new_mu
-parameters
-#%%
-
-parameters.guess
-
 
 #%%
 
@@ -111,37 +100,3 @@ for k, v in result.parameters.items():
 print("Fixed:")
 for k, v in result.fixed_parameters.items():
     print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")
-
-# # %%
-# #repeat the fit with one of the parameters fixed
-# parameters["mu_A"].fixed = True
-# fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
-# #
-# result = fit.execute(minimizer=LikelihoodOptimizer)
-# print(result.parameters)
-# #
-# #
-# # for k, v in result.parameters.items():
-# #     print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")
-# #
-# # print("Fixed:")
-# # for k, v in result.fixed_parameters.items():
-# #     print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")
-# #
-# # #%%
-# # # also fix sigma B:
-# #
-# parameters["sigma_B"].fixed = True
-# fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
-# #
-# result = fit.execute(minimizer=LikelihoodOptimizer)
-# print(result.parameters)
-#
-#
-# for k, v in result.parameters.items():
-#     print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")
-#
-# print("Fixed:")
-# for k, v in result.fixed_parameters.items():
-#     print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")
-#

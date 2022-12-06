@@ -88,16 +88,12 @@ class ScipyMinimizer(Minimizer):
             ydata=self.ydata,
             shapes=param_shapes,
         )
-        # guess = {p.name: p.guess for p in self.parameters}
 
-        # x = objective.pack(self.free_parameters.guess.values())
         x = pack(self.free_parameters.guess.values())
-        # x = self.model.parameters.pack(self.guess)
 
         result = minimize(
             objective,
             x,
-            # args=(self.model, self.loss, self.ydata,),
             bounds=self.get_bounds(),
             **self.rename_options(minimizer_options)
         )
@@ -119,36 +115,14 @@ class ScipyMinimizer(Minimizer):
         # todo pass to superclass generalize fitresult function
         return FitResult(**result_dict)
 
-        # return self.to_fitresult(result)
 
     def rename_options(self, options: dict[str, Any]) -> dict[str, Any]:
         # todo parse options more generally
         rename = [("max_iter", "maxiter")]
 
-        # ("stop_loss", ""),
         out = options.copy()
         out.pop("stop_loss", None)
         return out
-
-    def to_fitresult(self, result) -> FitResult:
-        parameter_values = {
-            name: arr.item() if arr.size == 1 else arr
-            for name, arr in self.model.parameters.unpack(result.x).items()
-        }
-
-        gof_qualifiers = {
-            "loss": result["fun"],
-        }
-
-        fit_result = FitResult(
-            parameters=parameter_values,
-            fixed_parameters=self.fixed_parameters,
-            gof_qualifiers=gof_qualifiers,
-            guess=self.guess,
-            base_result=result,
-        )
-
-        return fit_result
 
 
 # should take an optional CompositeNumExpr which returns the posterior
@@ -202,11 +176,6 @@ class LikelihoodOptimizer(Minimizer):
                 # call the model; GMM also needs it for finding sigma
                 sub_parameters = sub_model.filter_parameters(self.parameters)
                 if all(k == "constant" for k in kinds):
-                    # Loss is not used for ConstantOptimizer step
-                    # sub_parameters = filter(sub_model.has_parameter, self.parameters)
-                    # sub_parameters = {sub_model.has_parameter, self.parameters}
-                    # sub_parameters = [p for p in self.parameters if p.symbol in sub_model.symbols]
-
                     # Constant optimizer doesnt use loss, xdata, ydata,
                     opt = ConstantOptimizer(sub_model, sub_parameters, **common_kwargs)
                     parameters = opt.step()
@@ -215,28 +184,22 @@ class LikelihoodOptimizer(Minimizer):
                     opt = GMMOptimizer(sub_model, sub_parameters, **common_kwargs)
                     parameters = opt.step()
                 else:
-                    # TODO: parameters.set_guess( )
-                    # not really needed to update the guess for fixed parmaeter as it oesnt change
-                    # but swah
 
+                    # Previous code:
                     # updated_parameters = [
                     #     Parameter(**(asdict(p) | {"guess": parameters_current.get(p.name) or self.fixed_parameters.guess[p.name]  }))
                     #     for p in sub_parameters
                     # ]
 
-                    # not sure if better but works
+                    # New; needs improvement as it accesses `_names`
                     current_sub = {
                         k: v for k, v in parameters_current.items() if k in sub_parameters._names
                     }
                     updated_parameters = sub_parameters.update_guess(current_sub)
 
-                    # guess = {k: parameters_current[k] for k in sub_model.free_parameters}
                     # todo loss is not used; should be EM loss while the main loop uses Log likelihood loss
                     opt = ScipyEMOptimizer(sub_model, updated_parameters, **common_kwargs)
 
-                    # opt = ScipyEMOptimizer(
-                    #     sub_model, self.xdata, {}, posterior, loss=self.loss, guess=guess,
-                    # )
                     scipy_result = opt.execute()
                     parameters = scipy_result.parameters
                     base_result["scipy"] = scipy_result

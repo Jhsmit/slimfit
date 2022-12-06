@@ -314,18 +314,17 @@ class DummyVariableMatrix(MatrixNumExpr):
         self,
         x: Symbol,
         m: Matrix,
-        parameters: Optional[Parameters] = None,
         kind: Optional[str] = None,
         name: Optional[str] = None,
     ):
-        raise NotImplementedError("Nope")
+        raise NotImplementedError("Not implemented")
         self.x = x
-        super().__init__(m, parameters=parameters, kind=kind, name=name)
+        super().__init__(m, kind=kind, name=name)
 
     @property
     def symbols(self) -> dict[str, Symbol]:
-        symbols = super().symbols | {self.x.name: self.x}
-        return {s.name: s for s in sorted(symbols.values(), key=str)}
+        symbols = super().symbols | {self.x}
+        return symbols
 
 
 # different class for Symbolic / Numerical ?
@@ -345,7 +344,7 @@ class LambdaNumExpr(NumExprBase):
     def __call__(self, **kwargs):
         return self.func(**self.parse_kwargs(**kwargs))
 
-
+# refactor to Hybrid ?
 class CompositeExpr(SymbolicBase):
     """Can be both numerical or symbolic """
 

@@ -449,7 +449,7 @@ class GMM(CompositeExpr):
         self.kind = "gmm"
         super().__init__(expr)
 
-    def __call__(self, **kwargs):
+    def __call__(self, **kwargs) -> np.ndarray:
         result = super().__call__(**kwargs)
 
         x, mu, sig = result["x"], result["mu"], result["sigma"]
@@ -520,8 +520,8 @@ class MarkovIVP(CompositeExpr):
         # exp(m*t) @ y0, which is (datapoints, states, 1)
         return np.expand_dims(sol.y.T, -1)
 
-    def to_numerical(self, parameters: Parameters, data: dict[str, np.ndarray]) -> MarkovIVP:
-        num_expr = {k: to_numerical(expr, parameters, data) for k, expr in self.items()}
+    def to_numerical(self) -> MarkovIVP:
+        num_expr = {k: to_numerical(expr) for k, expr in self.items()}
         instance = MarkovIVP(**num_expr, domain=self.domain, **self.ivp_defaults)
 
         return instance
@@ -574,9 +574,7 @@ def to_numerical(
     #
     #     return NumericalModel(model_dict, parameters, data)
     if isinstance(expression, HadamardProduct):
-        raise NotImplementedError("Not yet")
         from slimfit.operations import Mul
-
         return Mul(*(to_numerical(arg) for arg in expression.args))
     elif isinstance(expression, MatrixBase):
         return MatrixNumExpr(expression)

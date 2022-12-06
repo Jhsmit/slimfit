@@ -65,14 +65,14 @@ class TestEMBase(object):
         clear_symbols()
 
         # Create GMM from sympy operations and Parameters
-        suffix = ['1', '2', '3']
-        mu = symbol_matrix(name='mu', shape=(3, 1), suffix=suffix)
-        sigma = symbol_matrix(name='sigma', shape=(3, 1), suffix=suffix)
+        suffix = ["1", "2", "3"]
+        mu = symbol_matrix(name="mu", shape=(3, 1), suffix=suffix)
+        sigma = symbol_matrix(name="sigma", shape=(3, 1), suffix=suffix)
 
-        #elementwise gaussian
+        # elementwise gaussian
         g = gaussian(Symbol("x"), mu, sigma)
 
-        c =  symbol_matrix(name='c', shape=(3, 1), suffix=suffix)
+        c = symbol_matrix(name="c", shape=(3, 1), suffix=suffix)
         model_dict = {Symbol("p"): HadamardProduct(c, g)}
 
         model = Model(model_dict)
@@ -83,7 +83,6 @@ class TestEMBase(object):
         symbols = get_symbols(mu, sigma, c)
         parameters = Parameters.from_symbols(symbols.values())
         print(parameters.guess)
-
 
         # Test calling the model
         kwargs = {"x": np.linspace(0, 1, num=100), **parameters.guess}
@@ -142,8 +141,8 @@ class TestNumExpr(object):
         }
 
         m_expr = MatrixNumExpr(m)
-        #todo shapes
-        #assert m_expr.shape
+        # todo shapes
+        # assert m_expr.shape
 
         p_values = {
             "a": np.array([3, 2, 1]).reshape(1, -1),
@@ -154,7 +153,7 @@ class TestNumExpr(object):
 
         result = m_expr(**p_values, **data)
 
-        #v assert result.shape == m_expr.shape
+        # v assert result.shape == m_expr.shape
 
         check = data["x"] * p_values["a"] + p_values["b1"]
         assert np.allclose(check, result[..., 0, 0])
@@ -185,13 +184,10 @@ class TestNumExpr(object):
 
         data = {"x": np.arange(100)}
 
-        ld = LambdaNumExpr(
-            func,
-            [Symbol("a"), Symbol("x")],
-        )
+        ld = LambdaNumExpr(func, [Symbol("a"), Symbol("x")],)
 
         # todo shape testing
-        #assert ld.shape == (100,)
+        # assert ld.shape == (100,)
 
         result = ld(a=2.0, **data)
         assert np.allclose(result, data["x"] ** 2 + 2.0)
@@ -218,8 +214,8 @@ class TestNumExpr(object):
 
         num_gmm = gmm.to_numerical()
         assert gmm.kind == "gmm"
-        #todo shapes
-        #assert num_gmm.shape == (25, 3, 1)
+        # todo shapes
+        # assert num_gmm.shape == (25, 3, 1)
         assert isinstance(num_gmm["mu"], MatrixNumExpr)
 
         result = num_gmm(**gt, **data)
@@ -485,7 +481,7 @@ class TestEMFit(object):
             assert result.fixed_parameters[fixed_param] == guess[fixed_param]
 
         # fix sigma B
-        parameters.set('sigma_B', fixed=True)
+        parameters.set("sigma_B", fixed=True)
         fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
         result = fit.execute(minimizer=LikelihoodOptimizer)
 
@@ -539,7 +535,7 @@ class TestEMFit(object):
                 ]
             ).reshape(-1, 1)
 
-        #todo guess is not used
+        # todo guess is not used
         guess = {
             "mu_A": 0.2,
             "mu_B": 0.4,

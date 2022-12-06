@@ -311,11 +311,7 @@ class DummyVariableMatrix(MatrixNumExpr):
     """
 
     def __init__(
-        self,
-        x: Symbol,
-        m: Matrix,
-        kind: Optional[str] = None,
-        name: Optional[str] = None,
+        self, x: Symbol, m: Matrix, kind: Optional[str] = None, name: Optional[str] = None,
     ):
         raise NotImplementedError("Not implemented")
         self.x = x
@@ -343,6 +339,7 @@ class LambdaNumExpr(NumExprBase):
 
     def __call__(self, **kwargs):
         return self.func(**self.parse_kwargs(**kwargs))
+
 
 # refactor to Hybrid ?
 class CompositeExpr(SymbolicBase):
@@ -574,6 +571,7 @@ def to_numerical(
     #     return NumericalModel(model_dict, parameters, data)
     if isinstance(expression, HadamardProduct):
         from slimfit.operations import Mul
+
         return Mul(*(to_numerical(arg) for arg in expression.args))
     elif isinstance(expression, MatrixBase):
         return MatrixNumExpr(expression)

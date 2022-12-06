@@ -44,9 +44,9 @@ pplt.show()
 from slimfit.parameter import Parameter
 
 from dataclasses import asdict
+
 parameter = parameters[0]
-Parameter(**(asdict(parameter) | {'fixed': True}))
+Parameter(**(asdict(parameter) | {"fixed": True}))
 
 
 #%%
-

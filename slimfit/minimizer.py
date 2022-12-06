@@ -92,10 +92,7 @@ class ScipyMinimizer(Minimizer):
         x = pack(self.free_parameters.guess.values())
 
         result = minimize(
-            objective,
-            x,
-            bounds=self.get_bounds(),
-            **self.rename_options(minimizer_options)
+            objective, x, bounds=self.get_bounds(), **self.rename_options(minimizer_options)
         )
 
         gof_qualifiers = {
@@ -114,7 +111,6 @@ class ScipyMinimizer(Minimizer):
 
         # todo pass to superclass generalize fitresult function
         return FitResult(**result_dict)
-
 
     def rename_options(self, options: dict[str, Any]) -> dict[str, Any]:
         # todo parse options more generally

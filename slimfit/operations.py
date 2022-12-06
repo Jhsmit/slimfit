@@ -13,7 +13,6 @@ from slimfit.parameter import Parameter
 from slimfit.typing import Shape
 
 
-
 class CompositeArgsExpr(CompositeExpr):
     """Composite expr which takes *args to init rather than dictionary of expressions"""
 

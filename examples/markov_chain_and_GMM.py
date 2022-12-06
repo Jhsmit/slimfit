@@ -74,7 +74,7 @@ parameters = Parameters.from_symbols(model.symbols, guess_values)
 parameters
 
 #%%
-parameters.set("y0_A", lower_bound=0.0, upper_bound=1.0) # mod? set_parameter ? modify?
+parameters.set("y0_A", lower_bound=0.0, upper_bound=1.0)  # mod? set_parameter ? modify?
 parameters.set("y0_B", lower_bound=0.0, upper_bound=1.0, fixed=True)
 
 parameters.set("k_A_B", lower_bound=1e-3, upper_bound=1e2)

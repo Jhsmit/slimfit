@@ -332,11 +332,7 @@ class LambdaNumExpr(NumExprBase):
     @property
     def symbols(self):
         return self._symbols
-
-    # @symbols.setter
-    # def symbols(self, value: dict[str, Symbol]):
-    #     self._symbols = value
-
+    
     def __call__(self, **kwargs):
         return self.func(**self.parse_kwargs(**kwargs))
 

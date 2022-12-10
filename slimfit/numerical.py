@@ -273,7 +273,8 @@ class MatrixNumExpr(NumExpr):
 
     # this is more of a str than a repr
     def __repr__(self):
-        return f"{self.name}({', '.join(self.symbols)})"
+        names = sorted(self.symbol_names)
+        return f"{self.name}({', '.join(names)})"
 
     def index(self, symbol: Symbol) -> tuple[int, int]:
         """
@@ -332,7 +333,7 @@ class LambdaNumExpr(NumExprBase):
     @property
     def symbols(self):
         return self._symbols
-    
+
     def __call__(self, **kwargs):
         return self.func(**self.parse_kwargs(**kwargs))
 
@@ -466,6 +467,8 @@ class GMM(CompositeExpr):
         shape = super().shape
         return shape + (1,)
 
+    # TODO GMM should have API to find the index of the state given a symbol
+    #def state_index(self, ...):
 
 class MarkovIVP(CompositeExpr):
     """Uses scipy.integrate.solve_ivp to numerically find time evolution of a markov process

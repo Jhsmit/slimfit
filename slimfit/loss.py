@@ -89,6 +89,7 @@ class L2Loss(Loss):
 
 # TODO base class for probability-based losses which only take target data in their __call__ (= MLELoss ? )
 # then the base should take weights and only do reduction; subclasses to logs / sums etc
+MIN_PROB = 1e-9  # Minimal probability value (> 0.) to enter into np.log
 
 
 class LogLoss(Loss):
@@ -114,7 +115,8 @@ class LogLoss(Loss):
         self, y_data: dict[str, np.ndarray], y_model: dict[str, np.ndarray]
     ) -> np.ndarray | float:
         if self.weights is None:
-            log_vals = {k: np.log(y_model[k]) for k in y_model.keys()}
+            # log_vals = {k: np.log(y_model[k]) for k in y_model.keys()}
+            log_vals = {k: np.log(np.clip(y_model[k], a_min=MIN_PROB, a_max=None)) for k in y_model.keys()}
 
         else:
             log_vals = {k: np.log(y_model[k] * self.weights[k]) for k in y_model.keys()}
@@ -157,8 +159,8 @@ class LogSumLoss(Loss):
         if self.weights is None:
             log_vals = {
                 k: np.log(
-                    y_model[k].sum(axis=self.sum_axis),
-                    # np.clip(y_model[k].sum(axis=self.sum_axis), a_min=MIN_PROB, a_max=None)
+                    #y_model[k].sum(axis=self.sum_axis),
+                    np.clip(y_model[k].sum(axis=self.sum_axis), a_min=MIN_PROB, a_max=None)
                 )
                 for k in y_model.keys()
             }

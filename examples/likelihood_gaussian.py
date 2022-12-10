@@ -25,7 +25,6 @@ result = fit.execute()
 
 #%%
 data = {"x": np.linspace(0.0, 5.0, num=100)}
-
 num_model = model.to_numerical()
 
 fig, ax = pplt.subplots()

@@ -36,6 +36,7 @@ class Fit(object):
         # copy stored here
         self.parameters = Parameters(parameters)
 
+        # Convert data keys to `str` if given as `Symbol; data values as arrays
         data: dict[str, np.ndarray] = {
             getattr(k, "name", k): np.asarray(v) for k, v in data.items()
         }
@@ -46,15 +47,6 @@ class Fit(object):
 
         # 'dependent' data; or 'ydata'; typically measurements
         self.ydata = {k: v for k, v in data.items() if k in self.symbolic_model.dependent_symbols}
-
-        # TODO checking if everything is accounted for
-        # except KeyError as k:
-        #     raise KeyError(f"Missing independent data: {k}") from k
-
-    # @cached_property
-    # def numerical_model(self) -> Model:
-    #     # TODO parameters type
-    #     return to_numerical(self.symbolic_model)
 
     def execute(
         self, minimizer: Optional[Type[Minimizer]] = None, **execute_options,

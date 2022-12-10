@@ -92,7 +92,7 @@ class ScipyMinimizer(Minimizer):
         x = pack(self.free_parameters.guess.values())
 
         result = minimize(
-            objective, x, bounds=self.get_bounds(), **self.rename_options(minimizer_options)
+            objective, x, bounds=self.get_bounds(), options=self.rename_options(minimizer_options)
         )
 
         gof_qualifiers = {
@@ -100,7 +100,6 @@ class ScipyMinimizer(Minimizer):
         }
 
         parameter_values = unpack(result.x, param_shapes)
-
         result_dict = dict(
             parameters=parameter_values,
             fixed_parameters=self.fixed_parameters,

@@ -24,6 +24,7 @@ dependencies = [
     "sympy",
     "tqdm",
     "typing_extensions",
+    "pyyaml"
 ]
 
 dynamic = ["version"]

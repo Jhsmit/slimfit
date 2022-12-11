@@ -23,6 +23,7 @@ dependencies = [
     "scipy",
     "sympy",
     "tqdm",
+    "typing_extensions",
 ]
 
 dynamic = ["version"]

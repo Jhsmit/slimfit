@@ -13,8 +13,8 @@ license = {file = "LICENSE" }
 requires-python = ">=3.8"
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
     "Intended Audience :: Science/Research",
     "Topic :: Database"
 ]

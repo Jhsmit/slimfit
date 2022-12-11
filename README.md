@@ -20,4 +20,8 @@ Aims
 Installation
 ------------
 
-Currently not on PyPi or conda-forge, but you can install and give it a try from source.
+```console
+$ pip install slimfit
+```
+
+Or install from source.

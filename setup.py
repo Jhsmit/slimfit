@@ -1,5 +1,7 @@
 import setuptools
 import versioneer
+import sys
+import os
 
 # ensure the current directory is on sys.path so versioneer can be imported
 # when pip uses PEP 517/518 build rules.

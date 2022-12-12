@@ -102,7 +102,7 @@ class ScipyMinimizer(Minimizer):
         parameter_values = unpack(result.x, param_shapes)
         result_dict = dict(
             parameters=parameter_values,
-            fixed_parameters=self.fixed_parameters,
+            fixed_parameters=self.fixed_parameters.guess,
             gof_qualifiers=gof_qualifiers,
             guess=self.free_parameters.guess,
             base_result=result,

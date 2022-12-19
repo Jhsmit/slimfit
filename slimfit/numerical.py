@@ -55,8 +55,7 @@ class NumExprBase(SymbolicBase):
         try:
             arguments: dict[str, np.ndarray | float] = {k: kwargs[k] for k in self.symbol_names}
         except KeyError as e:
-            print(kwargs.keys())
-            raise KeyError(f"Missing value for parameter {e}") from e
+            raise KeyError(f"Missing value for {e}") from e
 
         return arguments
 

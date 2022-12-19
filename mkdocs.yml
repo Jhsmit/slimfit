@@ -1,0 +1,28 @@
+### Site metadata ###
+
+site_name: SlimFit
+site_description: SymFit's little brother
+site_url: ''
+
+repo_url: https://github.com/Jhsmit/slimfit
+edit_uri: edit/master/docs/
+
+### Build settings ###
+
+theme:
+  name: material
+
+markdown_extensions:
+  - codehilite
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+#  - API Reference: api.md
+
+
+#plugins:
+#  - mkdocstrings:
+#      handlers:
+#        python:
+#          paths: [slimfit]

@@ -34,7 +34,11 @@ repository = "https://github.com/Jhsmit/slimfit"
 
 [project.optional-dependencies]
 docs = [
-    "mkdocs", "mkdocstrings[python]>=0.18", "mkdocs-material"
+    "mkdocs",
+    "mkdocstrings[python]>=0.18",
+    "mkdocs-material",
+    "mknotebooks",
+    "pygments",
 ]
 plot = [
     "proplot",

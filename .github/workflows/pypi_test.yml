@@ -16,7 +16,9 @@ jobs:
       with:
         python-version: 3.9
     - name: Install Poetry
-      uses: snok/install-poetry@v1.3.3
+      # https://github.com/mtkennerly/poetry-dynamic-versioning/issues/78
+      run: pip install poetry
+#      uses: snok/install-poetry@v1.3.3
     - name: Build
       run: poetry build
     - name: Publish distribution 📦 to Test PyPI

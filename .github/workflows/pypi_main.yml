@@ -9,16 +9,19 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Fetch all history for all tags and branches
-      run: git fetch --prune --unshallow
+      with:
+        fetch-depth: 0
     - name: Set up Python 3.9
       uses: actions/setup-python@v4
       with:
         python-version: 3.9
-    - name: Build
+    - name: Install Poetry
+      run: pip install poetry
+    - name: Install dependencies
       run: |
-        pip install -q build
-        python -m build
+        pip install poetry-dynamic-versioning
+    - name: Build
+      run: poetry build
     - name: Publish distribution 📦 to Test PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:

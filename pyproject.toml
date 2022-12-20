@@ -28,6 +28,7 @@ name = "slimfit"
 version = "0.0.0"  # placeholder
 description = "SymFit's little brother"
 authors = ["Jochem Smit <jhsmit@gmail.com>"]
+readme = "README.md"
 license = "MIT"
 exclude = ["slimfit/_version.py"]
 

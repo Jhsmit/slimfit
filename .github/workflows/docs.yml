@@ -22,4 +22,6 @@ jobs:
           virtualenvs-in-project: true
       - name: Install docs dependencies
         run: poetry install --only docs --no-root
-      - run: mkdocs gh-deploy --force
+      - run: |
+          source .venv/bin/activate       
+          mkdocs gh-deploy --force

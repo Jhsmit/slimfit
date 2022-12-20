@@ -20,5 +20,4 @@ jobs:
       - name: Install docs dependencies
         run: poetry install --only docs --no-root
       - run: |
-          source .venv/bin/activate       
           mkdocs gh-deploy --force

@@ -23,7 +23,7 @@ jobs:
       run: poetry install
 
     - name: Test with pytest
-      run: poetry run pytest -n 2
+      run: poetry run pytest
 
     - name: Code Quality
       run: poetry run black . --check

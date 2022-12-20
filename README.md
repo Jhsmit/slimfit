@@ -46,6 +46,6 @@ print(result.parameters)
 Installation
 ------------
 
-```
+```console
 $ pip install slimfit
 ```

@@ -123,7 +123,7 @@ class Parameters(UserList):
         self[idx] = Parameter(**(asdict(self[idx]) | kwargs))
 
     def update_guess(self, guess: dict[str | Symbol, np.ndarray | float]) -> Parameters:
-        """returns a new parameters object where """
+        """returns a new parameters object where"""
 
         p_out = Parameters(self)
         for identifier, value in guess.items():

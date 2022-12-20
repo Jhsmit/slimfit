@@ -16,9 +16,7 @@ from slimfit.utils import clean_types
 
 @dataclass
 class FitResult:
-    """
-
-    """
+    """ """
 
     parameters: dict[str, float | np.ndarray]
     """Fitted parameter values"""

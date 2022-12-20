@@ -72,7 +72,11 @@ class IVPNumExpr(NumExprBase):
 
 
 ivp = IVPNumExpr(
-    Variable("t"), Parameter("freq"), Parameter("damp"), Parameter("y0"), domain=(0.0, 25.0),
+    Variable("t"),
+    Parameter("freq"),
+    Parameter("damp"),
+    Parameter("y0"),
+    domain=(0.0, 25.0),
 )
 
 #%%

@@ -1,11 +1,3 @@
-[build-system]
-requires = [
-    "setuptools",
-    "tomli; python_version < '3.11'",
-    "versioneer[toml]"
-]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "slimfit"
 description = "SymFit's little brother"
@@ -18,52 +10,9 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Intended Audience :: Science/Research",
 ]
-dependencies = [
-    "numpy",
-    "scipy",
-    "sympy",
-    "tqdm",
-    "typing_extensions",
-    "pyyaml"
-]
-
-dynamic = ["version"]
 
 [project.urls]
 repository = "https://github.com/Jhsmit/slimfit"
-
-[project.optional-dependencies]
-docs = [
-    "mkdocs",
-    "mkdocstrings[python]>=0.18",
-    "mkdocs-material",
-    "mknotebooks",
-    "pygments",
-]
-plot = [
-    "proplot",
-    "matplotlib==3.5.3",
-]
-interactive = [
-    "panel",
-    "bokeh",
-    "holoviz",
-]
-dev = [
-    "pytest", "build", "black", "mypy"
-]
-
-[tool.setuptools]
-packages = ['slimfit']
-
-
-[tool.versioneer]
-VCS = "git"
-style = "pep440-pre"
-versionfile_source = "slimfit/_version.py"
-versionfile_build = "slimfit/_version.py"
-tag_prefix = "v"
-parentdir_prefix = "slimfit-"
 
 [tool.flake8]
 max-line-length = 100
@@ -73,3 +22,49 @@ max-complexity = 10
 
 [tool.black]
 line-length = 100
+
+[tool.poetry]
+name = "slimfit"
+version = "0.0.0"  # placeholder
+description = "SymFit's little brother"
+authors = ["Jochem Smit <jhsmit@gmail.com>"]
+readme = "README.md"
+license = "MIT"
+exclude = ["slimfit/_version.py"]
+
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+style = "pep440"
+metadata = false
+
+[tool.poetry.dependencies]
+python = "^3.9"
+numpy = "^1.24.0"
+sympy = "^1.11.1"
+tqdm = "^4.64.1"
+typing-extensions = "^4.4.0"
+PyYAML = "^6.0"
+scipy = "^1.9.3"
+
+[tool.poetry.group.dev.dependencies]
+black = "^22.12.0"
+pytest = "^7.2.0"
+mypy = "^0.991"
+pylint = "^2.15.9"
+poetry-dynamic-versioning = {extras = ["plugin"], version = "^0.21.2"}
+
+[tool.poetry.group.plot.dependencies]
+proplot = "^0.9.5"
+
+[tool.poetry.group.interactive.dependencies]
+panel = "^0.14.2"
+
+[tool.poetry.group.docs.dependencies]
+mkdocs = "^1.4.2"
+mkdocstrings = {extras = ["python"], version = "^0.19.1"}
+mkdocs-material = "^8.5.11"
+
+[build-system]
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
+build-backend = "poetry_dynamic_versioning.backend"

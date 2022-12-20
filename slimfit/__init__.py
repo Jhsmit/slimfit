@@ -4,6 +4,11 @@ from slimfit.fit import Fit
 from slimfit.symbols import Symbol, FitSymbol
 from slimfit.parameter import Parameters, Parameter
 
-from . import _version
+__version__ = "0.0.0"
 
-__version__ = _version.get_versions()["version"]
+try:
+    from . import _version
+
+    __version__ = _version.get_versions()["version"]
+except ImportError:
+    pass

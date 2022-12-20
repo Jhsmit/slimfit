@@ -12,7 +12,8 @@ from slimfit.parameter import Parameters
 
 class Model(numerical.CompositeExpr):
     def __init__(
-        self, model_dict: dict[Symbol | str, Expr | numerical.NumExprBase | MatrixBase],
+        self,
+        model_dict: dict[Symbol | str, Expr | numerical.NumExprBase | MatrixBase],
     ):
 
         # currently typing has a small problem where keys are expected to be `str`, not symbol

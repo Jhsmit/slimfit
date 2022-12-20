@@ -88,7 +88,11 @@ STATE_AXIS = 1
 
 #%%
 fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=STATE_AXIS))
-result = fit.execute(minimizer=LikelihoodOptimizer, max_iter=200, verbose=True,)
+result = fit.execute(
+    minimizer=LikelihoodOptimizer,
+    max_iter=200,
+    verbose=True,
+)
 
 #%%
 for k, v in result.parameters.items():

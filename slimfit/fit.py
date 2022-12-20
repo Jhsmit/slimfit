@@ -49,7 +49,9 @@ class Fit(object):
         self.ydata = {k: v for k, v in data.items() if k in self.symbolic_model.dependent_symbols}
 
     def execute(
-        self, minimizer: Optional[Type[Minimizer]] = None, **execute_options,
+        self,
+        minimizer: Optional[Type[Minimizer]] = None,
+        **execute_options,
     ):
 
         minimizer_cls = minimizer or self.get_minimizer()

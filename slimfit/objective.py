@@ -92,8 +92,8 @@ class ScipyEMObjective(Objective):
 # seperate functions?
 def unpack(x: np.ndarray, shapes: dict[str, Shape]) -> dict[str, np.ndarray]:
     """Unpack a ndim 1 array of concatenated parameter values into a dictionary of
-        parameter name: parameter_value where parameter values are cast back to their
-        specified shapes.
+    parameter name: parameter_value where parameter values are cast back to their
+    specified shapes.
     """
     sizes = [int(np.product(shape)) for shape in shapes.values()]
 

@@ -55,7 +55,7 @@ class Loss(object):
 # https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.least_squares.html#scipy.optimize.least_squares
 # https://pytorch.org/docs/stable/generated/torch.nn.MSELoss.html
 class L1Loss(Loss):
-    """L1 loss """
+    """L1 loss"""
 
     def __call__(
         self, dependent_data: dict[str, np.ndarray], target_data: dict[str, np.ndarray]
@@ -116,7 +116,9 @@ class LogLoss(Loss):
     ) -> np.ndarray | float:
         if self.weights is None:
             # log_vals = {k: np.log(y_model[k]) for k in y_model.keys()}
-            log_vals = {k: np.log(np.clip(y_model[k], a_min=MIN_PROB, a_max=None)) for k in y_model.keys()}
+            log_vals = {
+                k: np.log(np.clip(y_model[k], a_min=MIN_PROB, a_max=None)) for k in y_model.keys()
+            }
 
         else:
             log_vals = {k: np.log(y_model[k] * self.weights[k]) for k in y_model.keys()}
@@ -159,7 +161,7 @@ class LogSumLoss(Loss):
         if self.weights is None:
             log_vals = {
                 k: np.log(
-                    #y_model[k].sum(axis=self.sum_axis),
+                    # y_model[k].sum(axis=self.sum_axis),
                     np.clip(y_model[k].sum(axis=self.sum_axis), a_min=MIN_PROB, a_max=None)
                 )
                 for k in y_model.keys()

@@ -86,7 +86,8 @@ class ArrayNumExpr(DummyNumExpr):
 # TODO frozen dataclass?
 class NumExpr(NumExprBase):
     def __init__(
-        self, expr: Expr,
+        self,
+        expr: Expr,
     ):
         if not isinstance(expr, (Expr, MatrixBase)):
             # TODO subclass such that typing is correct
@@ -132,7 +133,10 @@ class NumExpr(NumExprBase):
 # = composite num expr"?
 class MatrixNumExpr(NumExpr):
     def __init__(
-        self, expr: MatrixBase, name: Optional[str] = None, kind: Optional[str] = None,
+        self,
+        expr: MatrixBase,
+        name: Optional[str] = None,
+        kind: Optional[str] = None,
     ):
 
         if not isinstance(expr, MatrixBase):
@@ -311,7 +315,11 @@ class DummyVariableMatrix(MatrixNumExpr):
     """
 
     def __init__(
-        self, x: Symbol, m: Matrix, kind: Optional[str] = None, name: Optional[str] = None,
+        self,
+        x: Symbol,
+        m: Matrix,
+        kind: Optional[str] = None,
+        name: Optional[str] = None,
     ):
         raise NotImplementedError("Not implemented")
         self.x = x
@@ -325,7 +333,11 @@ class DummyVariableMatrix(MatrixNumExpr):
 
 # different class for Symbolic / Numerical ?
 class LambdaNumExpr(NumExprBase):
-    def __init__(self, func, symbols: Iterable[Symbol],) -> None:
+    def __init__(
+        self,
+        func,
+        symbols: Iterable[Symbol],
+    ) -> None:
         self.func = func
         self._symbols = set(symbols)
 
@@ -339,10 +351,11 @@ class LambdaNumExpr(NumExprBase):
 
 # refactor to Hybrid ?
 class CompositeExpr(SymbolicBase):
-    """Can be both numerical or symbolic """
+    """Can be both numerical or symbolic"""
 
     def __init__(
-        self, expr: dict[str | Symbol, NumExprBase | Expr | CompositeExpr],
+        self,
+        expr: dict[str | Symbol, NumExprBase | Expr | CompositeExpr],
     ):
         self.expr = expr
 
@@ -467,7 +480,8 @@ class GMM(CompositeExpr):
         return shape + (1,)
 
     # TODO GMM should have API to find the index of the state given a symbol
-    #def state_index(self, ...):
+    # def state_index(self, ...):
+
 
 class MarkovIVP(CompositeExpr):
     """Uses scipy.integrate.solve_ivp to numerically find time evolution of a markov process
@@ -554,8 +568,8 @@ def to_numerical(
 ) -> NumExprBase | CompositeExpr:
     """Converts sympy expression to slimfit numerical expression
 
-        if the expressions already is an NumExpr; the object is modified in-place by setting
-        the parameters
+    if the expressions already is an NumExpr; the object is modified in-place by setting
+    the parameters
 
     """
     from slimfit.models import Model

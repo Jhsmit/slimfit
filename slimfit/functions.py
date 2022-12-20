@@ -19,7 +19,7 @@ def gaussian_numpy(
 
 
 def gaussian_sympy(x: Symbol, mu: Symbol, sig: Symbol) -> Expr:
-    return sp.exp(-((x - mu) ** 2) / (2 * sig ** 2)) / (sp.sqrt(2 * np.pi) * sig)
+    return sp.exp(-((x - mu) ** 2) / (2 * sig**2)) / (sp.sqrt(2 * np.pi) * sig)
 
 
 def gaussian(

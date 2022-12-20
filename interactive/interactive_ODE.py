@@ -59,7 +59,7 @@ class InteractiveODE(param.Parameterized):
         kwargs = {}
         for name, slider in self.sliders.items():
             if name in self.log_params:
-                kwargs[name] = 10 ** slider.value
+                kwargs[name] = 10**slider.value
             else:
                 kwargs[name] = slider.value
         res = self.model(**self.data, **kwargs)

@@ -8,8 +8,7 @@ __version__ = "0.0.0"
 
 try:
     from . import _version
+
     __version__ = _version.get_versions()["version"]
 except ImportError:
     pass
-
-

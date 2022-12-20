@@ -83,7 +83,7 @@ def exp_elements(
         if elem == 0.0:
             continue
         else:
-            out[i, j] = base ** elem
+            out[i, j] = base**elem
 
     if sub_name is not None:
         subs = [(p, Parameter(name=sub_name(p.name))) for p in t.free_symbols]

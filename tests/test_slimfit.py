@@ -39,7 +39,11 @@ class TestEMBase(object):
         elem = m[0, 0]
         assert elem.name == "A_0_0"
 
-        m = symbol_matrix("A", shape=(1, 3), suffix=["a", "b", "c"],)
+        m = symbol_matrix(
+            "A",
+            shape=(1, 3),
+            suffix=["a", "b", "c"],
+        )
 
         elem = m[0, 0]
         assert elem.name == "A_a"
@@ -180,11 +184,14 @@ class TestNumExpr(object):
         np.random.seed(43)
 
         def func(x, a):
-            return x ** 2 + a
+            return x**2 + a
 
         data = {"x": np.arange(100)}
 
-        ld = LambdaNumExpr(func, [Symbol("a"), Symbol("x")],)
+        ld = LambdaNumExpr(
+            func,
+            [Symbol("a"), Symbol("x")],
+        )
 
         # todo shape testing
         # assert ld.shape == (100,)
@@ -529,7 +536,9 @@ class TestEMFit(object):
             data[var] = np.concatenate(
                 [
                     np.random.normal(
-                        loc=gt[f"mu_{s}"], scale=gt[f"sigma_{s}"], size=int(N * gt[f"c_{s}"]),
+                        loc=gt[f"mu_{s}"],
+                        scale=gt[f"sigma_{s}"],
+                        size=int(N * gt[f"c_{s}"]),
                     )
                     for s in st
                 ]
@@ -644,7 +653,11 @@ class TestEMFit(object):
         STATE_AXIS = 1
 
         fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=STATE_AXIS))
-        result = fit.execute(minimizer=LikelihoodOptimizer, max_iter=200, verbose=True,)
+        result = fit.execute(
+            minimizer=LikelihoodOptimizer,
+            max_iter=200,
+            verbose=True,
+        )
 
         expected = {
             "k_A_B": 0.5415993464686054,

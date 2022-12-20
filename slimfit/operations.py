@@ -29,8 +29,7 @@ class CompositeArgsExpr(CompositeExpr):
 
 class Mul(CompositeArgsExpr):
     # might be subject to renaming
-    """Mul elementwise lazily
-    """
+    """Mul elementwise lazily"""
 
     def __init__(self, *args):
         super().__init__(*args)

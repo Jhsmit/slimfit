@@ -159,7 +159,10 @@ class LikelihoodOptimizer(Minimizer):
             # dictionary of new parameter values for in this iteration
             parameters_step = {}
             common_kwargs = dict(
-                loss=self.loss, xdata=self.xdata, ydata=self.ydata, posterior=posterior,
+                loss=self.loss,
+                xdata=self.xdata,
+                ydata=self.ydata,
+                posterior=posterior,
             )
             for sub_model in sub_models:
                 # At the moment we assume all callables in the sub models to be MatrixCallables
@@ -449,7 +452,7 @@ class ScipyEMOptimizer(EMOptimizer):
             # args=(self.model, self.loss, self.posterior),
             # args=(self.parameter_names, self.xdata, self.posterior, self.model, self.loss,),
             bounds=self.get_bounds(),
-            **options
+            **options,
         )
 
         gof_qualifiers = {

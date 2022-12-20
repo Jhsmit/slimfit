@@ -35,7 +35,8 @@ exclude = ["slimfit/_version.py"]
 [tool.poetry-dynamic-versioning]
 enable = true
 vcs = "git"
-style = "semver"
+style = "pep440"
+metadata = false
 
 [tool.poetry.dependencies]
 python = "^3.9"

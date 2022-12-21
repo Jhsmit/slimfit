@@ -20,14 +20,14 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Installation: installation.md
-#  - API Reference: api.md
+  - API Reference: api.md
 
 
-#plugins:
-#  - mkdocstrings:
-#      handlers:
-#        python:
-#          paths: [slimfit]
+plugins:
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [slimfit]
 
 
 extra_css:

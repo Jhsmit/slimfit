@@ -21,13 +21,20 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.local  # the path depends on the OS
-          key: poetry-0  # increment to reset cache
+          key: poetry-0  # increment to reset poetry cache
       - name: Install Poetry
         if: steps.cached-poetry.outputs.cache-hit != 'true'
         uses: snok/install-poetry@v1
         with:
           virtualenvs-create: true
           virtualenvs-in-project: true
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
       - name: Install docs dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: poetry install --only docs --no-root
       - run: poetry run mkdocs gh-deploy --force --clean --verbose

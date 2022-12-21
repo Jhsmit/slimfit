@@ -22,7 +22,7 @@ from slimfit.symbols import (
     get_symbols,
 )
 from slimfit.loss import LogSumLoss
-from slimfit.minimizer import LikelihoodOptimizer
+from slimfit.minimizers import LikelihoodOptimizer
 from slimfit.markov import generate_transition_matrix, extract_states
 from slimfit.parameter import Parameters, Parameter
 import numpy as np

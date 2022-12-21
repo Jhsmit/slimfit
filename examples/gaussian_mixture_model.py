@@ -9,7 +9,7 @@ from slimfit import Model
 from slimfit.numerical import GMM, NumExprBase, to_numerical
 from slimfit.fit import Fit
 from slimfit.loss import LogSumLoss
-from slimfit.minimizer import LikelihoodOptimizer
+from slimfit.minimizers import LikelihoodOptimizer
 from slimfit.operations import Mul
 from slimfit.parameter import Parameters
 from slimfit.symbols import (

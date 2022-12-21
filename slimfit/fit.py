@@ -8,7 +8,7 @@ import numpy.typing as npt
 from sympy import Expr
 
 from slimfit.loss import L2Loss, LogLoss, Loss
-from slimfit.minimizer import ScipyMinimizer, Minimizer
+from slimfit.minimizers import ScipyMinimizer, Minimizer
 from slimfit.models import Model
 from slimfit.numerical import to_numerical
 from slimfit.parameter import Parameter, Parameters

@@ -3,7 +3,7 @@ from slimfit.numerical import GMM
 from slimfit.fit import Fit
 from slimfit.loss import LogSumLoss
 from slimfit.markov import generate_transition_matrix, extract_states
-from slimfit.minimizer import LikelihoodOptimizer
+from slimfit.minimizers import LikelihoodOptimizer
 from slimfit.models import Model
 from slimfit.operations import Mul
 from slimfit.parameter import Parameters, Parameter

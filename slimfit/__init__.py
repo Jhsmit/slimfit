@@ -11,6 +11,7 @@ __version__ = "0.0.0"
 # and we can get a version from there
 try:
     from . import _version
+
     __version__ = _version.get_versions()["version"]
 except ImportError:
     pass

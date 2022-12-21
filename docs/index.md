@@ -2,13 +2,7 @@
 
 ## Quick Start 
 
-
-``` python
-import tensorflow as tf
-```
-
-
-``` python
+```Python
 
 from sympy import symbols
 from slimfit import Model, Fit, Parameter

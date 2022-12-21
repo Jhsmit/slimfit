@@ -2,6 +2,7 @@
 
 **SymFit's little brother**
 
+Documentation: https://jhsmit.github.io/slimfit/
 
 This project is inspired by [SymFit](https://github.com/tBuLi/symfit) and is functional, to some degree, but in currently in BETA
 

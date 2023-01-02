@@ -4,7 +4,7 @@ site_name: SlimFit
 site_description: SymFit's little brother
 site_url: https://jhsmit.github.io/slimfit/
 
-repo_url: https://github.com/Jhsmit/slimfit
+repo_url: https://github.com/Jhsmit/slimfit/
 edit_uri: edit/master/docs/
 
 ### Build settings ###
@@ -24,6 +24,7 @@ nav:
 
 
 plugins:
+  - search
   - mkdocstrings:
       handlers:
         python:

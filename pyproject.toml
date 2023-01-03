@@ -41,6 +41,12 @@ tqdm = "^4.64.1"
 typing-extensions = "^4.4.0"
 PyYAML = "^6.0"
 scipy = "^1.9.3"
+panel = { version = "^0.14.2", optional = true }
+proplot = { version = "^0.9.5", optional = true }
+
+[tool.poetry.extras]
+interactive = ["panel"]
+plot = ["proplot"]
 
 [tool.poetry.group.dev.dependencies]
 black = "^22.12.0"
@@ -52,8 +58,6 @@ poetry-dynamic-versioning = {extras = ["plugin"], version = "^0.21.2"}
 [tool.poetry.group.plot.dependencies]
 proplot = "^0.9.5"
 
-[tool.poetry.group.interactive.dependencies]
-panel = "^0.14.2"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.4.2"

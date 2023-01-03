@@ -78,8 +78,8 @@ uvloop = ["uvloop (>=0.15.2)"]
 name = "bleach"
 version = "5.0.1"
 description = "An easy safelist-based HTML-sanitizing tool."
-category = "dev"
-optional = false
+category = "main"
+optional = true
 python-versions = ">=3.7"
 files = [
     {file = "bleach-5.0.1-py3-none-any.whl", hash = "sha256:085f7f33c15bd408dd9b17a4ad77c577db66d76203e5984b1bd59baeee948b2a"},
@@ -98,8 +98,8 @@ dev = ["Sphinx (==4.3.2)", "black (==22.3.0)", "build (==0.8.0)", "flake8 (==4.0
 name = "bokeh"
 version = "2.4.3"
 description = "Interactive plots and applications in the browser from Python"
-category = "dev"
-optional = false
+category = "main"
+optional = true
 python-versions = ">=3.7"
 files = [
     {file = "bokeh-2.4.3-py3-none-any.whl", hash = "sha256:104d2f0a4ca7774ee4b11e545aa34ff76bf3e2ad6de0d33944361981b65da420"},
@@ -140,7 +140,7 @@ redis = ["redis (>=2.10.5)"]
 name = "certifi"
 version = "2022.12.7"
 description = "Python package for providing Mozilla's CA Bundle."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 files = [
@@ -229,7 +229,7 @@ pycparser = "*"
 name = "charset-normalizer"
 version = "2.1.1"
 description = "The Real First Universal Charset Detector. Open, modern and actively maintained alternative to Chardet."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6.0"
 files = [
@@ -287,7 +287,7 @@ files = [
 name = "contourpy"
 version = "1.0.6"
 description = "Python library for calculating contours of 2D quadrilateral grids"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -435,7 +435,7 @@ test = ["hypothesis (>=1.11.4,!=3.79.2)", "iso8601", "pretend", "pytest (>=6.2.0
 name = "cycler"
 version = "0.11.0"
 description = "Composable style cycles"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 files = [
@@ -602,7 +602,7 @@ testing = ["covdefaults (>=2.2.2)", "coverage (>=6.5)", "pytest (>=7.2)", "pytes
 name = "fonttools"
 version = "4.38.0"
 description = "Tools to manipulate font files"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -686,7 +686,7 @@ lxml = ["lxml"]
 name = "idna"
 version = "3.4"
 description = "Internationalized Domain Names in Applications (IDNA)"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.5"
 files = [
@@ -698,7 +698,7 @@ files = [
 name = "importlib-metadata"
 version = "4.13.0"
 description = "Read metadata from Python packages"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -783,7 +783,7 @@ trio = ["async_generator", "trio"]
 name = "jinja2"
 version = "3.1.2"
 description = "A very fast and expressive template engine."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -845,7 +845,7 @@ testing = ["flake8 (<5)", "pytest (>=6)", "pytest-black (>=0.3.7)", "pytest-chec
 name = "kiwisolver"
 version = "1.4.4"
 description = "A fast implementation of the Cassowary constraint solver"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -964,7 +964,7 @@ files = [
 name = "markdown"
 version = "3.3.7"
 description = "Python implementation of Markdown."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 files = [
@@ -982,7 +982,7 @@ testing = ["coverage", "pyyaml"]
 name = "markupsafe"
 version = "2.1.1"
 description = "Safely add untrusted strings to HTML/XML markup."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -1032,7 +1032,7 @@ files = [
 name = "matplotlib"
 version = "3.6.2"
 description = "Python plotting package"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.8"
 files = [
@@ -1429,7 +1429,7 @@ files = [
 name = "packaging"
 version = "22.0"
 description = "Core utilities for Python packages"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -1441,8 +1441,8 @@ files = [
 name = "panel"
 version = "0.14.2"
 description = "A high level app and dashboarding solution for Python."
-category = "dev"
-optional = false
+category = "main"
+optional = true
 python-versions = ">=3.7"
 files = [
     {file = "panel-0.14.2-py2.py3-none-any.whl", hash = "sha256:7038eb8a6edeb0676e2fc207c4fa68a87078dee03bf11f54308ae1364b6a51d5"},
@@ -1474,8 +1474,8 @@ ui = ["playwright", "pytest-playwright"]
 name = "param"
 version = "1.12.3"
 description = "Make your Python code clearer and more reliable by declaring Parameters."
-category = "dev"
-optional = false
+category = "main"
+optional = true
 python-versions = ">=2.7"
 files = [
     {file = "param-1.12.3-py2.py3-none-any.whl", hash = "sha256:9a60f524aa06c2dad15a21ed59f5cdda4248c0954ed75d51b07de7a4601cd79c"},
@@ -1518,7 +1518,7 @@ ptyprocess = ">=0.5"
 name = "pillow"
 version = "9.3.0"
 description = "Python Imaging Library (Fork)"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -1731,7 +1731,7 @@ poetry-core = ">=1.3.0,<2.0.0"
 name = "proplot"
 version = "0.9.5"
 description = "A succinct matplotlib wrapper for making beautiful, publication-quality graphics."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6.0"
 files = [
@@ -1770,8 +1770,8 @@ files = [
 name = "pyct"
 version = "0.4.8"
 description = "Python package common tasks for users (e.g. copy examples, fetch data, ...)"
-category = "dev"
-optional = false
+category = "main"
+optional = true
 python-versions = ">=2.7"
 files = [
     {file = "pyct-0.4.8-py2.py3-none-any.whl", hash = "sha256:222e104d561b28cfdb56667d2ba10e5290b4466db66d0af38ab935577af85390"},
@@ -1851,7 +1851,7 @@ markdown = ">=3.2"
 name = "pyparsing"
 version = "3.0.9"
 description = "pyparsing module - Classes and methods to define and execute parsing grammars"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6.8"
 files = [
@@ -1922,7 +1922,7 @@ testing = ["argcomplete", "hypothesis (>=3.56)", "mock", "nose", "pygments (>=2.
 name = "python-dateutil"
 version = "2.8.2"
 description = "Extensions to the standard Python datetime module"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
 files = [
@@ -1937,8 +1937,8 @@ six = ">=1.5"
 name = "pyviz-comms"
 version = "2.2.1"
 description = "Bidirectional communication for the HoloViz ecosystem."
-category = "dev"
-optional = false
+category = "main"
+optional = true
 python-versions = ">=3.6"
 files = [
     {file = "pyviz_comms-2.2.1-py2.py3-none-any.whl", hash = "sha256:aba28430cf28b39f2605acb48f7fddf0e3025394a8286adfeb40d74b0ae0f4f9"},
@@ -2136,7 +2136,7 @@ full = ["numpy"]
 name = "requests"
 version = "2.28.1"
 description = "Python HTTP for Humans."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7, <4"
 files = [
@@ -2228,8 +2228,8 @@ jeepney = ">=0.6"
 name = "setuptools"
 version = "65.6.3"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
-category = "dev"
-optional = false
+category = "main"
+optional = true
 python-versions = ">=3.7"
 files = [
     {file = "setuptools-65.6.3-py3-none-any.whl", hash = "sha256:57f6f22bde4e042978bcd50176fdb381d7c21a9efa4041202288d3737a0c6a54"},
@@ -2257,7 +2257,7 @@ files = [
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
 files = [
@@ -2308,8 +2308,8 @@ files = [
 name = "tornado"
 version = "6.2"
 description = "Tornado is a Python web framework and asynchronous networking library, originally developed at FriendFeed."
-category = "dev"
-optional = false
+category = "main"
+optional = true
 python-versions = ">= 3.7"
 files = [
     {file = "tornado-6.2-cp37-abi3-macosx_10_9_universal2.whl", hash = "sha256:20f638fd8cc85f3cbae3c732326e96addff0a15e22d80f049e00121651e82e72"},
@@ -2374,7 +2374,7 @@ files = [
 name = "urllib3"
 version = "1.26.13"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*"
 files = [
@@ -2474,7 +2474,7 @@ watchmedo = ["PyYAML (>=3.10)"]
 name = "webencodings"
 version = "0.5.1"
 description = "Character encoding aliases for legacy web content"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 files = [
@@ -2645,7 +2645,7 @@ cffi = ">=1.0"
 name = "zipp"
 version = "3.11.0"
 description = "Backport of pathlib-compatible object wrapper for zip files"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -2657,7 +2657,11 @@ files = [
 docs = ["furo", "jaraco.packaging (>=9)", "jaraco.tidelift (>=1.4)", "rst.linker (>=1.9)", "sphinx (>=3.5)"]
 testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools", "more-itertools", "pytest (>=6)", "pytest-black (>=0.3.7)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=1.3)", "pytest-flake8", "pytest-mypy (>=0.9.1)"]
 
+[extras]
+interactive = ["panel"]
+plot = ["proplot"]
+
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "a990c90b33df1a491dda67b033891bad80d5c0c111a010746290154098897e22"
+content-hash = "6325ae891d540f220a2d7a01530f26a2597e2ed4779da1f5b90e3fe974739fe6"

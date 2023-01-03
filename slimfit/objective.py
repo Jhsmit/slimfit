@@ -19,8 +19,17 @@ MIN_PROB = 1e-9  # Minimal probability value (> 0.) to enter into np.log
 # kw_only = True
 # @dataclass(frozen=True)
 
+class Objective(object):
+    """
+    Base class for objective functions.
 
-class Objective:
+    Args:
+        model: Numerical model to call.
+        loss: Loss function to use.
+        xdata: Input x data.
+        ydata: Output y data to calculate loss against.
+        negate: Whether to negate the objective function output (negate for maximization).
+    """
     def __init__(
         self,
         model: Model,
@@ -29,6 +38,7 @@ class Objective:
         ydata: dict[str, np.ndarray],
         negate: bool = False,
     ):
+
         self.model = model
         self.loss = loss
         self.xdata = xdata
@@ -38,6 +48,18 @@ class Objective:
 
 
 class ScipyObjective(Objective):
+    """
+    Objective function for use with scipy.optimize.minimize or ScipyMinimizer.
+
+    Args:
+        model: Numerical model to call.
+        loss: Loss function to use.
+        xdata: Input x data.
+        ydata: Output y data to calculate loss against.
+        shapes: Shapes of the parameters.
+        negate: Whether to negate the objective function output (negate for maximization).
+    """
+
     def __init__(
         self,
         model: Model,
@@ -51,6 +73,17 @@ class ScipyObjective(Objective):
         self.shapes = shapes
 
     def __call__(self, x: np.ndarray) -> float:
+        """
+        Call the objective function.
+
+        Args:
+            x: Array of concatenated parameters.
+
+        Returns:
+            Objective value.
+
+        """
+
         parameters = unpack(x, self.shapes)
 
         y_model = self.model(**parameters, **self.xdata)

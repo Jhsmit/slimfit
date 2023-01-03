@@ -30,5 +30,3 @@ result = fit.execute()
 print(result.parameters)
 
 ```
-
-Lorem ipsum

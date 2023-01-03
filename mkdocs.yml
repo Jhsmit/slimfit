@@ -20,14 +20,27 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Installation: installation.md
-  - API Reference: api.md
+  - API Reference: reference/
 
+watch:
+  - slimfit
 
 plugins:
   - search
+  - gen-files:
+      scripts:
+        - docs/gen_ref_pages.py
+  - literate-nav:
+      nav_file: SUMMARY.md
   - mkdocstrings:
+      default_handler: python
       handlers:
         python:
+          options:
+            enable_inventory: true
+            show_signature_annotations: true
+          import:
+            - https://docs.python.org/3/objects.inv
           paths: [slimfit]
 
 

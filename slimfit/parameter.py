@@ -116,11 +116,23 @@ class Parameters(UserList):
         else:
             return self._names.index(item, *args)
 
-    def set(self, symbol_or_name: Symbol | str, **kwargs):
+    def set(self, symbol_or_name: Symbol | str, **kwargs) -> Parameters:
+        """
+        Set attributes of a parameter in-place.
+
+        Args:
+            symbol_or_name: Symbol or name of the parameter to set.
+            **kwargs: Additional keyword arguments to set on the parameter.
+
+        Returns:
+            The `Parameters object (self).
+        """
         idx = self.index(symbol_or_name)
 
         # todo sanitize kwargs
         self[idx] = Parameter(**(asdict(self[idx]) | kwargs))
+
+        return self
 
     def update_guess(self, guess: dict[str | Symbol, np.ndarray | float]) -> Parameters:
         """returns a new parameters object where"""

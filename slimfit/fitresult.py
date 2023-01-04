@@ -16,7 +16,9 @@ from slimfit.utils import clean_types
 
 @dataclass
 class FitResult:
-    """ """
+    """
+    Fit result object.
+    """
 
     parameters: dict[str, float | np.ndarray]
     """Fitted parameter values"""
@@ -49,6 +51,12 @@ class FitResult:
             self.metadata["timestamp"] = int(now.timestamp())
 
     def to_dict(self) -> dict:
+        """
+        Convert the fit result to a dictionary.
+
+        Returns:
+            Dictionary representation of the fit result.
+        """
         keys = ["gof_qualifiers", "parameters", "fixed_parameters", "guess", "metadata"]
         d = {k: v for k in keys if (v := getattr(self, k)) is not None}
 
@@ -56,15 +64,19 @@ class FitResult:
 
     def to_yaml(self, path: Union[os.PathLike[str], str], sort_keys: bool = False) -> None:
         """
-        Save the fitresult to yaml
-        """
+        Save the fit result as yaml.
 
+        Args:
+            path: Path to save to.
+            sort_keys: Boolean indicating whether to sort the keys.
+
+        """
         dic = clean_types(self.to_dict())
         Path(path).write_text(yaml.dump(dic, sort_keys=sort_keys))
 
     def to_pickle(self, path: Union[os.PathLike[str], str]) -> None:
         """
-        Save the fitresult as pickle
+        Save the fit result as pickle.
 
         Args:
             path: Path to save to.

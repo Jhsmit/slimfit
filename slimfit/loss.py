@@ -15,6 +15,17 @@ from slimfit.reduce import (
 
 
 class Loss(object):
+    """
+    Loss function base class.
+
+    Args:
+        weights: Optional dictionary of weights for each data point. Must match `ydata` in shape.
+        reduction: Reduction strategy to use. Defaults to "mean".
+
+    Attributes:
+        reduce: Callable that reduces the loss values.
+
+    """
     def __init__(
         self,
         weights: Optional[dict[str, npt.ArrayLike]] = None,
@@ -57,6 +68,7 @@ class Loss(object):
 class L1Loss(Loss):
     """L1 loss"""
 
+    #todo refactor ydata / ymodel?
     def __call__(
         self, dependent_data: dict[str, np.ndarray], target_data: dict[str, np.ndarray]
     ) -> np.ndarray | float:

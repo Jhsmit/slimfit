@@ -7,6 +7,7 @@ import numpy as np
 import numpy.typing as npt
 from sympy import Expr
 
+from slimfit.fitresult import FitResult
 from slimfit.loss import L2Loss, LogLoss, Loss
 from slimfit.minimizers import ScipyMinimizer, Minimizer
 from slimfit.models import Model
@@ -14,22 +15,29 @@ from slimfit.numerical import to_numerical
 from slimfit.parameter import Parameter, Parameters
 
 
-class Fit(object):
-    """fit objects take model and data
-
-    their function is to determine minimizer / loss strategies and execute those
-
+class Fit:
     """
+    Class for fitting a model to data.
 
+    Args:
+        model: Model to fit.
+        parameters: List or Parameters object of parameters to fit.
+        data: Dictionary of data to fit to. Keys correspond to model symbols.
+        loss: Loss function to use. Defaults to L2Loss.
+
+    Attributes:
+        xdata: Independent data, typically chosen measurement points.
+        ydata: Dependent data, typically measurements.
+    """
     def __init__(
         self,
         model: Model,
         parameters: list[Parameter] | Parameters,
         data: dict[str | Expr, npt.ArrayLike],
         loss: Optional[Loss] = L2Loss(),
-        # posterior: Optional[CompositeNumExpr],
-    ):
+    ) -> None:
 
+        # TODO perhaps makes sense to keep this as 'model' since there is not `numerical_model` attribute
         self.symbolic_model = model
 
         # make a new instance such that external modification does not affect the
@@ -52,7 +60,18 @@ class Fit(object):
         self,
         minimizer: Optional[Type[Minimizer]] = None,
         **execute_options,
-    ):
+    ) -> FitResult:
+        """
+        Execute the fit.
+
+        Args:
+            minimizer: Optional minimizer to use. Defaults to ScipyMinimizer.
+            **execute_options:
+
+        Returns:
+            Result of the fit as FitResult object.
+
+        """
 
         minimizer_cls = minimizer or self.get_minimizer()
         minimizer_instance = minimizer_cls(

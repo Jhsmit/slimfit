@@ -29,6 +29,7 @@ class Fit:
         xdata: Independent data, typically chosen measurement points.
         ydata: Dependent data, typically measurements.
     """
+
     def __init__(
         self,
         model: Model,

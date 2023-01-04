@@ -246,7 +246,7 @@ class EMOptimizer(Minimizer):
     def __init__(
         self,
         numerical_model: Model,
-        parameters: list[Parameter],  # Parameters?
+        parameters: list[Parameter] | Parameters,  # Parameters?
         loss: Loss,
         xdata: dict[str, np.array],
         ydata: dict[str, np.array],

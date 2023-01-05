@@ -57,7 +57,7 @@ class FitResult:
         Returns:
             Dictionary representation of the fit result.
         """
-        keys = ["gof_qualifiers", "parameters", "fixed_parameters", "guess", "metadata"]
+        keys = ["gof_qualifiers", "fit_parameters", "fixed_parameters", "guess", "metadata"]
         d = {k: v for k in keys if (v := getattr(self, k)) is not None}
 
         return d

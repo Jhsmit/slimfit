@@ -672,7 +672,5 @@ class TestEMFit(object):
             "sigma_C": 0.07922175330380453,
         }
 
-        print(result.parameters)
-
         for k in expected:
             assert result.parameters[k] == pytest.approx(expected[k], rel=0.1)

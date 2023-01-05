@@ -34,3 +34,16 @@ class Model(numerical.CompositeExpr):
         """Variables corresponding to dependent (measured) data, given as keys in the model dict"""
 
         return {symbol.name: symbol for symbol in self.expr.keys()}
+
+    @property
+    def components(self) -> dict[str, numerical.NumExprBase]:
+        """all NumExprBase components in the model
+        keys should be such that their commectivity can be reconstructed ?
+        ie {Mul[0]MatMul[1]: <component> ...}
+        which tells us that this component is the second element of a matmul whose result
+        is the first component in a mul
+        """
+        raise NotImplementedError("not yet implemented")
+
+
+        #return {symbol.name: expr for symbol, expr in self.expr.items()}

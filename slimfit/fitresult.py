@@ -20,7 +20,7 @@ class FitResult:
     Fit result object.
     """
 
-    parameters: dict[str, float | np.ndarray]
+    fit_parameters: dict[str, float | np.ndarray]
     """Fitted parameter values"""
 
     gof_qualifiers: dict
@@ -91,3 +91,7 @@ class FitResult:
         kwargs = self.parameters | data | kwargs
 
         return self.symbolic_model(**kwargs)
+
+    @property
+    def parameters(self) -> dict[str, float | np.ndarray]:
+        return {**self.fit_parameters, **self.fixed_parameters}

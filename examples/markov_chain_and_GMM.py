@@ -115,7 +115,7 @@ grid
 # timing: 1.83 ms
 data_eval = {"t": ti.reshape(-1, 1), "e": ei.reshape(-1, 1)}
 num_model = model.to_numerical()
-ans = num_model(**result.parameters, **result.fixed_parameters, **data_eval)
+ans = num_model(**result.parameters, **data_eval)
 
 
 #%%
@@ -123,11 +123,11 @@ ans = num_model(**result.parameters, **result.fixed_parameters, **data_eval)
 array = ans["p"].sum(axis=-2).squeeze()
 
 #%%
-import proplot as pplt
+import matplotlib.pyplot as plt
 
-fig, ax = pplt.subplots()
+fig, ax = plt.subplots()
 ax.contour(ti, ei, array.T, cmap="viridis")
 ax.scatter(data["t"], data["e"], alpha=0.2, lw=0, color="k", zorder=-10)
-ax.format(xlabel="t", ylabel="e")
-fig.savefig("output/scatter_and_fit.png")
-pplt.show()
+ax.set_xlabel("t")
+ax.set_ylabel("e")
+plt.show()

@@ -45,5 +45,4 @@ class Model(numerical.CompositeExpr):
         """
         raise NotImplementedError("not yet implemented")
 
-
-        #return {symbol.name: expr for symbol, expr in self.expr.items()}
+        # return {symbol.name: expr for symbol, expr in self.expr.items()}

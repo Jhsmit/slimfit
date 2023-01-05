@@ -101,7 +101,7 @@ class ScipyMinimizer(Minimizer):
 
         parameter_values = unpack(result.x, param_shapes)
         result_dict = dict(
-            parameters=parameter_values,
+            fit_parameters=parameter_values,
             fixed_parameters=self.fixed_parameters.guess,
             gof_qualifiers=gof_qualifiers,
             guess=self.free_parameters.guess,
@@ -199,7 +199,7 @@ class LikelihoodOptimizer(Minimizer):
                     opt = ScipyEMOptimizer(sub_model, updated_parameters, **common_kwargs)
 
                     scipy_result = opt.execute()
-                    parameters = scipy_result.parameters
+                    parameters = scipy_result.fit_parameters
                     base_result["scipy"] = scipy_result
 
                 # collect parameters of this sub_model into parmaeters dict
@@ -232,7 +232,7 @@ class LikelihoodOptimizer(Minimizer):
         }
 
         result = FitResult(
-            parameters=parameters_current,
+            fit_parameters=parameters_current,
             fixed_parameters=self.fixed_parameters.guess,
             gof_qualifiers=gof_qualifiers,
             guess=self.free_parameters.guess,
@@ -307,8 +307,8 @@ class EMOptimizer(Minimizer):
         }
 
         result = FitResult(
-            parameters=parameters_current,
-            fixed_parameters=self.model.fixed_parameters,
+            fit_parameters=parameters_current,
+            fixed_parameters=self.model.fixed_parameters.guess,
             gof_qualifiers=gof_qualifiers,
             guess=self.guess,
             # model=self.model,
@@ -462,8 +462,8 @@ class ScipyEMOptimizer(EMOptimizer):
         parameter_values = unpack(result.x, param_shapes)
 
         result_dict = dict(
-            parameters=parameter_values,
-            fixed_parameters=self.fixed_parameters,
+            fit_parameters=parameter_values,
+            fixed_parameters=self.fixed_parameters.guess,
             gof_qualifiers=gof_qualifiers,
             guess=self.free_parameters.guess,
             base_result=result,
@@ -483,7 +483,7 @@ class ScipyEMOptimizer(EMOptimizer):
         }
 
         fit_result = FitResult(
-            parameters=parameters,
+            fit_parameters=parameters,
             gof_qualifiers=gof_qualifiers,
             guess=self.guess,
             base_result=result,

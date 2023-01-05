@@ -485,9 +485,9 @@ class GMM(CompositeExpr):
         List of state names, if naming scheme of mu's is of format `mu_<state_name>`.
         """
 
-        mus, suffices = zip(*(elem.name.split('_') for elem in self['mu']))
+        mus, suffices = zip(*(elem.name.split("_") for elem in self["mu"]))
 
-        if all((mu == 'mu' for mu in mus)):
+        if all((mu == "mu" for mu in mus)):
             return list(suffices)
         else:
             return None

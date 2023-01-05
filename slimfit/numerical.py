@@ -479,6 +479,19 @@ class GMM(CompositeExpr):
         shape = super().shape
         return shape + (1,)
 
+    @property
+    def states(self) -> Optional[list[str]]:
+        """
+        List of state names, if naming scheme of mu's is of format `mu_<state_name>`.
+        """
+
+        mus, suffices = zip(*(elem.name.split('_') for elem in self['mu']))
+
+        if all((mu == 'mu' for mu in mus)):
+            return list(suffices)
+        else:
+            return None
+
     # TODO GMM should have API to find the index of the state given a symbol
     # def state_index(self, ...):
 

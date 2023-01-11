@@ -26,7 +26,7 @@ class FitResult:
     gof_qualifiers: dict
     """Goodness-of-fit qualifiers"""
 
-    fixed_parameters: Optional[dict[str, float]] = None
+    fixed_parameters: dict[str, float] = field(default_factory=dict)
     """Values of the model's fixed parameters"""
 
     guess: Optional[dict] = None

@@ -77,6 +77,15 @@ class Parameters(UserList):
     Could potentially help the `Objective` to/from flat array of guesses for argument of scipy.minimize
     """
 
+    def __init__(self, initlist=None):
+        initlist = initlist or []
+        if not all(isinstance(p, Parameter) for p in initlist):
+            raise ValueError("All items must be of type Parameter")
+        symbols = {p.symbol for p in initlist}
+        if len(symbols) != len(initlist):
+            raise ValueError("All parameters must be unique")
+        super().__init__(initlist)
+
     @classmethod
     def from_symbols(
         cls,

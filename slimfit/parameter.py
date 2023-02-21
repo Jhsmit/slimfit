@@ -20,7 +20,7 @@ class ParamType(Enum):
 
 @dataclass(frozen=True)
 class Parameter:
-    symbol: Expr
+    symbol: Expr # allow `str` after which __init___ finds the symbol?
     guess: float | int | np.ndarray = field(default=1.0)
     lower_bound: float | int | np.ndarray = field(default=None)
     upper_bound: float | int | np.ndarray = field(default=None)
@@ -70,6 +70,8 @@ class Parameter:
 
 # frozen?
 # frozen might not be nessecary but fit should make a copy to prevent modification
+# currently Parameter objects are frozen / immutable
+# should be set: https://stackoverflow.com/questions/57132624/why-there-is-no-userset-class-defined-in-python
 class Parameters(UserList):
     """Parameter list object
 

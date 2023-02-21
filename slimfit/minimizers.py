@@ -20,7 +20,7 @@ from slimfit.objective import ScipyObjective, pack, unpack, ScipyEMObjective
 # from slimfit.models import NumericalModel
 from slimfit.operations import Mul
 from slimfit.parameter import Parameters, Parameter
-from slimfit.utils import get_bounds, overlapping_model_parameters
+from slimfit.utils import get_bounds, intersecting_component_symbols
 
 # TODO parameter which needs to be inferred / set somehow
 STATE_AXIS = -2
@@ -131,6 +131,7 @@ class LikelihoodOptimizer(Minimizer):
     def execute(self, max_iter=250, patience=5, stop_loss=1e-7, verbose=True) -> FitResult:
         # parameters which needs to be passed / inferred
         # Split top-level multiplications in the model as they can be optimized in log likelihood independently
+        # TODO model should have this as property / method
         components: list[tuple[Symbol, NumExprBase]] = []  # todo tuple LHS as variable
         for lhs, rhs in self.model.items():
             if isinstance(rhs, Mul):
@@ -139,7 +140,10 @@ class LikelihoodOptimizer(Minimizer):
                 components.append((lhs, rhs))
 
         # Find the sets of components which have common parameters and thus need to be optimized together
-        sub_models = overlapping_model_parameters(components, self.free_parameters.symbols)
+        sub_models = intersecting_component_symbols(components, self.free_parameters.symbols)
+
+        # Remove sub models without symbols
+        sub_models = [m for m in sub_models if m.symbols]
 
         pbar = trange(max_iter, disable=not verbose)
         t0 = time.time()

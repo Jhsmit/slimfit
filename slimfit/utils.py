@@ -14,14 +14,24 @@ from slimfit.operations import Mul
 from slimfit.parameter import Parameter
 
 
-def overlapping_model_parameters(
-    model_callables: list[tuple[Symbol, NumExprBase]],
+def intersecting_component_symbols(
+    model_components: list[tuple[Symbol, NumExprBase]],
     symbols: set[Symbol],
 ) -> list[Model]:
+    """
+    Finds and groups model components which have intersecting symbols.
+
+    Args:
+        model_components: Model components.
+        symbols: Set of symbols to consider for intersections.
+
+    Returns:
+        Reconstructed models (assuming orignal model was a product of models).
+    """
 
     seen_models = []
     seen_sets = []
-    for lhs, num_expr in model_callables:
+    for lhs, num_expr in model_components:
         param_set = num_expr.symbols & symbols
         # param_set = set(num_expr.free_parameters.keys())
 

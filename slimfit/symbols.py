@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import itertools
 from typing import Optional
 
 import numpy as np
 import numpy.typing as npt
-from sympy import Symbol, zeros, Expr, MatrixBase
+from sympy import Symbol, zeros, Expr, MatrixBase, Matrix
 from sympy.core.cache import clear_cache
 
 
@@ -22,11 +23,11 @@ def get_symbols(*symbolic_objects) -> dict[str, Symbol]:
                 symbols = set()
                 for entry in itertools.chain(symbolic_object.keys(), symbolic_object.values()):
                     try:
-                        # rhs is a sympy `Expr` and has `free_symbols` as a set
-                        symbols |= rhs.free_symbols
+                        # entry is a sympy `Expr` and has `free_symbols` as a set
+                        symbols |= entry.free_symbols
                     except TypeError:
                         # rhs is a slimfit `NumExpr` and has a `free_symbols` dictionary
-                        symbols |= set(rhs.free_symbols.values())
+                        symbols |= set(entry.free_symbols.values())
                 return
             elif isinstance(symbolic_object, (Expr, MatrixBase)):
                 symbols |= symbolic_object.free_symbols

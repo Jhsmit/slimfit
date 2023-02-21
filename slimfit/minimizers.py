@@ -206,7 +206,7 @@ class LikelihoodOptimizer(Minimizer):
                     parameters = scipy_result.fit_parameters
                     base_result["scipy"] = scipy_result
 
-                # collect parameters of this sub_model into parmaeters dict
+                # collect parameters of this sub_model into parameters dict
                 parameters_step |= parameters
 
             # update for next iteration
@@ -216,6 +216,7 @@ class LikelihoodOptimizer(Minimizer):
             improvement = prev_loss - loss
             prev_loss = loss
             pbar.set_postfix({"improvement": improvement})
+
             if np.isnan(improvement):
                 break
             elif improvement < stop_loss:

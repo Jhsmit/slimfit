@@ -13,11 +13,11 @@ from slimfit.parameter import Parameters
 class Model(numerical.CompositeExpr):
     def __init__(
         self,
-        model_dict: dict[Symbol | str, Expr | numerical.NumExprBase | MatrixBase],
+        expr: dict[Symbol | str, Expr | numerical.NumExprBase | MatrixBase],
     ):
 
         # currently typing has a small problem where keys are expected to be `str`, not symbol
-        super().__init__(model_dict)
+        super().__init__(expr)
 
     def __repr__(self):
         return f"Model({self.expr.__repr__()})"
@@ -46,3 +46,19 @@ class Model(numerical.CompositeExpr):
         raise NotImplementedError("not yet implemented")
 
         # return {symbol.name: expr for symbol, expr in self.expr.items()}
+
+
+class Eval(numerical.CompositeExpr):
+    def __init__(self, expr: Expr | numerical.NumExprBase | MatrixBase):
+
+        super().__init__({'_y': expr})
+
+    def __call__(self, **kwargs):
+        ans = super().__call__(**kwargs)
+        return ans['_y']
+
+    def to_numerical(self):
+        args = (numerical.to_numerical(expr) for expr in self.values())
+        instance = self.__class__(*args)
+
+        return instance

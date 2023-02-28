@@ -35,7 +35,7 @@ class Mul(CompositeArgsExpr):
         super().__init__(*args)
 
     def __call__(self, **kwargs) -> npt.ArrayLike:
-        result = super().__call__(**kwargs)
+        result = self._call(**kwargs)
 
         return reduce(mul, result.values())
 
@@ -59,7 +59,7 @@ class MatMul(CompositeArgsExpr):
         super().__init__(*args)
 
     def __call__(self, **kwargs):
-        result = super().__call__(**kwargs)
+        result = self._call(**kwargs)
         return result[0] @ result[1]
 
     @property
@@ -73,6 +73,7 @@ class MatMul(CompositeArgsExpr):
 
 class Sum(object):
     def __init__(self, matrix, axis=0):
+        raise NotImplementedError("not yet implemented")
         self.matrix = matrix
 
     def __call__(self, **kwargs):

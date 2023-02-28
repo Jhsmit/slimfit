@@ -328,23 +328,45 @@ class LambdaNumExpr(NumExprBase):
 
 # refactor to Hybrid ?
 class CompositeExpr(SymbolicBase):
-    """Can be both numerical or symbolic"""
+    """"""
 
     def __init__(
         self,
-        expr: dict[str | Symbol, NumExprBase | Expr | CompositeExpr],
+        expr: dict[str | NumExprBase | Expr | CompositeExpr | MatrixBase]
     ):
+        if not isinstance(expr, dict):
+            raise TypeError(f"{self.__class__.__name__} must be initialized with a dict.")
+
         self.expr = expr
 
-    def __call__(self, **kwargs) -> dict[str, np.ndarray]:
+        if self.is_numerical():
+            self._call = self._numerical_call
+        else:
+            self._call = self._symbolic_call
+
+    def _numerical_call(self, **kwargs):
         return {expr_name: expr(**kwargs) for expr_name, expr in self.expr.items()}
+
+    def _symbolic_call(self, **kwargs):
+        # this returns the __call__
+        return self.numerical._call(**kwargs)
+    #
+    def __call__(self, **kwargs) -> dict[str, np.ndarray]:
+        return self._call(**kwargs)
+        #return {expr_name: expr(**kwargs) for expr_name, expr in self.expr.items()}
 
     def __getitem__(self, item) -> NumExprBase | Expr:
         return self.expr.__getitem__(item)
 
-    @property
-    def numerical(self) -> bool:
+    def is_numerical(self) -> bool:
         return all(isinstance(v, (NumExprBase, CompositeExpr)) for v in self.values())
+
+    @cached_property
+    def numerical(self) -> Optional[CompositeExpr]:
+        if self.is_numerical():
+            return self
+        else:
+            return self.to_numerical()
 
     def keys(self) -> KeysView[str]:
         return self.expr.keys()

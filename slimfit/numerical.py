@@ -332,10 +332,13 @@ class CompositeExpr(SymbolicBase):
 
     def __init__(
         self,
-        expr: dict[str | NumExprBase | Expr | CompositeExpr | MatrixBase]
+        expr: dict[str | NumExprBase | Expr | CompositeExpr | MatrixBase | np.ndarray, float],
     ):
         if not isinstance(expr, dict):
             raise TypeError(f"{self.__class__.__name__} must be initialized with a dict.")
+        # for v in expr.values():
+        #     if not isinstance(v, (NumExprBase, Expr, CompositeExpr, MatrixBase)):
+        #         raise TypeError(f"Invalid type in expr dict: {v!r}.")
 
         self.expr = expr
 
@@ -348,18 +351,22 @@ class CompositeExpr(SymbolicBase):
         return {expr_name: expr(**kwargs) for expr_name, expr in self.expr.items()}
 
     def _symbolic_call(self, **kwargs):
-        # this returns the __call__
         return self.numerical._call(**kwargs)
     #
     def __call__(self, **kwargs) -> dict[str, np.ndarray]:
         return self._call(**kwargs)
-        #return {expr_name: expr(**kwargs) for expr_name, expr in self.expr.items()}
 
     def __getitem__(self, item) -> NumExprBase | Expr:
         return self.expr.__getitem__(item)
 
     def is_numerical(self) -> bool:
-        return all(isinstance(v, (NumExprBase, CompositeExpr)) for v in self.values())
+        """Returns `True` if all expressions are numerical expressions."""
+        for v in self.values():
+            if isinstance(v, (Expr, MatrixBase)):
+                return False
+            if isinstance(v, CompositeExpr):
+                return v.is_numerical()
+        return True
 
     @cached_property
     def numerical(self) -> Optional[CompositeExpr]:

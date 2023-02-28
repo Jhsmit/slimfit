@@ -32,8 +32,8 @@ class FitResult:
     guess: Optional[dict] = None
     """Initial guesses"""
 
-    symbolic_model: Optional[Model] = None
-    """The fitted symbolic model"""
+    model: Optional[Model] = None
+    """The fitted model"""
 
     data: Optional[dict] = field(default=None, repr=False)
     """Data on which the fit was performed"""
@@ -90,7 +90,7 @@ class FitResult:
         data = self.data or {}
         kwargs = self.parameters | data | kwargs
 
-        return self.symbolic_model(**kwargs)
+        return self.model(**kwargs)
 
     @property
     def parameters(self) -> dict[str, float | np.ndarray]:

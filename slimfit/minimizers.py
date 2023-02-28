@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import abc
 import time
+import warnings
 from dataclasses import asdict
 from functools import reduce, cached_property
 from operator import or_
@@ -29,16 +30,17 @@ STATE_AXIS = -2
 class Minimizer(metaclass=abc.ABCMeta):
     def __init__(
         self,
-        numerical_model: Model,
+        model: Model,
         parameters: Parameters,
         loss: Loss,
         xdata: dict[str, np.array],
         ydata: dict[str, np.array],
     ):
-        if not numerical_model.numerical:
-            raise ValueError("The given model should be numerical")
 
-        self.model = numerical_model
+        if not model.is_numerical():
+            warnings.warn("Model is not numerical. Converting to numerical model.")
+
+        self.model = model
         self.loss = loss
         self.xdata = xdata
         self.ydata = ydata
@@ -250,7 +252,7 @@ class LikelihoodOptimizer(Minimizer):
 class EMOptimizer(Minimizer):
     def __init__(
         self,
-        numerical_model: Model,
+        model: Model,
         parameters: list[Parameter] | Parameters,  # Parameters?
         loss: Loss,
         xdata: dict[str, np.array],
@@ -259,7 +261,7 @@ class EMOptimizer(Minimizer):
     ):
         self.posterior = posterior
         super().__init__(
-            numerical_model=numerical_model,
+            model=model,
             parameters=parameters,
             loss=loss,
             xdata=xdata,

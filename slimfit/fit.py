@@ -38,8 +38,7 @@ class Fit:
         loss: Optional[Loss] = L2Loss(),
     ) -> None:
 
-        # TODO perhaps makes sense to keep this as 'model' since there is not `numerical_model` attribute
-        self.symbolic_model = model
+        self.model = model
 
         # make a new instance such that external modification does not affect the
         # copy stored here
@@ -52,10 +51,10 @@ class Fit:
         self.loss = loss
 
         # 'independent' data; or 'xdata'; typically chosen measurement points
-        self.xdata = {k: v for k, v in data.items() if k in self.symbolic_model.symbol_names}
+        self.xdata = {k: v for k, v in data.items() if k in self.model.symbol_names}
 
         # 'dependent' data; or 'ydata'; typically measurements
-        self.ydata = {k: v for k, v in data.items() if k in self.symbolic_model.dependent_symbols}
+        self.ydata = {k: v for k, v in data.items() if k in self.model.dependent_symbols}
 
     def execute(
         self,
@@ -76,12 +75,12 @@ class Fit:
 
         minimizer_cls = minimizer or self.get_minimizer()
         minimizer_instance = minimizer_cls(
-            self.symbolic_model.to_numerical(), self.parameters, self.loss, self.xdata, self.ydata
+            self.model.numerical, self.parameters, self.loss, self.xdata, self.ydata
         )
 
         result = minimizer_instance.execute(**execute_options)
 
-        result.symbolic_model = self.symbolic_model
+        result.model = self.model
 
         return result
 

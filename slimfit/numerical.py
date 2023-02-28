@@ -308,29 +308,6 @@ class Constant(MatrixNumExpr):
         np.broadcast_to(...)
 
 
-class DummyVariableMatrix(MatrixNumExpr):
-    """
-    Matrix callable which takes an additional variable such that called returned shape is expanded to accomodate its
-    shapes
-    """
-
-    def __init__(
-        self,
-        x: Symbol,
-        m: Matrix,
-        kind: Optional[str] = None,
-        name: Optional[str] = None,
-    ):
-        raise NotImplementedError("Not implemented")
-        self.x = x
-        super().__init__(m, kind=kind, name=name)
-
-    @property
-    def symbols(self) -> dict[str, Symbol]:
-        symbols = super().symbols | {self.x}
-        return symbols
-
-
 # different class for Symbolic / Numerical ?
 class LambdaNumExpr(NumExprBase):
     def __init__(

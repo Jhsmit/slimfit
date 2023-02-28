@@ -352,7 +352,7 @@ class CompositeExpr(SymbolicBase):
 
     def _symbolic_call(self, **kwargs):
         return self.numerical._call(**kwargs)
-    #
+
     def __call__(self, **kwargs) -> dict[str, np.ndarray]:
         return self._call(**kwargs)
 

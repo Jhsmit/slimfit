@@ -41,11 +41,9 @@ tqdm = "^4.64.1"
 typing-extensions = "^4.4.0"
 PyYAML = "^6.0"
 scipy = "^1.9.3"
-panel = { version = "^0.14.2", optional = true }
-proplot = { version = "^0.9.5", optional = true }
+proplot = { version = "^0.9.7", optional = true }
 
 [tool.poetry.extras]
-interactive = ["panel"]
 plot = ["proplot"]
 
 [tool.poetry.group.dev.dependencies]
@@ -67,6 +65,8 @@ mkdocs-material = "^8.5.11"
 pygments = "^2.13.0"
 mkdocs-gen-files = "^0.4.0"
 mkdocs-literate-nav = "^0.5.0"
+mkdocs-jupyter = "^0.22.0"
+jupyter = "^1.0.0"
 
 [tool.poetry-dynamic-versioning]
 enable = true

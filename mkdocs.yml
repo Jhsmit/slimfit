@@ -20,6 +20,8 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Installation: installation.md
+  - Examples:
+    - Basic Usage: examples/linear_lsq.ipynb
   - API Reference: reference/
 
 watch:
@@ -27,6 +29,7 @@ watch:
 
 plugins:
   - search
+  - mkdocs-jupyter # .ipynb / .py files in docs
   - gen-files:
       scripts:
         - docs/gen_ref_pages.py

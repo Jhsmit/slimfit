@@ -16,6 +16,11 @@ markdown_extensions:
   - codehilite
   - markdown.extensions.codehilite:
       guess_lang: false
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
 
 nav:
   - Home: index.md
@@ -29,7 +34,9 @@ nav:
       - GMM amplitudes: examples/gmm_amplitudes.py
       - Markov chain: examples/markov_chain.py
       - Markov and GMM: examples/markov_chain_and_GMM.py
-
+  - Reference:
+      - Structure: structure.md
+      - API: reference/
   - API Reference: reference/
 
 watch:
@@ -38,7 +45,7 @@ watch:
 plugins:
   - search
   - mkdocs-jupyter: # .ipynb / .py files in docs
-      execute: true
+      execute: false
       # execute_ignore: "*.ipynb"
       kernel_name: python3
   - gen-files:

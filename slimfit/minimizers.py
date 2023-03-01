@@ -67,7 +67,10 @@ class Minimizer(metaclass=abc.ABCMeta):
         return {p.name: np.asarray(p.guess) for p in self.parameters if not p.fixed}
 
     def get_bounds(self) -> list[tuple[float | None, float | None]] | None:
-        bounds = [(p.lower_bound, p.upper_bound) for p in self.free_parameters]
+        bounds = []
+        for p in self.free_parameters:
+            size = np.prod(p.shape, dtype=int)
+            bounds += [(p.lower_bound, p.upper_bound)] * size
 
         if all((None, None) == b for b in bounds):
             return None

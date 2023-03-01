@@ -1,7 +1,12 @@
+"""
+Fitting of Markov chain process solved by matrix exponentiation.
+"""
+
 from typing import Callable, Optional
 
 from slimfit.fit import Fit
 from slimfit.markov import generate_transition_matrix, extract_states
+from slimfit.numerical import MarkovIVP
 from slimfit.parameter import Parameters
 from slimfit.symbols import symbol_matrix, get_symbols
 from slimfit.models import Model
@@ -79,16 +84,37 @@ color = ["#7FACFA", "#FA654D", "#8CAD36"]
 cycle = pplt.Cycle(color=color)
 
 eval_data = {"t": np.linspace(0, 11, 1000)}
-eval_model = model.to_numerical()
-y_eval = eval_model(**result.parameters, **eval_data)["y"]
+y_eval = model(**result.parameters, **eval_data)["y"]
 
 fig, ax = pplt.subplots()
-c_iter = iter(cycle)
-for pop in ydata["y"].squeeze().T:
-    ax.scatter(xdata["t"], pop, **next(c_iter))
+ax.scatter(xdata["t"], ydata["y"].squeeze(), cycle=cycle)
+ax.line(eval_data["t"], y_eval.squeeze(), cycle=cycle)
+ax.format(xlabel="Time", ylabel="Population Fraction")
+pplt.show()
 
-c_iter = iter(cycle)
-for pop in y_eval.squeeze().T:
-    ax.line(eval_data["t"], pop, **next(c_iter))
+
+#%%
+
+# repeat the fit with numerical integration of the markov model using `scipy.integrate.solve_ivp`
+ivp_model = Model({Symbol("y"): MarkovIVP(Symbol("t"), m, y0)})
+fit = Fit(ivp_model, parameters, data={**xdata, **ydata})
+ivp_result = fit.execute()
+#%%
+
+# Compare fit result with ground truth parameters
+for k, v in ivp_result.parameters.items():
+    print(f"{k:5}: {v:10.2}, ({gt_values[k]:10.2})")
+
+#%%
+# compare input data to fitted population dynamics in a graph
+color = ["#7FACFA", "#FA654D", "#8CAD36"]
+cycle = pplt.Cycle(color=color)
+
+eval_data = {"t": np.linspace(0, 11, 1000)}
+y_eval = ivp_model(**ivp_result.parameters, **eval_data)["y"]
+
+fig, ax = pplt.subplots()
+ax.scatter(xdata["t"], ydata["y"].squeeze(), cycle=cycle)
+ax.line(eval_data["t"], y_eval.squeeze(), cycle=cycle)
 ax.format(xlabel="Time", ylabel="Population Fraction")
 pplt.show()

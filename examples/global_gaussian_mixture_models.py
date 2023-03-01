@@ -6,7 +6,6 @@ from sympy import Symbol
 
 from slimfit import Model
 
-# from slimfit.models import NumericalModel
 from slimfit.numerical import GMM, NumExprBase
 from slimfit.fit import Fit
 from slimfit.loss import LogSumLoss
@@ -100,16 +99,14 @@ for k, v in result.parameters.items():
 
 x_point = np.linspace(-0.5, 1.5, num=250).reshape(-1, 1)
 eval_data = {"x1": x_point, "x2": x_point}
-num_model = model.to_numerical(parameters, eval_data)
 
-ans = num_model(**result.parameters)
-gt_ans = num_model(**gt)
+ans = model(**result.parameters, **eval_data)
+gt_ans = model(**gt, **eval_data)
 
 fig, axes = pplt.subplots(ncols=2)
 colors = {"A": "g", "B": "b", "C": "cyan", "D": "magenta"}
 
 for i, ax in enumerate(axes):
-
     ax.hist(data[f"x{i + 1}"].squeeze(), bins="fd", density=True, color="gray")
     ax.plot(x_point, ans[f"p{i + 1}"].sum(axis=1), color="k")
     for j, state in enumerate(all_states[i]):
@@ -117,32 +114,3 @@ for i, ax in enumerate(axes):
         ax.plot(x_point, gt_ans[f"p{i + 1}"][:, j], color=colors[state], linestyle="--")
     ax.format(title=f"Dataset {i + 1}")
 pplt.show()
-
-# Fitting only dataset two
-model_ds2 = Model({Symbol("p2"): model_dict[Symbol("p2")]})
-
-#%%
-guess = {
-    "mu_B": 0.4,
-    "mu_C": 0.7,
-    "mu_D": 0.15,
-    "sigma_B": 0.1,
-    "sigma_C": 0.1,
-    "sigma_D": 0.1,
-    "c_B": 0.33,
-    "c_C": 0.33,
-    "c_D": 0.33,
-}
-
-parameters = Parameters.from_symbols(model_ds2.symbols, guess)
-
-#%%
-
-fit = Fit(model_ds2, parameters, {"x2": data["x2"]}, loss=LogSumLoss(sum_axis=1))
-result = fit.execute(minimizer=LikelihoodOptimizer)
-
-print(result.gof_qualifiers)
-#
-# Compare fit result with ground truth parameters
-for k, v in result.parameters.items():
-    print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")

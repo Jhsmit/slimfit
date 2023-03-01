@@ -1,3 +1,5 @@
+# OUTDATED
+
 from scipy.integrate import solve_ivp
 import numpy as np
 import numpy.typing as npt

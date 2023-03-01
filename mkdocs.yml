@@ -22,6 +22,14 @@ nav:
   - Installation: installation.md
   - Tutorial:
     - Basic Usage: tutorial/basic_usage.ipynb
+  - Examples:
+      - Linear combinations: examples/linear_matrices.py
+      - Likelihood fit: examples/likelihood_gaussian.py
+      - Gaussian Mixture Model: examples/gaussian_mixture_model.py
+      - GMM amplitudes: examples/gmm_amplitudes.py
+      - Markov chain: examples/markov_chain.py
+      - Markov and GMM: examples/markov_chain_and_GMM.py
+
   - API Reference: reference/
 
 watch:
@@ -29,7 +37,10 @@ watch:
 
 plugins:
   - search
-  - mkdocs-jupyter # .ipynb / .py files in docs
+  - mkdocs-jupyter: # .ipynb / .py files in docs
+      execute: true
+      # execute_ignore: "*.ipynb"
+      kernel_name: python3
   - gen-files:
       scripts:
         - docs/gen_ref_pages.py

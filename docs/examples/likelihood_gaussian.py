@@ -1,3 +1,9 @@
+# %% [markdown]
+#
+# Likelihood fitting of normally distributed samples.
+#
+
+#%%
 import numpy as np
 import proplot as pplt
 
@@ -18,18 +24,17 @@ model = Model({Symbol("p"): gaussian_sympy(Symbol("x"), Symbol("mu"), Symbol("si
 #%%
 parameters = Parameters.from_symbols(model.symbols, "mu sigma")
 #%%
-
 fit = Fit(model, parameters, data={"x": xdata}, loss=LogLoss())
+
 # execution time: 12.5ms
 result = fit.execute()
 
 #%%
 data = {"x": np.linspace(0.0, 5.0, num=100)}
-num_model = model.to_numerical()
 
 fig, ax = pplt.subplots()
-ax.plot(data["x"], num_model(**gt_params, **data)["p"], color="r")
-ax.plot(data["x"], num_model(**result.parameters, **data)["p"], linestyle="--", color="k")
+ax.plot(data["x"], model(**gt_params, **data)["p"], color="r")
+ax.plot(data["x"], model(**result.parameters, **data)["p"], linestyle="--", color="k")
 ax.hist(xdata, bins="fd", density=True, color="grey")
-
+ax.format(xlabel='x', ylabel='p(x)', title='Gaussian Likelihood Fit')
 pplt.show()

@@ -2,6 +2,9 @@
 Same problem as in 'markov_chain_analytical', but now solved numerically rather than with
 matrix exponentiation.
 
+The numerical IVP solver is useful for larger models where matrix exponentiation is no longer
+feasible.
+
 """
 
 
@@ -46,19 +49,19 @@ model = Model({Symbol("y"): MarkovIVP(Symbol("t"), m, y0)})
 
 #%%
 
-rate_params = Parameters.from_symbols(get_symbols(m))
-y0_params = Parameters.from_symbols(get_symbols(y0))
-parameters = rate_params | y0_params
+rate_params = Parameters.from_symbols(m.free_symbols)
+y0_params = Parameters.from_symbols(y0.free_symbols)
 
-parameters
+parameters = rate_params + y0_params
+
+#%%
 
 num = 50
 xdata = {"t": np.linspace(0, 11, num=num)}
 
 # Calling a matrix based model expands the dimensions of the matrix on the first axis to
 # match the shape of input variables or parameters.
-num_model = model.to_numerical(parameters, xdata)
-populations = num_model(**gt_values)["y"]
+populations = model(**gt_values, **xdata)["y"]
 populations.shape
 
 #%%
@@ -73,21 +76,17 @@ result = fit.execute()
 for k, v in result.parameters.items():
     print(f"{k:5}: {v:10.2}, ({gt_values[k]:10.2})")
 
-# compare input data to fitted population dynamics in a graph
+#%%
+
 color = ["#7FACFA", "#FA654D", "#8CAD36"]
 cycle = pplt.Cycle(color=color)
 
 eval_data = {"t": np.linspace(0, 11, 1000)}
-eval_model = model.to_numerical(parameters, eval_data)
-y_eval = eval_model(**result.parameters)["y"]
+eval_model = model.to_numerical()
+y_eval = eval_model(**result.parameters, **eval_data)["y"]
 
 fig, ax = pplt.subplots()
-c_iter = iter(cycle)
-for pop in ydata["y"].squeeze().T:
-    ax.scatter(xdata["t"], pop, **next(c_iter))
-
-c_iter = iter(cycle)
-for pop in y_eval.squeeze().T:
-    ax.line(eval_data["t"], pop, **next(c_iter))
+ax.scatter(xdata["t"], ydata["y"].squeeze(), cycle=cycle)
+ax.line(eval_data["t"], y_eval.squeeze(), cycle=cycle)
 ax.format(xlabel="Time", ylabel="Population Fraction")
 pplt.show()

@@ -6,10 +6,9 @@ from slimfit.functions import gaussian_numpy
 
 from slimfit.operations import MatMul
 from slimfit.parameter import Parameters
-from slimfit.symbols import symbol_matrix, Symbol, get_symbols
+from slimfit.symbols import symbol_matrix, Symbol
 
 import proplot as pplt
-
 
 """
 In this example we have a measured spectrum which consist of a linear combination of known basis vectors and 
@@ -34,6 +33,9 @@ x_vals = np.array([0.3, 0.5, 0.2]).reshape(3, 1)  # unknowns
 # Simulated measured spectrum given ground-truth coefficients and basis vectors
 spectrum = basis @ np.array(x_vals).reshape(3, 1)
 
+spectrum += np.random.normal(0, 0.1, size=spectrum.shape)  # add noise
+
+spectrum.shape
 #%%
 
 """
@@ -64,14 +66,14 @@ num_expr.shape
 
 #%%
 fit = Fit(model, parameters, data={"b": spectrum})
-result = fit.execute()  # executiong time 117 ms
+result = fit.execute()  # execution time 117 ms
 result.parameters
 
 #%%
 
 """
 This works but is performance-wise not desirable as the MatrixNumExpr in the model is shape (100, 1) and calling it
-requires evalulating one lambdified function per matrix element.
+requires evaluating one lambdified function per matrix element.
 """
 
 #%%
@@ -98,6 +100,7 @@ for i, j in np.ndindex(x_vals.shape):
 #%%
 # plot the results
 fig, ax = pplt.subplots()
-ax.plot(wavenumber, spectrum, color="r")
-ax.plot(wavenumber, model.to_numerical()(**result.parameters)["b"], color="k", linestyle="--")
+ax.plot(wavenumber, spectrum, color="k")
+ax.plot(wavenumber, model(**result.parameters)["b"], color="r", lw=1, alpha=0.75)
+ax.format(xlabel='wavenumber', ylabel='intensity', title='Linear combination Fit')
 pplt.show()

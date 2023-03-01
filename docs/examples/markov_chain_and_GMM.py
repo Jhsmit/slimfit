@@ -1,3 +1,7 @@
+import proplot as pplt
+from sympy import Matrix, exp
+import numpy as np
+
 from slimfit.numerical import GMM
 
 from slimfit.fit import Fit
@@ -6,17 +10,12 @@ from slimfit.markov import generate_transition_matrix, extract_states
 from slimfit.minimizers import LikelihoodOptimizer
 from slimfit.models import Model
 from slimfit.operations import Mul
-from slimfit.parameter import Parameters, Parameter
+from slimfit.parameter import Parameters
 from slimfit.symbols import clear_symbols, symbol_matrix, Symbol
-
-# from slimfit.symbols import FitSymbol as Symbol
-
-from sympy import Matrix, exp
-import numpy as np
 
 #%%
 
-arr = np.genfromtxt("data/GMM_dynamics.txt")
+arr = np.genfromtxt("examples/data/GMM_dynamics.txt")
 data = {"e": arr[:, 0].reshape(-1, 1), "t": arr[:, 1]}
 
 gt_values = {
@@ -70,10 +69,6 @@ model = Model({Symbol("p"): Mul(xt @ y0, gmm)})
 parameters = Parameters.from_symbols(model.symbols, guess_values)
 
 #%%
-
-parameters
-
-#%%
 parameters.set("y0_A", lower_bound=0.0, upper_bound=1.0)  # mod? set_parameter ? modify?
 parameters.set("y0_B", lower_bound=0.0, upper_bound=1.0, fixed=True)
 
@@ -105,7 +100,7 @@ ti = np.linspace(0, 11, num=num, endpoint=True)
 ei = np.linspace(-0.1, 1.1, num=num, endpoint=True)
 
 grid = np.meshgrid(ti, ei, sparse=True)
-grid
+grid.shape
 
 # %%
 # since the `Mul` component of the model functions as a normal 'pyton' lazy multiplication,
@@ -114,8 +109,7 @@ grid
 #%%
 # timing: 1.83 ms
 data_eval = {"t": ti.reshape(-1, 1), "e": ei.reshape(-1, 1)}
-num_model = model.to_numerical()
-ans = num_model(**result.parameters, **data_eval)
+ans = model(**result.parameters, **data_eval)
 
 
 #%%
@@ -123,11 +117,9 @@ ans = num_model(**result.parameters, **data_eval)
 array = ans["p"].sum(axis=-2).squeeze()
 
 #%%
-import matplotlib.pyplot as plt
 
-fig, ax = plt.subplots()
-ax.contour(ti, ei, array.T, cmap="viridis")
-ax.scatter(data["t"], data["e"], alpha=0.2, lw=0, color="k", zorder=-10)
-ax.set_xlabel("t")
-ax.set_ylabel("e")
-plt.show()
+fig, ax = pplt.subplots()
+ax.contour(ti, ei, array.T, cmap="viridis", alpha=0.75)
+ax.scatter(data["t"], data["e"], alpha=0.3, lw=0, color="k", zorder=-10)
+ax.format(xlabel="t", ylabel="e", title="GMM dynamics")
+pplt.show()

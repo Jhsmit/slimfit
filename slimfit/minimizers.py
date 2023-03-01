@@ -238,7 +238,7 @@ class LikelihoodOptimizer(Minimizer):
             "log_likelihood": -loss,
             "n_iter": i + 1,
             "elapsed": tdelta,
-            "iter/s":  (i + 1) / tdelta,
+            "iter/s": (i + 1) / tdelta,
         }
 
         result = FitResult(

@@ -51,11 +51,11 @@ class Model(numerical.CompositeExpr):
 class Eval(numerical.CompositeExpr):
     def __init__(self, expr: Expr | numerical.NumExprBase | MatrixBase):
 
-        super().__init__({'_y': expr})
+        super().__init__({"_y": expr})
 
     def __call__(self, **kwargs):
         ans = super().__call__(**kwargs)
-        return ans['_y']
+        return ans["_y"]
 
     def to_numerical(self):
         args = (numerical.to_numerical(expr) for expr in self.values())

@@ -102,5 +102,5 @@ for i, j in np.ndindex(x_vals.shape):
 fig, ax = pplt.subplots()
 ax.plot(wavenumber, spectrum, color="k")
 ax.plot(wavenumber, model(**result.parameters)["b"], color="r", lw=1, alpha=0.75)
-ax.format(xlabel='wavenumber', ylabel='intensity', title='Linear combination Fit')
+ax.format(xlabel="wavenumber", ylabel="intensity", title="Linear combination Fit")
 pplt.show()

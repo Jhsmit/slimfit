@@ -20,7 +20,7 @@ class ParamType(Enum):
 
 @dataclass(frozen=True)
 class Parameter:
-    symbol: Expr # allow `str` after which __init___ finds the symbol?
+    symbol: Expr  # allow `str` after which __init___ finds the symbol?
     guess: float | int | np.ndarray = field(default=1.0)
     lower_bound: float | int | np.ndarray = field(default=None)
     upper_bound: float | int | np.ndarray = field(default=None)

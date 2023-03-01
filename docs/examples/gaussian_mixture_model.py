@@ -86,8 +86,8 @@ y_eval = model(**result.parameters, x=x_eval.reshape(-1, 1))["p"].squeeze()
 y_eval.shape
 #%%
 fig, ax = pplt.subplots()
-ax.hist(data['x'], bins='fd', density=True, color='grey')
+ax.hist(data["x"], bins="fd", density=True, color="grey")
 ax.plot(x_eval, y_eval)
-ax.plot(x_eval, y_eval.sum(axis=1), color='k', linestyle='--', alpha=0.75)
-ax.format(xlabel='x', ylabel='p(x)', title='GMM Likelihood Fit')
+ax.plot(x_eval, y_eval.sum(axis=1), color="k", linestyle="--", alpha=0.75)
+ax.format(xlabel="x", ylabel="p(x)", title="GMM Likelihood Fit")
 pplt.show()

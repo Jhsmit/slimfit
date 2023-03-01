@@ -72,7 +72,7 @@ num_gmm = gmm.numerical(**data, **gt)
 
 #%%
 # The model now only has amplitude parameters
-model = Model({Symbol('p'): Mul(c, num_gmm)})
+model = Model({Symbol("p"): Mul(c, num_gmm)})
 
 #%%
 symbols = get_symbols(mu, sigma, c)

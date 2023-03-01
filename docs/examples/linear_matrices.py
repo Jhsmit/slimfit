@@ -82,7 +82,7 @@ result.parameters
 m = MatMul(basis, x)
 model = Model({Symbol("b"): m})
 type(model[Symbol("b")])
-#
+
 # %%
 fit = Fit(model, parameters, data={"b": spectrum})
 result = fit.execute()  # execution time: 15.2 ms

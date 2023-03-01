@@ -12,7 +12,6 @@ pn.extension(sizing_mode="stretch_width")
 
 
 class InteractiveODE(param.Parameterized):
-
     states = param.List(doc="list of state names.")
 
     colors = param.List(doc="list of state colors.")

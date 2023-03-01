@@ -40,7 +40,6 @@ class Objective(object):
         ydata: dict[str, np.ndarray],
         negate: bool = False,
     ):
-
         self.model = model
         self.loss = loss
         self.xdata = xdata

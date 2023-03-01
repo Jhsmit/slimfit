@@ -13,7 +13,6 @@ DataType = TypeVar("DataType")
 # STRATEGY / PROTOCOL?
 # class Data(UserDict, Generic[DataType]):
 class Data(Protocol[DataType]):
-
     ...
 
     def __getitem__(self, item) -> DataType:

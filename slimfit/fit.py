@@ -37,7 +37,6 @@ class Fit:
         data: dict[str | Expr, npt.ArrayLike],
         loss: Optional[Loss] = L2Loss(),
     ) -> None:
-
         self.model = model
 
         # make a new instance such that external modification does not affect the

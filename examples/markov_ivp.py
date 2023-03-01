@@ -20,10 +20,10 @@ import numpy as np
 import proplot as pplt
 from sympy import Matrix, lambdify, exp, Symbol
 
-#%%
+# %%
 np.random.seed(43)
 
-#%%
+# %%
 # Ground truth parameter values for generating data and fitting
 gt_values = {
     "k_A_B": 1e0,
@@ -34,27 +34,27 @@ gt_values = {
     "y0_C": 0.0,
 }
 
-#%%
+# %%
 # Generate markov chain transition rate matrix from state connectivity string(s)
 connectivity = ["A <-> B -> C"]
 m = generate_transition_matrix(connectivity)
 
-#%%
+# %%
 states = extract_states(connectivity)
 
 
-#%%
+# %%
 y0 = symbol_matrix(name="y0", shape=(3, 1), suffix=states)
 model = Model({Symbol("y"): MarkovIVP(Symbol("t"), m, y0)})
 
-#%%
+# %%
 
 rate_params = Parameters.from_symbols(m.free_symbols)
 y0_params = Parameters.from_symbols(y0.free_symbols)
 
 parameters = rate_params + y0_params
 
-#%%
+# %%
 
 num = 50
 xdata = {"t": np.linspace(0, 11, num=num)}
@@ -64,7 +64,7 @@ xdata = {"t": np.linspace(0, 11, num=num)}
 populations = model(**gt_values, **xdata)["y"]
 populations.shape
 
-#%%
+# %%
 # # add noise to populations
 ydata = {"y": populations + np.random.normal(0, 0.05, size=num * 3).reshape(populations.shape)}
 ydata["y"].shape  # shape of the data is (50, 3, 1)
@@ -76,7 +76,7 @@ result = fit.execute()
 for k, v in result.parameters.items():
     print(f"{k:5}: {v:10.2}, ({gt_values[k]:10.2})")
 
-#%%
+# %%
 
 color = ["#7FACFA", "#FA654D", "#8CAD36"]
 cycle = pplt.Cycle(color=color)

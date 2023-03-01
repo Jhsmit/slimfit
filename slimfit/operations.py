@@ -77,5 +77,4 @@ class Sum(object):
         self.matrix = matrix
 
     def __call__(self, **kwargs):
-
         ...

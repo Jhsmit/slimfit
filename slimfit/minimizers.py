@@ -26,6 +26,7 @@ from slimfit.utils import get_bounds, intersecting_component_symbols
 # TODO parameter which needs to be inferred / set somehow
 STATE_AXIS = -2
 
+
 # dataclass?
 class Minimizer(metaclass=abc.ABCMeta):
     def __init__(
@@ -36,7 +37,6 @@ class Minimizer(metaclass=abc.ABCMeta):
         xdata: dict[str, np.array],
         ydata: dict[str, np.array],
     ):
-
         if not model.is_numerical():
             warnings.warn("Model is not numerical. Converting to numerical model.")
 
@@ -191,7 +191,6 @@ class LikelihoodOptimizer(Minimizer):
                     opt = GMMOptimizer(sub_model, sub_parameters, **common_kwargs)
                     parameters = opt.step()
                 else:
-
                     # Previous code:
                     # updated_parameters = [
                     #     Parameter(**(asdict(p) | {"guess": parameters_current.get(p.name) or self.fixed_parameters.guess[p.name]  }))
@@ -430,7 +429,6 @@ class ConstantOptimizer(EMOptimizer):
 
 
 class ScipyEMOptimizer(EMOptimizer):
-
     # TODO this is an abstract method
     def step(self):
         ...
@@ -485,7 +483,6 @@ class ScipyEMOptimizer(EMOptimizer):
 
     # TODO duplicate code
     def to_fitresult(self, result) -> FitResult:
-
         parameters = self.model.parameters.unpack(result.x)
 
         gof_qualifiers = {
@@ -530,7 +527,6 @@ def minfunc(
     loss: Loss,
     dependent_data: dict,  # corresponding measurements; target data
 ) -> float:
-
     parameter_values = model.parameters.unpack(x)
     predicted = model(**parameter_values)
 

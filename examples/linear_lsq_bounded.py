@@ -7,7 +7,7 @@ from slimfit.models import Model
 import numpy as np
 import proplot as pplt
 
-#%%
+# %%
 np.random.seed(43)
 
 gt = {"a": 0.5, "b": np.array([1.0, 2.0, 3.0]).reshape(3, 1)}
@@ -20,7 +20,7 @@ ydata += noise
 
 data = {"x": xdata, "y": ydata}
 
-#%%
+# %%
 
 model = Model({Symbol("y"): Symbol("a") * Symbol("x") + Symbol("b")})
 symbols = {s.name: s for s in model.symbols}
@@ -36,7 +36,7 @@ res = fit.execute()
 
 print(res.parameters)
 
-#%%
+# %%
 x_eval = np.linspace(0, 11, num=100)
 fig, ax = pplt.subplots()
 ax.scatter(xdata, ydata.T, cycle="default", s=7.5)

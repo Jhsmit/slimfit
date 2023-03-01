@@ -55,11 +55,11 @@ guess = {
     "c_C": 0.33,
 }
 
-#%%
+# %%
 clear_symbols()
 
 
-#%%
+# %%
 g_shape = (1, 3)
 c_shape = (3, 1)
 mu = symbol_matrix(name="mu", shape=g_shape, suffix=states)
@@ -70,11 +70,11 @@ gmm = GMM(Symbol("x"), mu, sigma)
 # pre-evaluate the GMM part
 num_gmm = gmm.numerical(**data, **gt)
 
-#%%
+# %%
 # The model now only has amplitude parameters
 model = Model({Symbol("p"): Mul(c, num_gmm)})
 
-#%%
+# %%
 symbols = get_symbols(mu, sigma, c)
 parameters = Parameters.from_symbols(symbols.values(), guess)
 

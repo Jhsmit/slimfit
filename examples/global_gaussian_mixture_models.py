@@ -84,7 +84,7 @@ c = symbol_matrix(name="c", shape=c_shape, suffix=states)
 model_dict[Symbol("p2")] = Mul(c, GMM(Symbol("x2"), mu, sigma))
 
 model = Model(model_dict)
-#%%
+# %%
 
 # create parameters from the symbols in the model if they are in the guess dictionary
 parameters = Parameters.from_symbols(model.symbols, guess)
@@ -95,7 +95,7 @@ result = fit.execute(minimizer=LikelihoodOptimizer)
 for k, v in result.parameters.items():
     print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")
 
-#%%
+# %%
 
 x_point = np.linspace(-0.5, 1.5, num=250).reshape(-1, 1)
 eval_data = {"x1": x_point, "x2": x_point}

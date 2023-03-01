@@ -11,7 +11,7 @@ from slimfit.fit import Fit
 from slimfit.symbols import SORT_KEY, FitSymbol, Parameter, Variable
 
 
-#%%
+# %%
 
 
 def ode(x, y):
@@ -22,10 +22,10 @@ num = 100
 t_eval = np.linspace(0.0, 25, num=num, endpoint=True)
 sol = solve_ivp(ode, (0.0, 25), np.array([-1]), t_eval=t_eval)
 
-#%%
+# %%
 data = sol.y + np.random.normal(0, 0.05, size=num)
 
-#%%
+# %%
 
 
 class IVPNumExpr(NumExprBase):
@@ -81,7 +81,7 @@ ivp = IVPNumExpr(
     domain=(0.0, 25.0),
 )
 
-#%%
+# %%
 
 model = Model({Variable("y"): ivp})
 # Fix frequency at GT value to ensure fit converges
@@ -93,7 +93,7 @@ result = fit.execute()
 
 result.parameters, result.guess
 
-#%%
+# %%
 fig, ax = pplt.subplots()
 ax.scatter(t_eval, data.T)
 ax.plot(t_eval, ivp(t=t_eval, **ivp.guess).T, color="r")

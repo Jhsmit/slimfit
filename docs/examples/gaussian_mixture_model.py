@@ -55,7 +55,7 @@ guess = {
     "c_C": 0.33,
 }
 
-#%%
+# %%
 clear_symbols()
 
 g_shape = (1, 3)
@@ -66,11 +66,11 @@ c = symbol_matrix(name="c", shape=c_shape, suffix=states)
 gmm = GMM(Symbol("x"), mu, sigma)
 model = Model({Symbol("p"): Mul(c, gmm)})
 
-#%%
+# %%
 symbols = get_symbols(mu, sigma, c)
 parameters = Parameters.from_symbols(symbols.values(), guess)
 
-#%%
+# %%
 fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
 result = fit.execute(minimizer=LikelihoodOptimizer)
 
@@ -79,12 +79,12 @@ for k, v in result.fit_parameters.items():
     print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")
 
 
-#%%
+# %%
 x_eval = np.linspace(-0.2, 1.3, num=250, endpoint=True)
 y_eval = model(**result.parameters, x=x_eval.reshape(-1, 1))["p"].squeeze()
 
 y_eval.shape
-#%%
+# %%
 fig, ax = pplt.subplots()
 ax.hist(data["x"], bins="fd", density=True, color="grey")
 ax.plot(x_eval, y_eval)

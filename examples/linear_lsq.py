@@ -6,10 +6,10 @@ from slimfit.models import Model
 import numpy as np
 import proplot as pplt
 
-#%%
+# %%
 model = Model({Symbol("y"): Symbol("a") * Symbol("x") + Symbol("b")})
 
-#%%
+# %%
 # Generate Ground-Truth data
 gt = {"a": 0.15, "b": 2.5}
 
@@ -21,20 +21,20 @@ ydata += noise
 
 DATA = {"x": xdata, "y": ydata}
 
-#%%
+# %%
 
 np.polyfit(xdata, ydata, deg=1)
 
-#%%
+# %%
 
 parameters = Parameters.from_symbols(model.symbols, "a b")
 fit = Fit(model, parameters=parameters, data=DATA)
 
-#%%
+# %%
 result = fit.execute()
 result.parameters
 #
-#%%
+# %%
 fig, ax = pplt.subplots()
 ax.scatter(DATA["x"], DATA["y"])
 ax.plot(DATA["x"], model.numerical(**result.parameters, **DATA)["y"], color="r")

@@ -75,7 +75,6 @@ def symbol_matrix(
     names: Optional[npt.ArrayLike] = None,
     suffix: Optional[npt.ArrayLike] = None,
 ) -> Matrix:
-
     if shape is None:
         if names is not None:
             shape = (len(names), 1)

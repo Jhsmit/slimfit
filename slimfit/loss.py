@@ -32,7 +32,6 @@ class Loss(object):
         weights: Optional[dict[str, npt.ArrayLike]] = None,
         reduction: Literal["mean", "sum", "concat", "none", None] = "mean",
     ):
-
         self.weights = weights
         if reduction == "mean":
             self.reduce: ReductionStrategy = mean_reduction
@@ -73,7 +72,6 @@ class L1Loss(Loss):
     def __call__(
         self, dependent_data: dict[str, np.ndarray], target_data: dict[str, np.ndarray]
     ) -> np.ndarray | float:
-
         if self.weights is None:
             residuals = {k: (target_data[k] - dependent_data[k]) for k in target_data.keys()}
         else:
@@ -89,7 +87,6 @@ class L2Loss(Loss):
     def __call__(
         self, y_data: dict[str, np.ndarray], y_model: dict[str, np.ndarray]
     ) -> np.ndarray | float:
-
         if self.weights is None:
             residuals = {k: (y_model[k] - y_data[k]) ** 2 for k in y_model.keys()}
         else:
@@ -169,7 +166,6 @@ class LogSumLoss(Loss):
     def __call__(
         self, y_data: dict[str, np.ndarray], y_model: dict[str, np.ndarray]
     ) -> np.ndarray | float:
-
         # from slimfit.minimizer import MIN_PROB
         if self.weights is None:
             log_vals = {

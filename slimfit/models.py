@@ -15,7 +15,6 @@ class Model(numerical.CompositeExpr):
         self,
         expr: dict[Symbol | str, Expr | numerical.NumExprBase | MatrixBase],
     ):
-
         # currently typing has a small problem where keys are expected to be `str`, not symbol
         super().__init__(expr)
 
@@ -50,7 +49,6 @@ class Model(numerical.CompositeExpr):
 
 class Eval(numerical.CompositeExpr):
     def __init__(self, expr: Expr | numerical.NumExprBase | MatrixBase):
-
         super().__init__({"_y": expr})
 
     def __call__(self, **kwargs):

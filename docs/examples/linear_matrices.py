@@ -15,7 +15,7 @@ In this example we have a measured spectrum which consist of a linear combinatio
 want to find the coefficients of these linear combinations. 
 """
 
-#%%
+# %%
 
 # Generate the basis vectors, modelled as gaussian peaks
 mu_vals = [1.1, 3.5, 7.2]
@@ -25,7 +25,7 @@ basis = np.stack(
     [gaussian_numpy(wavenumber, mu_i, sig_i) for mu_i, sig_i in zip(mu_vals, sigma_vals)]
 ).T
 
-#%%
+# %%
 
 # Ground-truth coefficients we want to find
 x_vals = np.array([0.3, 0.5, 0.2]).reshape(3, 1)  # unknowns
@@ -36,7 +36,7 @@ spectrum = basis @ np.array(x_vals).reshape(3, 1)
 spectrum += np.random.normal(0, 0.1, size=spectrum.shape)  # add noise
 
 spectrum.shape
-#%%
+# %%
 
 """
 The model describing the spectrum is of from Ax = b; where A is our matrix of stacked basis vectors, x is the 
@@ -45,7 +45,7 @@ coefficient vector we want to find and b is the measured spectrum.
 We can define the model in two ways: 
 """
 
-#%%
+# %%
 """
 Option 1: Create sympy Matrix with coefficients and multiply it with the array of coefficients
 """
@@ -55,7 +55,7 @@ x = symbol_matrix(name="X", shape=(3, 1))
 parameters = Parameters.from_symbols(x.free_symbols)
 x, parameters
 
-#%%
+# %%
 m = basis @ x  # Matirx multiply basis matrix with parameter vector
 model = Model(
     {Symbol("b"): basis @ x}
@@ -64,40 +64,40 @@ num_expr = model.expr[Symbol("b")]
 num_expr.shape
 
 
-#%%
+# %%
 fit = Fit(model, parameters, data={"b": spectrum})
 result = fit.execute()  # execution time 117 ms
 result.parameters
 
-#%%
+# %%
 
 """
 This works but is performance-wise not desirable as the MatrixNumExpr in the model is shape (100, 1) and calling it
 requires evaluating one lambdified function per matrix element.
 """
 
-#%%
+# %%
 
 """
 Option 2: Create a (3x1) Matrix and evaluate the matrix multiplication lazily with `MatMul`
 """
 
-#%%
+# %%
 m = MatMul(basis, x)
 model = Model({Symbol("b"): m})
 m_callable = model.expr[Symbol("b")]
 m_callable  # = MatMul object
 #
-#%%
+# %%
 fit = Fit(model, parameters, data={"b": spectrum})
 result = fit.execute()  # execution time: 15.2 ms
 
-#%%
+# %%
 for i, j in np.ndindex(x_vals.shape):
     print(x_vals[i, j], result.parameters[f"X_{i}_{j}"])
 
 
-#%%
+# %%
 # plot the results
 fig, ax = pplt.subplots()
 ax.plot(wavenumber, spectrum, color="k")

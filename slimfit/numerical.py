@@ -30,6 +30,7 @@ from slimfit.typing import Shape
 if TYPE_CHECKING:
     from slimfit import Model
 
+
 # @dataclass
 class NumExprBase(SymbolicBase):
     """Symbolic expression which allows calling cached lambified expressions
@@ -114,7 +115,6 @@ class NumExpr(NumExprBase):
         return ld
 
     def __call__(self, **kwargs: float) -> np.ndarray | float:
-
         # try:
         #     parameters: dict[str, np.ndarray | float] = {
         #         k: kwargs[k] for k in self.parameters.keys()
@@ -138,7 +138,6 @@ class MatrixNumExpr(NumExpr):
         name: Optional[str] = None,
         kind: Optional[str] = None,
     ):
-
         if not isinstance(expr, MatrixBase):
             raise TypeError("Expression must be an instance of MatrixParameter or sympy.Matrix")
         self._name = name
@@ -518,7 +517,6 @@ class MarkovIVP(CompositeExpr):
         domain: Optional[tuple[float, float]] = None,
         **ivp_kwargs,
     ):
-
         expr = {"t": t, "trs_matrix": trs_matrix, "y0": y0}
 
         super().__init__(expr)

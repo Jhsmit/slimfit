@@ -29,7 +29,6 @@ class Parameter:
     fixed: bool = field(default=False)
 
     def __post_init__(self):
-
         # If the `guess` has a shape, it must be the same as the symbol shape,
         # if it has any.
         guess_shape = getattr(self.guess, "shape", None)
@@ -94,7 +93,6 @@ class Parameters(UserList):
         symbols: Iterable[Symbol],
         parameters: dict[str, npt.ArrayLike] | Iterable[str] | str = None,
     ) -> Parameters:
-
         symbol_dict = {symbol.name: symbol for symbol in sorted(symbols, key=str)}
 
         if isinstance(parameters, str):

@@ -20,8 +20,8 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Installation: installation.md
-  - Examples:
-    - Basic Usage: examples/linear_lsq.ipynb
+  - Tutorial:
+    - Basic Usage: tutorial/basic_usage.ipynb
   - API Reference: reference/
 
 watch:

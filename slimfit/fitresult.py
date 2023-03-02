@@ -81,8 +81,11 @@ class FitResult:
         Args:
             path: Path to save to.
         """
+        try:
+            del self.model.numerical
+        except AttributeError:
+            pass
 
-        del self.model.numerical
         with Path(path).open("wb") as f:
             pickle.dump(self, f)
 

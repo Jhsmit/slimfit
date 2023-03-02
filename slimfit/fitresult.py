@@ -82,6 +82,7 @@ class FitResult:
             path: Path to save to.
         """
 
+        del self.model.numerical
         with Path(path).open("wb") as f:
             pickle.dump(self, f)
 

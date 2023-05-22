@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 # from dont_fret.em_fit.datagen import generate_dataset
-from sympy import HadamardProduct, Matrix, exp, Symbol
+from sympy import HadamardProduct, Matrix, exp, Symbol, symbols
 
 # import numpy as np
 
@@ -13,7 +13,7 @@ from slimfit.loss import LogLoss
 
 # from slimfit.markov import generate_transition_matrix, extract_states
 # from slimfit.minimizer import LikelihoodOptimizer
-from slimfit.operations import Mul, MatMul
+from slimfit.operations import Mul, MatMul, Sum, Add
 from slimfit.models import Model
 from slimfit.numerical import MatrixNumExpr, NumExpr, GMM, to_numerical, LambdaNumExpr, MarkovIVP
 from slimfit.symbols import (
@@ -198,6 +198,22 @@ class TestNumExpr(object):
 
         result = ld(a=2.0, **data)
         assert np.allclose(result, data["x"] ** 2 + 2.0)
+
+    def test_operations(self):
+        clear_symbols()
+        a, k, t, b, y = symbols('a k t b y')
+
+        guess = {'a': [[1, 2, 2.5]], 'k': [[3.0, 2.5, 1.2]], 'b': 3.}
+        parameters = Parameters.from_symbols((a, k, b), guess)
+        parameters.guess['a'] * np.arange(10).reshape(-1, 1)
+
+        model = Model({y: Add(Sum(a * exp(-k * t), axis=1), b)})
+        tdata = np.arange(10).reshape(-1, 1)
+
+        ans = model(t=tdata, **parameters.guess)['y']
+        ref = np.sum(parameters.guess['a']*np.exp(-parameters.guess['k']*tdata), axis=1) + parameters.guess['b']
+
+        assert np.allclose(ans, ref)
 
     def test_gmm(self):
         states = ["A", "B", "C"]

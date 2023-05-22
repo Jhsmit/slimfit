@@ -3,12 +3,12 @@ Model operations
 Currently only multiplications for probablities
 """
 from functools import reduce
-from operator import mul
+from operator import mul, add
 
 import numpy as np
 import numpy.typing as npt
 
-from slimfit.numerical import to_numerical, CompositeExpr
+from slimfit.numerical import to_numerical, CompositeExpr, NumExprBase
 from slimfit.parameter import Parameter
 from slimfit.typing import Shape
 
@@ -71,10 +71,35 @@ class MatMul(CompositeArgsExpr):
         return f"MatMul({args})"
 
 
-class Sum(object):
-    def __init__(self, matrix, axis=0):
-        raise NotImplementedError("not yet implemented")
-        self.matrix = matrix
+class Add(CompositeArgsExpr):
+    def __init__(self, *args):
+        super().__init__(*args)
 
-    def __call__(self, **kwargs):
-        ...
+    def __call__(self, **kwargs) -> npt.ArrayLike:
+        result = self._call(**kwargs)
+
+        return reduce(add, result.values())
+
+    def __repr__(self):
+        args = ", ".join([arg.__repr__() for arg in self.values()])
+        return f"Add({args})"
+
+
+class Sum(CompositeArgsExpr):
+    def __init__(self, expr, axis: int = 0):
+        super().__init__(expr)
+        self.axis = axis
+
+    def __call__(self, **kwargs) -> npt.ArrayLike:
+        print(self.axis)
+        return np.sum(self.expr[0](**kwargs), axis=self.axis)
+
+    def to_numerical(self):
+        args = (to_numerical(expr) for expr in self.values())
+        instance = self.__class__(*args, axis=self.axis)
+
+        return instance
+
+    @property
+    def shape(self) -> Shape:
+        return tuple(elem for i, elem in enumerate(self.expr[0].shape) if i != self.axis)

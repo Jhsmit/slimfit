@@ -1,8 +1,9 @@
-from slimfit.models import Model
+from slimfit.models import Model, Eval
 from slimfit.numerical import NumExprBase, MatrixNumExpr
 from slimfit.fit import Fit
 from slimfit.symbols import Symbol, FitSymbol
 from slimfit.parameter import Parameters, Parameter
+from slimfit.operations import Add, Mul, Sum
 
 # placeholder version number
 __version__ = "0.0.0"

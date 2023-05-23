@@ -29,6 +29,8 @@ class Parameter:
     def __post_init__(self):
         # If the `guess` has a shape, it must be the same as the symbol shape,
         # if it has any.
+        if not isinstance(self.guess, (float, int, np.ndarray)):
+            raise TypeError(f"Guess must be a float, int, or ndarray, not {type(self.guess)}")
         guess_shape = getattr(self.guess, "shape", None)
         symbol_shape = getattr(self.symbol, "shape", guess_shape)
         if guess_shape != symbol_shape:
@@ -145,6 +147,7 @@ class Parameters(UserList):
         idx = self.index(symbol_or_name)
 
         # todo sanitize kwargs
+        # todo replace
         self[idx] = Parameter(**(asdict(self[idx]) | kwargs))
 
         return self

@@ -55,6 +55,9 @@ class Eval(numerical.CompositeExpr):
         ans = super().__call__(**kwargs)
         return ans["_y"]
 
+    def __repr__(self) -> str:
+        return f"Eval({self.expr['_y'].__repr__()})"
+
     def to_numerical(self):
         args = (numerical.to_numerical(expr) for expr in self.values())
         instance = self.__class__(*args)

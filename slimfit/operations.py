@@ -39,7 +39,7 @@ class Mul(CompositeArgsExpr):
 
         return reduce(mul, result.values())
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         args = ", ".join([arg.__repr__() for arg in self.values()])
         return f"Mul({args})"
 
@@ -66,12 +66,15 @@ class MatMul(CompositeArgsExpr):
     def shape(self) -> Shape:
         raise NotImplementedError()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         args = ", ".join([arg.__repr__() for arg in self.values()])
         return f"MatMul({args})"
 
 
 class Add(CompositeArgsExpr):
+    # TODO add flattening
+    # identify removing / term sorting?
+
     def __init__(self, *args):
         super().__init__(*args)
 
@@ -80,7 +83,7 @@ class Add(CompositeArgsExpr):
 
         return reduce(add, result.values())
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         args = ", ".join([arg.__repr__() for arg in self.values()])
         return f"Add({args})"
 
@@ -93,6 +96,10 @@ class Sum(CompositeArgsExpr):
     def __call__(self, **kwargs) -> npt.ArrayLike:
         print(self.axis)
         return np.sum(self.expr[0](**kwargs), axis=self.axis)
+
+    def __repr__(self) -> str:
+        args = ", ".join([arg.__repr__() for arg in self.values()])
+        return f"Sum({args})"
 
     def to_numerical(self):
         args = (to_numerical(expr) for expr in self.values())

@@ -100,7 +100,12 @@ class Parameters(UserList):
         elif isinstance(parameters, list):
             p_list = [Parameter(symbol_dict[k]) for k in parameters]
         elif isinstance(parameters, dict):
-            p_list = [Parameter(symbol_dict[k], guess=v) for k, v in parameters.items()]
+            p_list = []
+            for k, v in parameters.items():
+                if isinstance(v, (float, int)):
+                    p_list.append(Parameter(symbol_dict[k], guess=v))
+                else:
+                    p_list.append(Parameter(symbol_dict[k], guess=np.array(v)))
         elif parameters is None:
             p_list = [Parameter(symbol) for symbol in symbol_dict.values()]
         else:

@@ -125,6 +125,14 @@ class Parameters(UserList):
         else:
             return self._names.index(item, *args)
 
+    def get(self, symbol_or_name: Symbol | str) -> Optional[Parameter]:
+        """Returns the parameter with the given symbol or name, or None if not found."""
+
+        try:
+            return self[self.index(symbol_or_name)]
+        except KeyError:
+            return None
+
     def set(self, symbol_or_name: Symbol | str, **kwargs) -> Parameters:
         """
         Set attributes of a parameter in-place.
@@ -143,8 +151,26 @@ class Parameters(UserList):
 
         return self
 
+    def replace(self, symbol_or_name: Symbol | str, **kwargs) -> Parameters:
+        """
+        Replace a parameter fields and create a new `Parameters` object .
+
+        Args:
+            symbol_or_name: Symbol or name of the parameter to replace.
+            **kwargs: Additional keyword arguments to set on the parameter.
+
+        Returns:
+            New parameters object with replaced Parameter object.
+        """
+        idx = self.index(symbol_or_name)
+
+        new_parameters = Parameters(self)
+        new_parameters[idx] = replace(self[idx], **kwargs)
+
+        return new_parameters
+
     def update_guess(self, guess: dict[str | Symbol, np.ndarray | float]) -> Parameters:
-        """returns a new parameters object where"""
+        """returns a new parameters object where guesses are updated"""
 
         p_out = Parameters(self)
         for identifier, value in guess.items():

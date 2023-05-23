@@ -94,7 +94,6 @@ class Sum(CompositeArgsExpr):
         self.axis = axis
 
     def __call__(self, **kwargs) -> npt.ArrayLike:
-        print(self.axis)
         return np.sum(self.expr[0](**kwargs), axis=self.axis)
 
     def __repr__(self) -> str:

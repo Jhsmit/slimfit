@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from collections import UserDict, UserList
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field, asdict, replace
 from enum import Enum
 from functools import cached_property
 from typing import Iterable, Optional
@@ -24,8 +24,6 @@ class Parameter:
     guess: float | int | np.ndarray = field(default=1.0)
     lower_bound: float | int | np.ndarray = field(default=None)
     upper_bound: float | int | np.ndarray = field(default=None)
-    # TODO partially fixing an array parameter is not supported
-    # perhaps users should use Matrix instead if they want this type of functionality
     fixed: bool = field(default=False)
 
     def __post_init__(self):

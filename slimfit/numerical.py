@@ -386,6 +386,7 @@ class CompositeExpr(SymbolicBase):
     def to_numerical(self):
         num_expr = {str(k): to_numerical(expr) for k, expr in self.items()}
 
+        #TODO **unpack
         instance = self.__class__(num_expr)
         return instance
 

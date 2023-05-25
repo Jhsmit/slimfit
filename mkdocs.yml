@@ -34,6 +34,7 @@ nav:
       - GMM amplitudes: examples/gmm_amplitudes.py
       - Markov chain: examples/markov_chain.py
       - Markov and GMM: examples/markov_chain_and_GMM.py
+      - Custom numerical expressions: examples/custom_numexpr_ivp.py
   - Reference:
       - Structure: structure.md
       - API: reference/

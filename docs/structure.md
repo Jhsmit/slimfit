@@ -18,4 +18,6 @@ CompositeExpr --> MarkovIVP;
 CompositeExpr --> CompositeArgsExpr;
 CompositeArgsExpr --> MatMul;
 CompositeArgsExpr --> Mul;
+CompositeArgsExpr --> Sum;
+CompositeArgsExpr --> Add;
 ```

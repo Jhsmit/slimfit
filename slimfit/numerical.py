@@ -361,9 +361,13 @@ class CompositeExpr(SymbolicBase):
     def is_numerical(self) -> bool:
         """Returns `True` if all expressions are numerical expressions."""
         for v in self.values():
-            if isinstance(v, (Expr, MatrixBase)):
+            # this should check for all base (non-composite) classes which are allowed and
+            # can be converted to numerical
+            # todo list this globally and check for this at init time
+            if isinstance(v, (Expr, MatrixBase, HadamardProduct, np.ndarray)):
                 return False
             if isinstance(v, CompositeExpr):
+                # recursively check if composite parts are numerical
                 return v.is_numerical()
         return True
 
@@ -601,7 +605,6 @@ def to_numerical(
     #     return NumericalModel(model_dict, parameters, data)
     if isinstance(expression, HadamardProduct):
         from slimfit.operations import Mul
-
         return Mul(*(to_numerical(arg) for arg in expression.args))
     elif isinstance(expression, MatrixBase):
         return MatrixNumExpr(expression)

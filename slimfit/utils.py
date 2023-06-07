@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Iterable, Optional, OrderedDict, Any
+from typing import Iterable, Optional, OrderedDict, Any, Union
 
 import numpy as np
 from sympy import Symbol
@@ -113,3 +113,35 @@ def clean_types(d: Any) -> Any:
 
     else:
         return d
+
+
+def format_indexer(indexer: Union[tuple, slice, int, None, Ellipsis]) -> str:
+    """Format a tuple of slice objects into a string that can be used to index a numpy array.
+
+    More or less the inverse of `numpy.index_exp`.
+
+
+    Args:
+        indexer: Tuple of indexing objects.
+
+    """
+    if isinstance(indexer, tuple):
+        return f"[{', '.join(format_indexer(sl) for sl in indexer)}]"
+    if isinstance(indexer, int):
+        return str(indexer)
+    elif isinstance(indexer, slice):
+        # adapted from
+        # https://stackoverflow.com/questions/24662999/how-do-i-convert-a-slice-object-to-a-string-that-can-go-in-brackets
+        sl_start = "" if indexer.start is None else str(indexer.start)
+        sl_stop = "" if indexer.stop is None else str(indexer.stop)
+        if indexer.step is None:
+            sl_str = "%s:%s" % (sl_start, sl_stop)
+        else:
+            sl_str = "%s:%s:%s" % (sl_start, sl_stop, indexer.step)
+        return sl_str
+    elif isinstance(indexer, type(None)):
+        return 'None'
+    elif isinstance(indexer, type(Ellipsis)):
+        return '...'
+    else:
+        raise TypeError(f"Unexpected type: {type(indexer)}")

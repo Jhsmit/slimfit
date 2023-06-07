@@ -2,11 +2,14 @@
 Model operations
 Currently only multiplications for probablities
 """
+from __future__ import annotations
+
 from functools import reduce
 from operator import mul, add
 
 import numpy as np
 import numpy.typing as npt
+from typing import Union
 
 from slimfit.numerical import to_numerical, CompositeExpr, NumExprBase
 from slimfit.parameter import Parameter
@@ -109,3 +112,22 @@ class Sum(CompositeArgsExpr):
     @property
     def shape(self) -> Shape:
         return tuple(elem for i, elem in enumerate(self.expr[0].shape) if i != self.axis)
+
+
+class Indexer(CompositeArgsExpr):
+    def __init__(self, expr, indexer:  Union[tuple, slice, int]):
+        super().__init__(expr)
+        self.indexer = indexer
+
+    def __call__(self, **kwargs):
+        result = super().__call__(**kwargs)
+        return result[0][self.indexer]
+
+    def to_numerical(self) -> Indexer:
+        # generalize this (see also Sum)
+        args = (to_numerical(expr) for expr in self.values())
+        return Indexer(*args, self.indexer)
+
+    def __repr__(self) -> str:
+        return self.expr[0].__repr__() + format_indexer(self.indexer)
+

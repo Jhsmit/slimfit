@@ -129,5 +129,18 @@ class Indexer(CompositeArgsExpr):
         return Indexer(*args, self.indexer)
 
     def __repr__(self) -> str:
-        return self.expr[0].__repr__() + format_indexer(self.indexer)
+        from slimfit.utils import format_indexer
+        idx_fmt = format_indexer(self.indexer if isinstance(self.indexer, tuple) else (self.indexer,))
+        return self.expr[0].__repr__() + idx_fmt
 
+
+class Transpose(CompositeArgsExpr):
+    def __init__(self, expr):
+        super().__init__(expr)
+
+    def __call__(self, **kwargs):
+        result = super().__call__(**kwargs)
+        return result[0].T
+
+    def __repr__(self) -> str:
+        return f"{self.expr[0].__repr__()}.T"

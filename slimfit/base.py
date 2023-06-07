@@ -32,6 +32,15 @@ class SymbolicBase(metaclass=abc.ABCMeta):
         """
         return Parameters([p for p in parameters if p.symbol in self.symbols])
 
+    @property
+    def T(self):
+        from slimfit.operations import Transpose
+        return Transpose(self)
+
+    def __getitem__(self, item):
+        from slimfit.operations import Indexer
+        return Indexer(self, item)
+
     # @property
     # @abc.abstractmethod
     # def shape(self) -> tuple:

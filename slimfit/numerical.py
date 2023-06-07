@@ -356,7 +356,10 @@ class CompositeExpr(SymbolicBase):
         return self._call(**kwargs)
 
     def __getitem__(self, item) -> NumExprBase | Expr:
-        return self.expr.__getitem__(item)
+        if isinstance(item, str):
+            return self.expr.__getitem__(item)
+        else:
+            return super().__getitem__(item)
 
     def is_numerical(self) -> bool:
         """Returns `True` if all expressions are numerical expressions."""

@@ -115,7 +115,7 @@ def clean_types(d: Any) -> Any:
         return d
 
 
-def format_indexer(indexer: Union[tuple, slice, int, None, Ellipsis]) -> str:
+def format_indexer(indexer: tuple[slice, int, None, Ellipsis]) -> str:
     """Format a tuple of slice objects into a string that can be used to index a numpy array.
 
     More or less the inverse of `numpy.index_exp`.
@@ -125,8 +125,11 @@ def format_indexer(indexer: Union[tuple, slice, int, None, Ellipsis]) -> str:
         indexer: Tuple of indexing objects.
 
     """
-    if isinstance(indexer, tuple):
-        return f"[{', '.join(format_indexer(sl) for sl in indexer)}]"
+
+    return f"[{', '.join(_format_indexer(sl) for sl in indexer)}]"
+
+
+def _format_indexer(indexer: Union[slice, int, None, Ellipsis]) -> str:
     if isinstance(indexer, int):
         return str(indexer)
     elif isinstance(indexer, slice):

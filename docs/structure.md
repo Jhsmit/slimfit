@@ -7,7 +7,6 @@ graph LR;
 SymbolicBase --> NumExprBase;
 SymbolicBase --> CompositeExpr;
 NumExprBase --> DummyNumExpr;
-DummyNumExpr --> ArrayNumExpr;
 NumExprBase --> NumExpr;
 NumExprBase --> LambdaNumExpr;
 NumExpr --> MatrixNumExpr;

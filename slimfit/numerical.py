@@ -67,6 +67,7 @@ class DummyNumExpr(NumExprBase):
     """
 
     def __init__(self, obj: Any, *args, **kwargs):
+        #
         super().__init__(*args, **kwargs)
         self.obj = obj
 
@@ -77,11 +78,12 @@ class DummyNumExpr(NumExprBase):
     def symbols(self) -> set[Symbol]:
         return set()
 
-
-class ArrayNumExpr(DummyNumExpr):
     @property
     def shape(self) -> Shape:
-        return self.obj.shape
+        try:
+            return self.obj.shape
+        except AttributeError:
+            return ()
 
 
 # TODO frozen dataclass?

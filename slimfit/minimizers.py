@@ -176,7 +176,7 @@ class LikelihoodOptimizer(Minimizer):
             for sub_model in sub_models:
                 # At the moment we assume all callables in the sub models to be MatrixCallables
                 # determine the kind
-                kinds = [c.kind for c in sub_model.values()]
+                kinds = [getattr(c, 'kind', None) for c in sub_model.values()]
                 # Filter the general list of parameters to reduce it down to the parameters
                 # this model accepts
                 # the sub model also needs to the fixed parameters to correctly be able to

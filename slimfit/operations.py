@@ -11,23 +11,9 @@ import numpy as np
 import numpy.typing as npt
 from typing import Union
 
-from slimfit.numerical import to_numerical, CompositeExpr, NumExprBase
-from slimfit.parameter import Parameter
+from slimfit.base import CompositeArgsExpr
+from slimfit.numerical import to_numerical
 from slimfit.typing import Shape
-
-
-class CompositeArgsExpr(CompositeExpr):
-    """Composite expr which takes *args to init rather than dictionary of expressions"""
-
-    def __init__(self, *args):
-        expr = {i: arg for i, arg in enumerate(args)}
-        super().__init__(expr)
-
-    def to_numerical(self):
-        args = (to_numerical(expr) for expr in self.values())
-        instance = self.__class__(*args)
-
-        return instance
 
 
 class Mul(CompositeArgsExpr):
@@ -134,13 +120,13 @@ class Indexer(CompositeArgsExpr):
         return self.expr[0].__repr__() + idx_fmt
 
 
-class Transpose(CompositeArgsExpr):
-    def __init__(self, expr):
-        super().__init__(expr)
-
-    def __call__(self, **kwargs):
-        result = super().__call__(**kwargs)
-        return result[0].T
-
-    def __repr__(self) -> str:
-        return f"{self.expr[0].__repr__()}.T"
+# class Transpose(CompositeArgsExpr):
+#     def __init__(self, expr):
+#         super().__init__(expr)
+#
+#     def __call__(self, **kwargs):
+#         result = super().__call__(**kwargs)
+#         return result[0].T
+#
+#     def __repr__(self) -> str:
+#         return f"{self.expr[0].__repr__()}.T"

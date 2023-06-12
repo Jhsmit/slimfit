@@ -6,14 +6,15 @@ from typing import Union, ItemsView, ValuesView, KeysView, Optional
 import numpy.typing as npt
 from sympy import Expr, MatrixBase, Symbol
 
+import slimfit.base
 import slimfit.numerical as numerical
 from slimfit.parameter import Parameters
 
 
-class Model(numerical.CompositeExpr):
+class Model(slimfit.base.CompositeExpr):
     def __init__(
         self,
-        expr: dict[Symbol | str, Expr | numerical.NumExprBase | MatrixBase],
+        expr: dict[Symbol | str, Expr | slimfit.base.NumExprBase | MatrixBase],
     ):
         # currently typing has a small problem where keys are expected to be `str`, not symbol
         super().__init__(expr)
@@ -35,7 +36,7 @@ class Model(numerical.CompositeExpr):
         return {symbol.name: symbol for symbol in self.expr.keys()}
 
     @property
-    def components(self) -> dict[str, numerical.NumExprBase]:
+    def components(self) -> dict[str, slimfit.base.NumExprBase]:
         """all NumExprBase components in the model
         keys should be such that their commectivity can be reconstructed ?
         ie {Mul[0]MatMul[1]: <component> ...}
@@ -47,8 +48,8 @@ class Model(numerical.CompositeExpr):
         # return {symbol.name: expr for symbol, expr in self.expr.items()}
 
 
-class Eval(numerical.CompositeExpr):
-    def __init__(self, expr: Expr | numerical.NumExprBase | MatrixBase):
+class Eval(slimfit.base.CompositeExpr):
+    def __init__(self, expr: Expr | slimfit.base.NumExprBase | MatrixBase):
         super().__init__({"_y": expr})
 
     def __call__(self, **kwargs):

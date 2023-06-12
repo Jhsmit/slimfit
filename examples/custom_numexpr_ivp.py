@@ -17,7 +17,8 @@ from sympy import Symbol, Expr, symbols
 
 from slimfit import Model, Parameters
 from slimfit.fit import Fit
-from slimfit.numerical import CompositeExpr, NumExpr, to_numerical
+from slimfit.numerical import NumExpr, to_numerical
+from slimfit.base import CompositeExpr
 
 
 #%%

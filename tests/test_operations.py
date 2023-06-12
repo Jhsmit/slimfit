@@ -3,6 +3,7 @@ from sympy import Symbol
 from slimfit.numerical import NumExpr
 from slimfit.operations import Indexer, Add
 from slimfit.utils import format_indexer
+import slimfit.np_funcs as npf
 import numpy as np
 
 
@@ -43,6 +44,24 @@ def test_transpose():
     expr = NumExpr(Symbol('a') + Symbol('b'))
 
     assert np.allclose(expr.T(a=a, b=b), (a + b).T)
+
+
+def test_ufuncs():
+    a = np.random.rand(10, 2)
+    b = np.random.rand(10, 2)
+    bools = b > 0.5
+
+    assert np.allclose(npf.maximum(a, b)(), np.maximum(a, b))
+    assert np.allclose(npf.transpose(a)(), np.transpose(a))
+    assert np.allclose(npf.expand_dims(a, axis=1)(), np.expand_dims(a, axis=1))
+    assert np.allclose(npf.greater(a, b)(), np.greater(a, b))
+
+    assert np.allclose(npf.arcsin(a)(), np.arcsin(a))
+    assert np.allclose(npf.sin(a, where=bools, out=np.zeros_like(a))(), np.sin(a, where=bools, out=np.zeros_like(a)))
+
+    assert np.allclose(npf.expand_dims(a, axis=1)(), np.expand_dims(a, axis=1))
+    assert npf.expand_dims(a, axis=1)().shape == (10, 1, 2)
+
 
 
 #%%

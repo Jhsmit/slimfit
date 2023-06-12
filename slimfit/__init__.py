@@ -1,5 +1,6 @@
 from slimfit.models import Model, Eval
-from slimfit.numerical import NumExprBase, MatrixNumExpr
+from slimfit.numerical import MatrixNumExpr
+from .base import NumExprBase
 from slimfit.fit import Fit
 from slimfit.symbols import Symbol, FitSymbol
 from slimfit.parameter import Parameters, Parameter

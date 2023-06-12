@@ -1,64 +1,27 @@
 from __future__ import annotations
 
-import itertools
-from functools import cached_property, reduce
-from operator import or_
+from functools import cached_property
 from typing import (
     Union,
     Callable,
     Optional,
     Any,
-    Mapping,
     Iterable,
     TYPE_CHECKING,
-    KeysView,
-    ItemsView,
-    ValuesView,
 )
 
 import numpy as np
 from scipy.integrate import solve_ivp
 from sympy import Expr, MatrixBase, lambdify, HadamardProduct, Matrix, Symbol
 
-from slimfit.base import SymbolicBase
+from slimfit.base import CompositeExpr, NumExprBase
 
 # from slimfit.base import SymbolicBase
-from slimfit.parameter import Parameters, Parameter
-from slimfit.symbols import FitSymbol
 from slimfit.typing import Shape
 
 if TYPE_CHECKING:
     from slimfit import Model
 
-
-# @dataclass
-class NumExprBase(SymbolicBase):
-    """Symbolic expression which allows calling cached lambified expressions
-    subclasses must implement `symbols` attribute / property
-    """
-
-    # def __init__(
-    #     self,
-    # ):
-    #
-    #     # Accepted parameters are a subset of `symbols`
-    #     # #todo property with getter / setter where setter filters parameters?
-    #     # self.parameters = Parameters({name: p for name, p in parameters.items() if name in self.symbols})
-
-    @property
-    def shape(self) -> Shape:
-        shapes = self.shapes.values()
-
-        return np.broadcast_shapes(*shapes)
-
-    def parse_kwargs(self, **kwargs) -> dict[str, np.ndarray]:
-        """Parse kwargs and take only the ones in `free_parameters`"""
-        try:
-            arguments: dict[str, np.ndarray | float] = {k: kwargs[k] for k in self.symbol_names}
-        except KeyError as e:
-            raise KeyError(f"Missing value for {e}") from e
-
-        return arguments
 
 
 class DummyNumExpr(NumExprBase):
@@ -327,123 +290,6 @@ class LambdaNumExpr(NumExprBase):
         return self.func(**self.parse_kwargs(**kwargs))
 
 
-# refactor to Hybrid ?
-class CompositeExpr(SymbolicBase):
-    """"""
-
-    def __init__(
-        self,
-        expr: dict[str | NumExprBase | Expr | CompositeExpr | MatrixBase | np.ndarray, float],
-    ):
-        if not isinstance(expr, dict):
-            raise TypeError(f"{self.__class__.__name__} must be initialized with a dict.")
-        # for v in expr.values():
-        #     if not isinstance(v, (NumExprBase, Expr, CompositeExpr, MatrixBase)):
-        #         raise TypeError(f"Invalid type in expr dict: {v!r}.")
-
-        self.expr = expr
-
-        if self.is_numerical():
-            self._call = self._numerical_call
-        else:
-            self._call = self._symbolic_call
-
-    def _numerical_call(self, **kwargs):
-        return {expr_name: expr(**kwargs) for expr_name, expr in self.expr.items()}
-
-    def _symbolic_call(self, **kwargs):
-        return self.numerical._call(**kwargs)
-
-    def __call__(self, **kwargs) -> dict[str, np.ndarray]:
-        return self._call(**kwargs)
-
-    def __getitem__(self, item) -> NumExprBase | Expr:
-        if isinstance(item, str):
-            return self.expr.__getitem__(item)
-        else:
-            return super().__getitem__(item)
-
-    def is_numerical(self) -> bool:
-        """Returns `True` if all expressions are numerical expressions."""
-        for v in self.values():
-            # this should check for all base (non-composite) classes which are allowed and
-            # can be converted to numerical
-            # todo list this globally and check for this at init time
-            if isinstance(v, (Expr, MatrixBase, HadamardProduct, np.ndarray)):
-                return False
-            if isinstance(v, CompositeExpr):
-                # recursively check if composite parts are numerical
-                return v.is_numerical()
-        return True
-
-    @cached_property
-    def numerical(self) -> Optional[CompositeExpr]:
-        if self.is_numerical():
-            return self
-        else:
-            return self.to_numerical()
-
-    def keys(self) -> KeysView[str]:
-        return self.expr.keys()
-
-    def values(self) -> ValuesView[NumExprBase, Expr]:
-        return self.expr.values()
-
-    def items(self) -> ItemsView[str, NumExprBase, Expr]:
-        return self.expr.items()
-
-    def to_numerical(self):
-        num_expr = {str(k): to_numerical(expr) for k, expr in self.items()}
-
-        #TODO **unpack
-        instance = self.__class__(num_expr)
-        return instance
-
-    @cached_property
-    def symbols(self) -> set[Symbol]:
-        """Return symbols in the CompositeNumExpr.
-        sorting is by dependent_variables, variables, parameters, then by alphabet
-        """
-
-        # this fails because `free_symbols` is a dict on NumExpr but `set` on Expr
-
-        symbols = set()
-        for rhs in self.values():
-            if isinstance(rhs, (Expr, MatrixBase)):
-                symbols |= rhs.free_symbols
-            else:
-                try:
-                    symbols |= set(rhs.symbols)
-                except AttributeError:
-                    # RHS doesnt have any symbols; for example might be a numpy array
-                    pass
-
-            # symbols = getattr(rhs, 'free_symbols')
-            # try:
-            #     # rhs is a sympy `Expr` and has `free_symbols` as a set
-            #     symbols |= rhs.free_symbols
-            # except TypeError:
-            #     # rhs is a slimfit `NumExpr`
-            #     symbols |= set(rhs.symbols)
-            # except AttributeError:
-            #     # RHS doesnt have any symbols; for example might be a numpy array
-            #     pass
-        return symbols
-
-    @property
-    def shapes(self) -> dict[str, Shape]:
-        """shapes of symbols"""
-        return reduce(or_(expr.shapes for expr in self.expr.values()))
-
-    @property
-    def shape(self) -> Shape:
-        """
-        Base class shape is obtained from broadcasting all expressing values together
-        """
-        shapes = (expr.shape for expr in self.values())
-        return np.broadcast_shapes(*shapes)
-
-
 class GMM(CompositeExpr):
     # todo can also be implemented as normal NumExpr but with broadcasting parameter shapes
     # important is that GMM class allows users to find oud positions of parmaeters in mu / sigma
@@ -599,7 +445,6 @@ def to_numerical(
     the parameters
 
     """
-    from slimfit.models import Model
 
     if hasattr(expression, "to_numerical"):
         return expression.to_numerical()
@@ -616,7 +461,7 @@ def to_numerical(
     elif isinstance(expression, Expr):
         return NumExpr(expression)
     elif isinstance(expression, np.ndarray):
-        return ArrayNumExpr(expression)
+        return DummyNumExpr(expression)
     elif isinstance(expression, NumExprBase):
         return expression
     else:

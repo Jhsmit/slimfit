@@ -24,7 +24,7 @@ DATA = {"x": xdata, "y": ydata}
 
 fit = Fit(model, parameters=parameters, data=DATA)
 result = fit.execute()
-print(result.parameters)
+print(result)
 
 #%%
 fig, ax = pplt.subplots()

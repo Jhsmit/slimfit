@@ -29,6 +29,10 @@ fit = Fit(model, parameters, data={"x": xdata}, loss=LogLoss())
 # execution time: 12.5ms
 result = fit.execute()
 
+#%%
+
+print(result)
+
 # %%
 data = {"x": np.linspace(0.0, 5.0, num=100)}
 

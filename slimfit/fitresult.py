@@ -4,17 +4,21 @@ import os
 import pickle
 from dataclasses import dataclass, field
 from datetime import datetime
+from functools import cached_property
 from pathlib import Path
 from typing import Optional, Any, Union
 
 import numpy as np
+import numdifftools as nd
 import yaml
 
 from slimfit import Model
+from slimfit.loss import Loss
+from slimfit.objective import Objective, pack, unpack
 from slimfit.utils import clean_types
 
 
-@dataclass
+@dataclass(frozen=True)
 class FitResult:
     """
     Fit result object.
@@ -35,6 +39,10 @@ class FitResult:
     model: Optional[Model] = None
     """The fitted model"""
 
+    objective: Optional[Objective] = None
+
+    loss: Optional[Loss] = None
+
     data: Optional[dict] = field(default=None, repr=False)
     """Data on which the fit was performed"""
 
@@ -49,6 +57,27 @@ class FitResult:
             now = datetime.now()
             self.metadata["datetime"] = now.strftime("%Y/%m/%d %H:%M:%S")
             self.metadata["timestamp"] = int(now.timestamp())
+
+    def __str__(self):
+        s = ""
+        try:
+            stdev = self.stdev
+        except ValueError:
+            stdev = {}
+
+        p_size = max(len(k) for k in self.fit_parameters)
+        if stdev:
+            s += f"{'Parameter':<{p_size}} {'Value':>10} {'Stdv':>10}\n"
+        else:
+            s += f"{'Parameter':<{p_size}} {'Value':>10}\n"
+
+        for k, v in self.fit_parameters.items():
+            s += f"{k:<{max(p_size, 9)}} {v:>10.3g}"
+            if stdev:
+                s += f" {stdev[k]:>10.3g}"
+            s += "\n"
+
+        return s
 
     def to_dict(self) -> dict:
         """
@@ -95,6 +124,31 @@ class FitResult:
         kwargs = self.parameters | data | kwargs
 
         return self.model(**kwargs)
+
+    @cached_property
+    def hess(self) -> np.ndarray:
+        if self.objective is None:
+            raise ValueError("No objective found")
+        parameter_shapes = {k: v.shape for k, v in self.fit_parameters.items()}
+
+        if list(parameter_shapes.items()) != list(self.objective.shapes.items()):
+            raise ValueError("Mismatch between objective and fit parameters")
+
+        # packed parameter values at minium
+        sol = pack(self.fit_parameters.values())
+
+        return nd.Hessian(self.objective)(sol)
+
+    @property
+    def variance(self) -> dict[str, float | np.ndarray]:
+        hess_inv = np.linalg.inv(self.hess)
+        var = np.diag(hess_inv)
+        parameter_shapes = {k: v.shape for k, v in self.fit_parameters.items()}
+        return unpack(var, parameter_shapes)
+
+    @property
+    def stdev(self) -> dict[str, float | np.ndarray]:
+        return {k: np.sqrt(v) for k, v in self.variance.items()}
 
     @property
     def parameters(self) -> dict[str, float | np.ndarray]:

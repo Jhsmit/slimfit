@@ -37,9 +37,6 @@ class Minimizer(metaclass=abc.ABCMeta):
         xdata: dict[str, np.array],
         ydata: dict[str, np.array],
     ):
-        if not model.is_numerical():
-            warnings.warn("Model is not numerical. Converting to numerical model.")
-
         self.model = model
         self.loss = loss
         self.xdata = xdata
@@ -87,7 +84,7 @@ class ScipyMinimizer(Minimizer):
         param_shapes = {p.name: p.shape for p in self.free_parameters}
 
         objective = ScipyObjective(
-            model=self.model,
+            model=self.model.numerical,
             loss=self.loss,
             xdata=self.xdata | self.fixed_parameters.guess,
             ydata=self.ydata,
@@ -110,6 +107,9 @@ class ScipyMinimizer(Minimizer):
             fixed_parameters=self.fixed_parameters.guess,
             gof_qualifiers=gof_qualifiers,
             guess=self.free_parameters.guess,
+            model=self.model,
+            objective=objective,
+            loss=self.loss,
             base_result=result,
         )
 

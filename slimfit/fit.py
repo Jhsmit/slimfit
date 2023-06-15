@@ -74,12 +74,12 @@ class Fit:
 
         minimizer_cls = minimizer or self.get_minimizer()
         minimizer_instance = minimizer_cls(
-            self.model.numerical, self.parameters, self.loss, self.xdata, self.ydata
+            self.model, self.parameters, self.loss, self.xdata, self.ydata
         )
 
         result = minimizer_instance.execute(**execute_options)
 
-        result.model = self.model
+        # result.model = self.model
 
         return result
 

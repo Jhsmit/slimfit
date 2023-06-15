@@ -5,6 +5,7 @@ Fitting of Markov chain process solved by matrix exponentiation.
 from typing import Callable, Optional
 
 from slimfit.fit import Fit
+from slimfit.loss import SELoss
 from slimfit.markov import generate_transition_matrix, extract_states
 from slimfit.numerical import MarkovIVP
 from slimfit.parameter import Parameters
@@ -71,7 +72,14 @@ ydata["y"].shape  # shape of the data is (50, 3, 1)
 # %%
 # fit the model to the data
 fit = Fit(model, parameters, data={**xdata, **ydata})
-result = fit.execute()
+result = fit.execute(loss=SELoss(reduction='mean'))
+
+#%%
+print(result)
+
+#%%
+
+result.hess
 
 # %%
 # Compare fit result with ground truth parameters

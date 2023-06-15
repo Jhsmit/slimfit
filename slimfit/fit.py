@@ -8,7 +8,7 @@ import numpy.typing as npt
 from sympy import Expr
 
 from slimfit.fitresult import FitResult
-from slimfit.loss import L2Loss, LogLoss, Loss
+from slimfit.loss import SELoss, LogLoss, Loss
 from slimfit.minimizers import ScipyMinimizer, Minimizer
 from slimfit.models import Model
 from slimfit.numerical import to_numerical
@@ -35,7 +35,7 @@ class Fit:
         model: Model,
         parameters: list[Parameter] | Parameters,
         data: dict[str | Expr, npt.ArrayLike],
-        loss: Optional[Loss] = L2Loss(),
+        loss: Optional[Loss] = SELoss(),
     ) -> None:
         self.model = model
 
@@ -92,4 +92,4 @@ class Fit:
         if self.model.probabilistic:
             return LogLoss(**kwargs)
         else:
-            return L2Loss(**kwargs)
+            return SELoss(**kwargs)

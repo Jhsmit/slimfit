@@ -1,20 +1,12 @@
 from pathlib import Path
 
 import pytest
-
-# from dont_fret.em_fit.datagen import generate_dataset
 from sympy import HadamardProduct, Matrix, exp, Symbol, symbols
-
-# import numpy as np
-
 from slimfit.fit import Fit
 from slimfit.functions import gaussian, gaussian_sympy, gaussian_numpy
-from slimfit.loss import LogLoss
-
-# from slimfit.markov import generate_transition_matrix, extract_states
-# from slimfit.minimizer import LikelihoodOptimizer
+from slimfit.loss import LogLoss, SELoss
 from slimfit.operations import Mul, MatMul, Sum, Add
-from slimfit.models import Model
+from slimfit.models import Eval, Model
 from slimfit.numerical import MatrixNumExpr, NumExpr, GMM, to_numerical, LambdaNumExpr, MarkovIVP
 from slimfit.symbols import (
     symbol_matrix,
@@ -201,17 +193,20 @@ class TestNumExpr(object):
 
     def test_operations(self):
         clear_symbols()
-        a, k, t, b, y = symbols('a k t b y')
+        a, k, t, b, y = symbols("a k t b y")
 
-        guess = {'a': [[1, 2, 2.5]], 'k': [[3.0, 2.5, 1.2]], 'b': 3.}
+        guess = {"a": [[1, 2, 2.5]], "k": [[3.0, 2.5, 1.2]], "b": 3.0}
         parameters = Parameters.from_symbols((a, k, b), guess)
-        parameters.guess['a'] * np.arange(10).reshape(-1, 1)
+        parameters.guess["a"] * np.arange(10).reshape(-1, 1)
 
         model = Model({y: Add(Sum(a * exp(-k * t), axis=1), b)})
         tdata = np.arange(10).reshape(-1, 1)
 
-        ans = model(t=tdata, **parameters.guess)['y']
-        ref = np.sum(parameters.guess['a']*np.exp(-parameters.guess['k']*tdata), axis=1) + parameters.guess['b']
+        ans = model(t=tdata, **parameters.guess)["y"]
+        ref = (
+            np.sum(parameters.guess["a"] * np.exp(-parameters.guess["k"] * tdata), axis=1)
+            + parameters.guess["b"]
+        )
 
         assert np.allclose(ans, ref)
 
@@ -336,14 +331,11 @@ class TestEMFit(object):
         parameters = rate_params + y0_params
 
         num = 50
-        xdata = {"t": np.linspace(0, 11, num=num)}
-        num_model = model.to_numerical()
-        populations = num_model(**gt_values, **xdata)["y"]
-        ydata = {
-            "y": populations + np.random.normal(0, 0.05, size=num * 3).reshape(populations.shape)
-        }
+        xdata = np.linspace(0, 11, num=num)
+        populations = Eval(xt @ y0)(**gt_values, t=xdata)
+        ydata = populations + np.random.normal(0, 0.05, size=num * 3).reshape(populations.shape)
 
-        fit = Fit(model, parameters, data={**xdata, **ydata})
+        fit = Fit(model, parameters, data=dict(t=xdata, y=ydata), loss=SELoss(reduction="mean"))
         result = fit.execute()
 
         expected = {

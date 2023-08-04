@@ -8,10 +8,11 @@ import numpy.typing as npt
 from sympy import Expr
 
 from slimfit.fitresult import FitResult
-from slimfit.loss import L2Loss, LogLoss, Loss
+from slimfit.loss import SELoss, LogLoss, Loss
 from slimfit.minimizers import ScipyMinimizer, Minimizer
 from slimfit.models import Model
 from slimfit.numerical import to_numerical
+from slimfit.objective import ScipyObjective, Hessian
 from slimfit.parameter import Parameter, Parameters
 
 
@@ -35,7 +36,7 @@ class Fit:
         model: Model,
         parameters: list[Parameter] | Parameters,
         data: dict[str | Expr, npt.ArrayLike],
-        loss: Optional[Loss] = L2Loss(),
+        loss: Optional[Loss] = SELoss(),
     ) -> None:
         self.model = model
 
@@ -74,12 +75,12 @@ class Fit:
 
         minimizer_cls = minimizer or self.get_minimizer()
         minimizer_instance = minimizer_cls(
-            self.model.numerical, self.parameters, self.loss, self.xdata, self.ydata
+            self.model, self.parameters, self.loss, self.xdata, self.ydata
         )
 
         result = minimizer_instance.execute(**execute_options)
 
-        result.model = self.model
+        result.minimizer = minimizer_instance
 
         return result
 
@@ -87,9 +88,21 @@ class Fit:
         """Automatically determine which minimizer to use"""
         return ScipyMinimizer
 
+    # def hessian(self, **parameters):
+    #     free_parameters = {p.name: p for p in parameters if not p.fixed}
+    #     fixed_parameters = {p.name: p for p in parameters if p.fixed}
+    #
+    #     if extra_parameters := parameters.keys() - free_parameters.keys():
+    #         raise ValueError(f"Unknown parameters: {', '.join(extra_parameters)}")
+    #     if missing_parameters := free_parameters.keys() - parameters.keys():
+    #         raise ValueError(f"Missing parameters: {', '.join(missing_parameters)}")
+    #
+    #     # but how do i know which hessian entries correspond to which parameters?
+
+
     def get_loss(self, **kwargs):
         raise NotImplementedError()
         if self.model.probabilistic:
             return LogLoss(**kwargs)
         else:
-            return L2Loss(**kwargs)
+            return SELoss(**kwargs)

@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 
-from typing import Iterable
+from typing import Iterable, Literal
 
 import numpy as np
+import numdifftools as nd
 
 from slimfit import Model
 from slimfit.loss import Loss
@@ -29,7 +30,8 @@ class Objective(object):
         loss: Loss function to use.
         xdata: Input x data.
         ydata: Output y data to calculate loss against.
-        negate: Whether to negate the objective function output (negate for maximization).
+        negate: Set to `-1` to negate objective return value. Used when minimizers are used for
+            maximization problems such as likelihood fitting.
     """
 
     def __init__(
@@ -38,14 +40,13 @@ class Objective(object):
         loss: Loss,
         xdata: dict[str, np.ndarray],
         ydata: dict[str, np.ndarray],
-        negate: bool = False,
+        negate: Literal[1, -1] = 1,
     ):
         self.model = model
         self.loss = loss
         self.xdata = xdata
         self.ydata = ydata
-
-        self.sign = -1 if negate else 1
+        self.negate = negate
 
 
 class ScipyObjective(Objective):
@@ -68,7 +69,7 @@ class ScipyObjective(Objective):
         xdata: dict[str, np.ndarray],
         ydata: dict[str, np.ndarray],
         shapes: dict[str, Shape],
-        negate: bool = False,
+        negate: Literal[1, -1] = 1,
     ):
         super().__init__(model=model, loss=loss, xdata=xdata, ydata=ydata, negate=negate)
         self.shapes = shapes
@@ -88,9 +89,13 @@ class ScipyObjective(Objective):
         parameters = unpack(x, self.shapes)
 
         y_model = self.model(**parameters, **self.xdata)
-        loss = self.loss(self.ydata, y_model)
+        loss_value = self.loss(self.ydata, y_model)
 
-        return self.sign * loss
+        return self.negate * loss_value
+
+    @property
+    def hessian(self) -> Hessian:
+        return Hessian(**self.__dict__)
 
 
 class ScipyEMObjective(Objective):
@@ -101,7 +106,7 @@ class ScipyEMObjective(Objective):
         xdata: dict[str, np.ndarray],
         posterior: dict[str, np.ndarray],
         shapes: dict[str, Shape],
-        negate: bool = False,  # todo actually use the negate bool
+        negate: Literal[1, -1] = 1,  # TODO: currently this kwarg is not used
     ):
         super().__init__(model=model, loss=loss, xdata=xdata, ydata={}, negate=negate)
         self.posterior = posterior
@@ -121,6 +126,14 @@ class ScipyEMObjective(Objective):
         # TODO: LOSS / WEIGHTS
 
         return -sum(r.sum() for r in expectation.values())
+
+
+
+class Hessian(ScipyObjective):
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        hess = nd.Hessian(super().__call__)(x)
+
+        return hess
 
 
 # seperate functions?

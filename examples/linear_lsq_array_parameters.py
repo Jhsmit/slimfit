@@ -1,4 +1,5 @@
 # %%
+
 from slimfit.fit import Fit
 from slimfit.parameter import Parameters
 from slimfit.symbols import Symbol
@@ -23,21 +24,22 @@ ydata += noise
 DATA = {"x": xdata, "y": ydata}
 
 # %%
-
+# compare to numpy polyfit
 np.polyfit(xdata, ydata, deg=1)
 
 # %%
+
 parameters = Parameters.from_symbols(model.symbols, "a b")
 fit = Fit(model, parameters=parameters, data=DATA)
+result = fit.execute()
+
 
 # %%
-result = fit.execute()
 result.eval_hessian()
 print(result)
-#
+
 # %%
 fig, ax = pplt.subplots()
 ax.scatter(DATA["x"], DATA["y"])
 ax.plot(DATA["x"], model.numerical(**result.parameters, **DATA)["y"], color="r")
 pplt.show()
-#

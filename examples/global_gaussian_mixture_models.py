@@ -1,10 +1,10 @@
-from collections import defaultdict
+# %%
 
 import numpy as np
 import proplot as pplt
 from sympy import Symbol
 
-from slimfit import Model, NumExprBase
+from slimfit import Model
 
 from slimfit.numerical import GMM
 from slimfit.fit import Fit
@@ -96,6 +96,10 @@ for k, v in result.parameters.items():
     print(f"{k:5}: {v:10.2}, ({gt[k]:10.2})")
 
 # %%
+result.eval_hessian()
+print(result)
+
+# %%
 
 x_point = np.linspace(-0.5, 1.5, num=250).reshape(-1, 1)
 eval_data = {"x1": x_point, "x2": x_point}
@@ -114,3 +118,5 @@ for i, ax in enumerate(axes):
         ax.plot(x_point, gt_ans[f"p{i + 1}"][:, j], color=colors[state], linestyle="--")
     ax.format(title=f"Dataset {i + 1}")
 pplt.show()
+
+# %%

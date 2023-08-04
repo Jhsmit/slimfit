@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from functools import reduce
 from typing import Iterable, Optional, OrderedDict, Any, Union
 
 import numpy as np
@@ -148,3 +149,20 @@ def _format_indexer(indexer: Union[slice, int, None, Ellipsis]) -> str:
         return '...'
     else:
         raise TypeError(f"Unexpected type: {type(indexer)}")
+
+
+# https://stackoverflow.com/questions/31174295/getattr-and-setattr-on-nested-subobjects-chained-properties/31174427#31174427
+def rsetattr(obj: Any, attr: str, val: Any) -> Any:
+    pre, _, post = attr.rpartition(".")
+    return setattr(rgetattr(obj, pre) if pre else obj, post, val)
+
+
+# https://stackoverflow.com/questions/31174295/getattr-and-setattr-on-nested-subobjects-chained-properties/31174427#31174427
+def rgetattr(obj: Any, attr: str, *default):
+    try:
+        return reduce(getattr, attr.split("."), obj)
+    except AttributeError as e:
+        if default:
+            return default[0]
+        else:
+            raise e

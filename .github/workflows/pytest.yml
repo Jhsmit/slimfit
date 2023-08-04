@@ -40,24 +40,32 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
+
       - name: Set up python ${{ matrix.python-version }}
         id: setup-python
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-      #----------------------------------------------
-      #       load cached venv if cache exists
-      #----------------------------------------------
+
+      - name: Load cached requirements file
+        id: cached-requirements
+        uses: actions/cache@v3
+        with:
+          path: _req-${{ runner.os }}.txt
+          key: req-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
+      - name: Generate requirements file
+        if: steps.cached-requirements.outputs.cache-hit != 'true'
+        run: |
+          python -m pip install pip-tools
+          pip-compile --all-extras -o _req-${{ runner.os }}.txt pyproject.toml
+
       - name: Load cached venv
         id: cached-deps
         uses: actions/cache@v3
         with:
           path: ${{ matrix.path }}
-          key: pip-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('requirements-dev.txt') }}
+          key: pip-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('_req*.txt') }}
 
-      #----------------------------------------------
-      # install dependencies if cache does not exist
-      #----------------------------------------------
       - name: Install dependencies
         if: steps.cached-deps.outputs.cache-hit != 'true'
         run: |

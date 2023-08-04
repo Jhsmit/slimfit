@@ -44,6 +44,8 @@ class Minimizer(metaclass=abc.ABCMeta):
         self.parameters = parameters
 
     # subset of parameters which are fixed
+    # TODO dont think they need to be cached
+    # and probaby we should use self.parameters.free / self.parameters.fixed
     @cached_property
     def fixed_parameters(self) -> Parameters:
         return Parameters([p for p in self.parameters if p.fixed])
@@ -95,7 +97,10 @@ class ScipyMinimizer(Minimizer):
         x = pack(self.free_parameters.guess.values())
 
         result = minimize(
-            self.objective, x, bounds=self.get_bounds(), options=self.rename_options(minimizer_options)
+            self.objective,
+            x,
+            bounds=self.get_bounds(),
+            options=self.rename_options(minimizer_options),
         )
 
         gof_qualifiers = {
@@ -136,7 +141,7 @@ class LikelihoodOptimizer(Minimizer):
         if not isinstance(self.loss, LogSumLoss):
             warnings.warn("Using non-log loss in likelihood optimizer")
         param_shapes = {p.name: p.shape for p in self.free_parameters}
-        #TODO rename and generalize?
+        # TODO rename and generalize?
         self.objective = ScipyObjective(
             model=self.model.numerical,
             loss=self.loss,
@@ -188,7 +193,7 @@ class LikelihoodOptimizer(Minimizer):
             for sub_model in sub_models:
                 # At the moment we assume all callables in the sub models to be MatrixCallables
                 # determine the kind
-                kinds = [getattr(c, 'kind', None) for c in sub_model.values()]
+                kinds = [getattr(c, "kind", None) for c in sub_model.values()]
                 # Filter the general list of parameters to reduce it down to the parameters
                 # this model accepts
                 # the sub model also needs to the fixed parameters to correctly be able to

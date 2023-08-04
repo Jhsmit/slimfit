@@ -68,8 +68,9 @@ jobs:
 
       - name: Install dependencies
         if: steps.cached-deps.outputs.cache-hit != 'true'
+        # prefer binary to avoid issues with matplotlib
         run: |
-          pip install -r _req-${{ matrix.os }}-${{ matrix.python-version }}.txt
+          pip install -r _req-${{ matrix.os }}-${{ matrix.python-version }}.txt --prefer-binary
       #----------------------------------------------
       #             install root project
       #----------------------------------------------

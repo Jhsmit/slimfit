@@ -67,7 +67,7 @@ jobs:
           key: pip-${{ matrix.os }}-${{ matrix.python-version }}-${{ hashFiles('_req*.txt') }}
 
       - name: Install dependencies
-        if: steps.cached-deps.outputs.cache-hit != 'true'
+        # if: steps.cached-deps.outputs.cache-hit != 'true'
         # prefer binary to avoid issues with matplotlib
         run: |
           pip install -r _req-${{ matrix.os }}-${{ matrix.python-version }}.txt --prefer-binary

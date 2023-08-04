@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from functools import cached_property
 from pathlib import Path
-from typing import Optional, Any, Union
+from typing import Optional, Any, Union, TYPE_CHECKING
 
 import numpy as np
 import numdifftools as nd
@@ -14,11 +14,14 @@ import yaml
 
 from slimfit import Model
 from slimfit.loss import Loss
-from slimfit.objective import Objective, pack, unpack
-from slimfit.utils import clean_types
+from slimfit.objective import Objective, pack, unpack, Hessian
+from slimfit.utils import clean_types, rgetattr
+
+if TYPE_CHECKING:
+    from slimfit.minimizers import Minimizer
 
 
-@dataclass(frozen=True)
+@dataclass
 class FitResult:
     """
     Fit result object.
@@ -36,15 +39,9 @@ class FitResult:
     guess: Optional[dict] = None
     """Initial guesses"""
 
-    model: Optional[Model] = None
-    """The fitted model"""
+    minimizer: Optional[Minimizer] = None
 
-    objective: Optional[Objective] = None
-
-    loss: Optional[Loss] = None
-
-    data: Optional[dict] = field(default=None, repr=False)
-    """Data on which the fit was performed"""
+    hessian: Optional[np.ndarray] = None
 
     metadata: dict = field(default_factory=dict)
     """Additional metadata"""
@@ -59,15 +56,15 @@ class FitResult:
             self.metadata["timestamp"] = int(now.timestamp())
 
     def __str__(self):
+        if any(np.ndim(v) != 0 for v in self.fit_parameters.values()):
+            raise ValueError("Cannot print fit result with array values.")
+
         s = ""
-        try:
-            stdev = self.stdev
-        except ValueError:
-            stdev = {}
+        stdev = self.stdev if self.hessian is not None else None
 
         p_size = max(len(k) for k in self.fit_parameters)
         if stdev:
-            s += f"{'Parameter':<{p_size}} {'Value':>10} {'Stdv':>10}\n"
+            s += f"{'Parameter':<{p_size}} {'Value':>10} {'Stdev':>10}\n"
         else:
             s += f"{'Parameter':<{p_size}} {'Value':>10}\n"
 
@@ -86,7 +83,16 @@ class FitResult:
         Returns:
             Dictionary representation of the fit result.
         """
-        keys = ["gof_qualifiers", "fit_parameters", "fixed_parameters", "guess", "metadata"]
+        keys = [
+            "gof_qualifiers",
+            "fit_parameters",
+            "fixed_parameters",
+            "guess",
+            "metadata",
+        ]
+        if self.hessian is not None:
+            keys += ["stdev"]
+
         d = {k: v for k in keys if (v := getattr(self, k)) is not None}
 
         return d
@@ -111,37 +117,37 @@ class FitResult:
             path: Path to save to.
         """
         try:
-            del self.model.numerical
+            del self.minimizer.model.numerical
         except AttributeError:
             pass
 
         with Path(path).open("wb") as f:
             pickle.dump(self, f)
 
-    def __call__(self, **kwargs) -> dict[str, np.ndarray]:
-        raise NotImplementedError("Nope")
-        data = self.data or {}
-        kwargs = self.parameters | data | kwargs
+    def eval_hessian(self, hessian: Optional[Hessian] = None) -> np.ndarray:
+        # TODO Hessian as parameter / strategy
+        """Evaluate the hessian at the fitted parameters values"""
 
-        return self.model(**kwargs)
+        hessian = hessian or rgetattr(self.minimizer, "objective.hessian", None)
+        if hessian is None:
+            raise ValueError("No Hessian available")
 
-    @cached_property
-    def hess(self) -> np.ndarray:
-        if self.objective is None:
-            raise ValueError("No objective found")
-        parameter_shapes = {k: v.shape for k, v in self.fit_parameters.items()}
-
-        if list(parameter_shapes.items()) != list(self.objective.shapes.items()):
+        if hasattr(self.minimizer, "objective") and list(hessian.shapes.items()) != list(
+            self.minimizer.objective.shapes.items()
+        ):
             raise ValueError("Mismatch between objective and fit parameters")
 
-        # packed parameter values at minium
-        sol = pack(self.fit_parameters.values())
+        x = pack(self.fit_parameters.values())
+        self.hessian = hessian(x)
 
-        return nd.Hessian(self.objective)(sol)
+        return self.hessian
 
     @property
     def variance(self) -> dict[str, float | np.ndarray]:
-        hess_inv = np.linalg.inv(self.hess)
+        if self.hessian is None:
+            self.eval_hessian()
+
+        hess_inv = np.linalg.inv(self.hessian)
         var = np.diag(hess_inv)
         parameter_shapes = {k: v.shape for k, v in self.fit_parameters.items()}
         return unpack(var, parameter_shapes)

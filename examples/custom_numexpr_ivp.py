@@ -1,3 +1,4 @@
+# %%
 """
 This example shows how to use `CompositeExpr` to create a custom numerical expression which can
 be used in slimfit fitting.
@@ -21,10 +22,12 @@ from slimfit.numerical import NumExpr, to_numerical
 from slimfit.base import CompositeExpr
 
 
-#%%
+# %%
+
 
 def ode(x, y):
     return np.sin(2 * np.pi * 0.2 * x) * np.exp(-0.1 * x)
+
 
 num = 100
 t_eval = np.linspace(0.0, 25, num=num, endpoint=True)
@@ -32,9 +35,10 @@ sol = solve_ivp(ode, (0.0, 25), np.array([-1]), t_eval=t_eval)
 
 # %%
 ydata = sol.y + np.random.normal(0, 0.05, size=num)
-data = {'y': ydata, 't': t_eval}
+data = {"y": ydata, "t": t_eval}
 
-#%%
+# %%
+
 
 class IVPNumExpr(CompositeExpr):
     def __init__(
@@ -45,8 +49,7 @@ class IVPNumExpr(CompositeExpr):
         y0: Symbol | NumExpr | Expr,
         domain: tuple[float, float],
     ):
-
-        expr = {'t': t, 'freq': freq, 'damping': damping, 'y0': y0}
+        expr = {"t": t, "freq": freq, "damping": damping, "y0": y0}
         self.domain = domain
         super().__init__(expr)
 
@@ -56,9 +59,9 @@ class IVPNumExpr(CompositeExpr):
         sol = solve_ivp(
             self.grad_func,
             self.domain,
-            np.array([result['y0']]),
-            t_eval=result['t'],
-            args=(result['freq'], result['damping'])
+            np.array([result["y0"]]),
+            t_eval=result["t"],
+            args=(result["freq"], result["damping"]),
         )
 
         return sol.y
@@ -87,9 +90,11 @@ parameters = Parameters.from_symbols(ivp.symbols, guess).replace("f", fixed=True
 fit = Fit(model, parameters, data)
 result = fit.execute()
 
-print(result.parameters)
+# %%
+result.eval_hessian()
+print(result)
 
-#%%
+# %%
 fig, ax = pplt.subplots()
 ax.scatter(t_eval, ydata.flatten())
 ax.plot(t_eval, ivp(t=t_eval, **parameters.guess).T, color="r")

@@ -15,7 +15,7 @@ from tqdm.auto import trange
 
 from slimfit import Model, NumExprBase
 from slimfit.fitresult import FitResult
-from slimfit.loss import Loss
+from slimfit.loss import Loss, LogSumLoss
 from slimfit.objective import ScipyObjective, pack, unpack, ScipyEMObjective
 
 # from slimfit.models import NumericalModel
@@ -34,8 +34,8 @@ class Minimizer(metaclass=abc.ABCMeta):
         model: Model,
         parameters: Parameters,
         loss: Loss,
-        xdata: dict[str, np.array],
-        ydata: dict[str, np.array],
+        xdata: dict[str, np.ndarray],
+        ydata: dict[str, np.ndarray],
     ):
         self.model = model
         self.loss = loss
@@ -80,10 +80,10 @@ class Minimizer(metaclass=abc.ABCMeta):
 
 
 class ScipyMinimizer(Minimizer):
-    def execute(self, **minimizer_options):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         param_shapes = {p.name: p.shape for p in self.free_parameters}
-
-        objective = ScipyObjective(
+        self.objective = ScipyObjective(
             model=self.model.numerical,
             loss=self.loss,
             xdata=self.xdata | self.fixed_parameters.guess,
@@ -91,25 +91,23 @@ class ScipyMinimizer(Minimizer):
             shapes=param_shapes,
         )
 
+    def execute(self, **minimizer_options):
         x = pack(self.free_parameters.guess.values())
 
         result = minimize(
-            objective, x, bounds=self.get_bounds(), options=self.rename_options(minimizer_options)
+            self.objective, x, bounds=self.get_bounds(), options=self.rename_options(minimizer_options)
         )
 
         gof_qualifiers = {
             "loss": result["fun"],
         }
 
-        parameter_values = unpack(result.x, param_shapes)
+        parameter_values = unpack(result.x, self.objective.shapes)
         result_dict = dict(
             fit_parameters=parameter_values,
             fixed_parameters=self.fixed_parameters.guess,
             gof_qualifiers=gof_qualifiers,
             guess=self.free_parameters.guess,
-            model=self.model,
-            objective=objective,
-            loss=self.loss,
             base_result=result,
         )
 
@@ -133,12 +131,26 @@ class LikelihoodOptimizer(Minimizer):
 
     """
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not isinstance(self.loss, LogSumLoss):
+            warnings.warn("Using non-log loss in likelihood optimizer")
+        param_shapes = {p.name: p.shape for p in self.free_parameters}
+        #TODO rename and generalize?
+        self.objective = ScipyObjective(
+            model=self.model.numerical,
+            loss=self.loss,
+            xdata=self.xdata | self.fixed_parameters.guess,
+            ydata=self.ydata,
+            shapes=param_shapes,
+        )
+
     def execute(self, max_iter=250, patience=5, stop_loss=1e-7, verbose=True) -> FitResult:
         # parameters which needs to be passed / inferred
         # Split top-level multiplications in the model as they can be optimized in log likelihood independently
         # TODO model should have this as property / method
         components: list[tuple[Symbol, NumExprBase]] = []  # todo tuple LHS as variable
-        for lhs, rhs in self.model.items():
+        for lhs, rhs in self.model.numerical.items():
             if isinstance(rhs, Mul):
                 components += [(lhs, elem) for elem in rhs.values()]
             else:
@@ -186,7 +198,7 @@ class LikelihoodOptimizer(Minimizer):
                     # Constant optimizer doesnt use loss, xdata, ydata,
                     opt = ConstantOptimizer(sub_model, sub_parameters, **common_kwargs)
                     parameters = opt.step()
-                elif all(k == "gmm" for k in kinds):
+                elif all(k == "gmm" for k in kinds) and not sub_parameters.has_bounds:
                     # Loss is not used for GMM optimizer step
                     opt = GMMOptimizer(sub_model, sub_parameters, **common_kwargs)
                     parameters = opt.step()

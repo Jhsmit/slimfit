@@ -192,3 +192,15 @@ class Parameters(UserList):
     @property
     def symbols(self) -> set[Symbol]:
         return set(p.symbol for p in self)
+
+    @property
+    def has_bounds(self) -> bool:
+        """Return `True` if any of the parameters has bounds."""
+
+        for p in self:
+            if p.lower_bound is not None:
+                return True
+            if p.upper_bound is not None:
+                return True
+
+        return False

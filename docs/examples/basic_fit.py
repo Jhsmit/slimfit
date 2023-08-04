@@ -3,6 +3,8 @@ from sympy import symbols
 import numpy as np
 import proplot as pplt
 
+from slimfit.objective import Hessian
+
 a, b, x, y = symbols('a b x y')
 
 model = Model({y: a * x + b})
@@ -25,6 +27,8 @@ DATA = {"x": xdata, "y": ydata}
 fit = Fit(model, parameters=parameters, data=DATA)
 result = fit.execute()
 print(result)
+
+
 
 #%%
 fig, ax = pplt.subplots()

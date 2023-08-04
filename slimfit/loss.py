@@ -109,6 +109,7 @@ class LogLoss(Loss):
     Used in combination with maximum likelihood methods
 
     returns negative of the reductions are use in combination with minimizers rather than maximizers
+    #TODO move minus sign to objective
     """
 
     def __init__(

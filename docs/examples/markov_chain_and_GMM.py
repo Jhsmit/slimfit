@@ -9,13 +9,14 @@ from slimfit.loss import LogSumLoss
 from slimfit.markov import generate_transition_matrix, extract_states
 from slimfit.minimizers import LikelihoodOptimizer
 from slimfit.models import Model
+from slimfit.objective import Hessian
 from slimfit.operations import Mul
 from slimfit.parameter import Parameters
 from slimfit.symbols import clear_symbols, symbol_matrix, Symbol
 
 # %%
 
-arr = np.genfromtxt("examples/data/GMM_dynamics.txt")
+arr = np.genfromtxt(r"C:\Users\jhsmi\pp\slimfit\examples\data\GMM_dynamics.txt")
 data = {"e": arr[:, 0].reshape(-1, 1), "t": arr[:, 1]}
 
 gt_values = {
@@ -89,18 +90,18 @@ result = fit.execute(
     verbose=True,
 )
 
-# %%
-for k, v in result.parameters.items():
-    print(f"{k:5}: {v:10.2}, ({gt_values[k]:10.2})")
-#
-# #%%
-#
+
+#%%
+print(result)
+
+#%%
+
 num = 100
 ti = np.linspace(0, 11, num=num, endpoint=True)
 ei = np.linspace(-0.1, 1.1, num=num, endpoint=True)
 
 grid = np.meshgrid(ti, ei, sparse=True)
-grid.shape
+grid
 
 # %%
 # since the `Mul` component of the model functions as a normal 'pyton' lazy multiplication,

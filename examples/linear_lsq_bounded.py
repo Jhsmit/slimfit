@@ -1,3 +1,5 @@
+# %%
+
 from slimfit.fit import Fit
 from slimfit.minimizers import ScipyMinimizer
 from slimfit.parameter import Parameters, Parameter
@@ -34,7 +36,9 @@ parameters = Parameters(
 fit = Fit(model, parameters, data)
 res = fit.execute()
 
+# %%
 print(res.parameters)
+print(res.stdev)
 
 # %%
 x_eval = np.linspace(0, 11, num=100)
@@ -43,3 +47,5 @@ ax.scatter(xdata, ydata.T, cycle="default", s=7.5)
 ax.plot(x_eval, model(**res.parameters, x=x_eval)["y"].T)
 ax.format(xlabel="x", ylabel="y")
 pplt.show()
+
+# %%

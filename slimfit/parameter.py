@@ -190,5 +190,31 @@ class Parameters(UserList):
         return {p.name: np.asarray(p.guess) for p in self}
 
     @property
+    def shapes(self) -> dict[str, tuple[int, ...]]:
+        return {p.name: p.shape for p in self}
+
+    @property
     def symbols(self) -> set[Symbol]:
         return set(p.symbol for p in self)
+
+    @property
+    def free(self) -> Parameters:
+        """Returns a new `Parameters` object with only the free parameters."""
+        return Parameters([p for p in self if not p.fixed])
+
+    @property
+    def fixed(self) -> Parameters:
+        """Returns a new `Parameters` object with only the fixed parameters."""
+        return Parameters([p for p in self if p.fixed])
+
+    @property
+    def has_bounds(self) -> bool:
+        """Return `True` if any of the parameters has bounds."""
+
+        for p in self:
+            if p.lower_bound is not None:
+                return True
+            if p.upper_bound is not None:
+                return True
+
+        return False

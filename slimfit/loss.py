@@ -30,7 +30,7 @@ class Loss(object):
     def __init__(
         self,
         weights: Optional[dict[str, npt.ArrayLike]] = None,
-        reduction: Literal["mean", "sum", "concat", "none", None] = "mean",
+        reduction: Literal["mean", "sum", "concat", "none", None] = "sum",
     ):
         self.weights = weights
         if reduction == "mean":
@@ -83,7 +83,8 @@ class L1Loss(Loss):
         return self.reduce(residuals)
 
 
-class L2Loss(Loss):
+class SELoss(Loss):
+    """Squared error loss"""
     def __call__(
         self, y_data: dict[str, np.ndarray], y_model: dict[str, np.ndarray]
     ) -> np.ndarray | float:
@@ -108,6 +109,7 @@ class LogLoss(Loss):
     Used in combination with maximum likelihood methods
 
     returns negative of the reductions are use in combination with minimizers rather than maximizers
+    #TODO move minus sign to objective
     """
 
     def __init__(

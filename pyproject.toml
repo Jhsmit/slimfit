@@ -42,6 +42,7 @@ typing-extensions = "^4.4.0"
 PyYAML = "^6.0"
 scipy = "^1.9.3"
 proplot = { version = "^0.9.7", optional = true }
+numdifftools = "^0.9.41"
 
 [tool.poetry.extras]
 plot = ["proplot"]

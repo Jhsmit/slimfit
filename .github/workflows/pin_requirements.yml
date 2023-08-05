@@ -27,7 +27,7 @@ jobs:
         run: pip-compile --output-file requirements-${{ matrix.os }}-${{ matrix.python-version }}.txt pyproject.toml
 
       - name: Upload requirements file
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: requirements-${{ matrix.os }}-${{ matrix.python-version }}
           path: requirements-${{ matrix.os }}-${{ matrix.python-version }}.txt

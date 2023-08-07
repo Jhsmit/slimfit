@@ -5,4 +5,4 @@ updates:
     schedule:
       interval: "daily"
     requirements:
-      - file: "requirements-requirements-*.txt"
+      - file: "requirements/requirements-*.txt"

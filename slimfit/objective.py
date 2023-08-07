@@ -128,7 +128,6 @@ class ScipyEMObjective(Objective):
         return -sum(r.sum() for r in expectation.values())
 
 
-
 class Hessian(ScipyObjective):
     def __call__(self, x: np.ndarray) -> np.ndarray:
         hess = nd.Hessian(super().__call__)(x)
@@ -142,7 +141,7 @@ def unpack(x: np.ndarray, shapes: dict[str, Shape]) -> dict[str, np.ndarray]:
     parameter name: parameter_value where parameter values are cast back to their
     specified shapes.
     """
-    sizes = [int(np.product(shape)) for shape in shapes.values()]
+    sizes = [int(np.prod(shape)) for shape in shapes.values()]
 
     x_split = np.split(x, np.cumsum(sizes))
     p_values = {name: arr.reshape(shape) for (name, shape), arr in zip(shapes.items(), x_split)}

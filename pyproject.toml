@@ -56,6 +56,11 @@ test = [
 Source = "https://github.com/Jhsmit/slimfit/"
 Documentation = "https://jhsmit.github.io/slimfit/"
 
+[tool.hatch.build]
+exclude = [
+    "_versioneer.py"
+]
+
 [tool.hatch.version]
 source = "vcs"
 

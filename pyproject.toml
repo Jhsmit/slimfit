@@ -5,6 +5,9 @@ build-backend = "hatchling.build"
 [project]
 name = "slimfit"
 description = "SymFit's little brother"
+authors = [
+  { name = "Jochem Smit", email = "jhsmit@gmail.com" },
+]
 readme = "README.md"
 license = {file = "LICENSE" }
 requires-python = ">=3.9"

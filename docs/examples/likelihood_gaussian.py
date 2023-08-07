@@ -39,7 +39,7 @@ centers, edges
 
 fig, ax = pplt.subplots()
 ax.scatter(centers, hist, color="r")
-ax.hist(xdata, bins='fd', density=True, color='gray')
+ax.hist(xdata, bins="fd", density=True, color="gray")
 pplt.show()
 
 #%%
@@ -56,11 +56,23 @@ data = {"x": np.linspace(0.0, 5.0, num=100)}
 
 fig, ax = pplt.subplots()
 ax.plot(data["x"], model(**gt_params, **data)["p"], color="r")
-ax.plot(data["x"], model(**likelihood_result.parameters, **data)["p"], linestyle="--", color="k", label='likelihood')
-ax.plot(data["x"], model(**binned_lsq_result.parameters, **data)["p"], linestyle="--", color="b", label='lsq')
+ax.plot(
+    data["x"],
+    model(**likelihood_result.parameters, **data)["p"],
+    linestyle="--",
+    color="k",
+    label="likelihood",
+)
+ax.plot(
+    data["x"],
+    model(**binned_lsq_result.parameters, **data)["p"],
+    linestyle="--",
+    color="b",
+    label="lsq",
+)
 
 ax.hist(xdata, bins="fd", density=True, color="grey", zorder=-1)
-ax.scatter(centers, hist, color="b", marker='x')
+ax.scatter(centers, hist, color="b", marker="x")
 ax.format(xlabel="x", ylabel="p(x)", title="Gaussian Fit")
-ax.legend(loc='t')
+ax.legend(loc="t")
 pplt.show()

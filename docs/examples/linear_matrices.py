@@ -60,9 +60,7 @@ x, type(x)
 # Matrix multiply basis matrix with parameter vector
 m = basis @ x
 # define the model, measured spectrum corresponds to Symbol('b')mod
-model = Model(
-    {Symbol("b"): basis @ x}
-)
+model = Model({Symbol("b"): basis @ x})
 type(model[Symbol("b")])
 
 # %%
@@ -97,7 +95,7 @@ for i, j in np.ndindex(x_vals.shape):
 # matrix multiplication step is done in numpy, and is fast.
 #
 # Plotting the results:
-# 
+#
 # %%
 
 fig, ax = pplt.subplots()

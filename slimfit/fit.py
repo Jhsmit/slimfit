@@ -99,7 +99,6 @@ class Fit:
     #
     #     # but how do i know which hessian entries correspond to which parameters?
 
-
     def get_loss(self, **kwargs):
         raise NotImplementedError()
         if self.model.probabilistic:

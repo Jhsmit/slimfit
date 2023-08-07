@@ -5,12 +5,12 @@ import proplot as pplt
 
 from slimfit.objective import Hessian
 
-a, b, x, y = symbols('a b x y')
+a, b, x, y = symbols("a b x y")
 
 model = Model({y: a * x + b})
 parameters = [
-    Parameter(a, guess=1.),
-    Parameter(b, guess=3.),
+    Parameter(a, guess=1.0),
+    Parameter(b, guess=3.0),
 ]
 #%%
 # generate ground-truth data
@@ -27,7 +27,6 @@ DATA = {"x": xdata, "y": ydata}
 fit = Fit(model, parameters=parameters, data=DATA)
 result = fit.execute()
 print(result)
-
 
 
 #%%

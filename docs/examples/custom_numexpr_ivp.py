@@ -25,15 +25,17 @@ from slimfit.base import CompositeExpr
 #
 # Generate the GT data to fit the damped harmonic oscillator to, and add some noise.
 
+
 def ode(x, y):
     return np.sin(2 * np.pi * 0.2 * x) * np.exp(-0.1 * x)
+
 
 num = 100
 t_eval = np.linspace(0.0, 25, num=num, endpoint=True)
 sol = solve_ivp(ode, (0.0, 25), np.array([-1]), t_eval=t_eval)
 
 ydata = sol.y + np.random.normal(0, 0.05, size=num)
-data = {'y': ydata, 't': t_eval}
+data = {"y": ydata, "t": t_eval}
 
 #%%
 
@@ -47,6 +49,7 @@ data = {'y': ydata, 't': t_eval}
 # Because the `__init__` method takes an additional `domain` argument, the `to_numerical` method
 # must also be implemented correctly.
 
+
 class IVPNumExpr(CompositeExpr):
     def __init__(
         self,
@@ -57,7 +60,7 @@ class IVPNumExpr(CompositeExpr):
         domain: tuple[float, float],
     ):
 
-        expr = {'t': t, 'freq': freq, 'damping': damping, 'y0': y0}
+        expr = {"t": t, "freq": freq, "damping": damping, "y0": y0}
         self.domain = domain
         super().__init__(expr)
 
@@ -67,9 +70,9 @@ class IVPNumExpr(CompositeExpr):
         sol = solve_ivp(
             self.grad_func,
             self.domain,
-            np.array([result['y0']]),
-            t_eval=result['t'],
-            args=(result['freq'], result['damping'])
+            np.array([result["y0"]]),
+            t_eval=result["t"],
+            args=(result["freq"], result["damping"]),
         )
 
         return sol.y

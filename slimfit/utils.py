@@ -144,9 +144,9 @@ def _format_indexer(indexer: Union[slice, int, None, Ellipsis]) -> str:
             sl_str = "%s:%s:%s" % (sl_start, sl_stop, indexer.step)
         return sl_str
     elif isinstance(indexer, type(None)):
-        return 'None'
+        return "None"
     elif isinstance(indexer, type(Ellipsis)):
-        return '...'
+        return "..."
     else:
         raise TypeError(f"Unexpected type: {type(indexer)}")
 

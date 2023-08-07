@@ -101,7 +101,7 @@ class Sum(CompositeArgsExpr):
 
 
 class Indexer(CompositeArgsExpr):
-    def __init__(self, expr, indexer:  Union[tuple, slice, int]):
+    def __init__(self, expr, indexer: Union[tuple, slice, int]):
         super().__init__(expr)
         self.indexer = indexer
 
@@ -116,7 +116,10 @@ class Indexer(CompositeArgsExpr):
 
     def __repr__(self) -> str:
         from slimfit.utils import format_indexer
-        idx_fmt = format_indexer(self.indexer if isinstance(self.indexer, tuple) else (self.indexer,))
+
+        idx_fmt = format_indexer(
+            self.indexer if isinstance(self.indexer, tuple) else (self.indexer,)
+        )
         return self.expr[0].__repr__() + idx_fmt
 
 

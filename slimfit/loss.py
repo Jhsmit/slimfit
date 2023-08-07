@@ -85,6 +85,7 @@ class L1Loss(Loss):
 
 class SELoss(Loss):
     """Squared error loss"""
+
     def __call__(
         self, y_data: dict[str, np.ndarray], y_model: dict[str, np.ndarray]
     ) -> np.ndarray | float:

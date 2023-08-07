@@ -23,7 +23,6 @@ if TYPE_CHECKING:
     from slimfit import Model
 
 
-
 class DummyNumExpr(NumExprBase):
     """Dummy callable object which returns supplied 'obj' when called
     Has no parameters or symbols
@@ -455,6 +454,7 @@ def to_numerical(
     #     return NumericalModel(model_dict, parameters, data)
     if isinstance(expression, HadamardProduct):
         from slimfit.operations import Mul
+
         return Mul(*(to_numerical(arg) for arg in expression.args))
     elif isinstance(expression, MatrixBase):
         return MatrixNumExpr(expression)

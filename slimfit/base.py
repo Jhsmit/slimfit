@@ -40,6 +40,7 @@ class SymbolicBase(metaclass=abc.ABCMeta):
 
     def __getitem__(self, item):
         from slimfit.operations import Indexer
+
         return Indexer(self, item)
 
 
@@ -110,9 +111,10 @@ class CompositeExpr(SymbolicBase):
 
     def to_numerical(self):
         from slimfit.numerical import to_numerical
+
         num_expr = {str(k): to_numerical(expr) for k, expr in self.items()}
 
-        #TODO **unpack
+        # TODO **unpack
         instance = self.__class__(num_expr)
         return instance
 
@@ -200,6 +202,7 @@ class CompositeArgsExpr(CompositeExpr):
 
     def to_numerical(self):
         from slimfit.numerical import to_numerical
+
         args = (to_numerical(expr) for expr in self.values())
         instance = self.__class__(*args, **self.kwargs)
 
@@ -216,6 +219,7 @@ class CompositeArgExpr(CompositeExpr):
 
     def to_numerical(self):
         from slimfit.numerical import to_numerical
+
         arg = to_numerical(self.expr[0])
         instance = self.__class__(arg, **self.kwargs)
 
@@ -228,18 +232,18 @@ class FuncExpr(CompositeArgsExpr):
 
     def __call__(self, **kwargs):
         result = self._call(**kwargs)
-        func = self.kwargs['func']
-        return func(*result.values(), **{k: v for k, v in self.kwargs.items() if k != 'func'})
+        func = self.kwargs["func"]
+        return func(*result.values(), **{k: v for k, v in self.kwargs.items() if k != "func"})
 
     def __repr__(self) -> str:
         kwds = self.kwargs.copy()
-        func = kwds.pop('func')
+        func = kwds.pop("func")
         arg_rpr = (f"{arg!r}" for arg in self.values())
         kw_rpr = (f"{k}={v!r}" for k, v in kwds.items())
 
-        if func.__module__ == 'numpy':
-            mod = 'np.'
+        if func.__module__ == "numpy":
+            mod = "np."
         else:
-            mod = ''
+            mod = ""
 
         return f"{mod}{func.__name__}({', '.join(arg_rpr)}, {', '.join(kw_rpr)})"

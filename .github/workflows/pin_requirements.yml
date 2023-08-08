@@ -1,7 +1,7 @@
 name: Generate Requirements Files
 
-on: [push]
-
+on:
+  workflow_dispatch:
 
 jobs:
   generate-requirements:
@@ -29,5 +29,5 @@ jobs:
       - name: Upload requirements file
         uses: actions/upload-artifact@v3
         with:
-          name: requirements-${{ matrix.os }}-${{ matrix.python-version }}
+          name: requirements
           path: requirements-${{ matrix.os }}-${{ matrix.python-version }}.txt

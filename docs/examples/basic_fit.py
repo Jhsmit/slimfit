@@ -12,7 +12,7 @@ parameters = [
     Parameter(a, guess=1.0),
     Parameter(b, guess=3.0),
 ]
-#%%
+# %%
 # generate ground-truth data
 gt = {a: 0.5, b: 2.5}
 xdata = np.linspace(0, 11, num=100)
@@ -29,7 +29,7 @@ result = fit.execute()
 print(result)
 
 
-#%%
+# %%
 fig, ax = pplt.subplots()
 ax.scatter(xdata, ydata)
 ax.plot(DATA["x"], model(**result.parameters, **DATA)["y"], color="r")

@@ -19,7 +19,7 @@ from slimfit.numerical import NumExpr, to_numerical
 from slimfit.base import CompositeExpr
 
 
-#%%
+# %%
 
 # %% [markdown]
 #
@@ -37,7 +37,7 @@ sol = solve_ivp(ode, (0.0, 25), np.array([-1]), t_eval=t_eval)
 ydata = sol.y + np.random.normal(0, 0.05, size=num)
 data = {"y": ydata, "t": t_eval}
 
-#%%
+# %%
 
 # %% [markdown]
 #
@@ -59,7 +59,6 @@ class IVPNumExpr(CompositeExpr):
         y0: Symbol | NumExpr | Expr,
         domain: tuple[float, float],
     ):
-
         expr = {"t": t, "freq": freq, "damping": damping, "y0": y0}
         self.domain = domain
         super().__init__(expr)
@@ -109,7 +108,7 @@ result = fit.execute()
 
 print(result.parameters)
 
-#%%
+# %%
 
 fig, ax = pplt.subplots()
 ax.scatter(t_eval, ydata.flatten())

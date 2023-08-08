@@ -66,4 +66,4 @@ def test_ufuncs():
     assert npf.expand_dims(a, axis=1)().shape == (10, 1, 2)
 
 
-#%%
+# %%

@@ -91,10 +91,10 @@ result = fit.execute(
 )
 
 
-#%%
+# %%
 print(result)
 
-#%%
+# %%
 
 num = 100
 ti = np.linspace(0, 11, num=num, endpoint=True)

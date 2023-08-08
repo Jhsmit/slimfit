@@ -29,26 +29,26 @@ fit = Fit(model, parameters, data={"x": xdata}, loss=LogLoss())
 # execution time: 12.5ms
 likelihood_result = fit.execute()
 
-#%%
+# %%
 
 hist, edges = np.histogram(xdata, bins="fd", density=True)
 centers = (edges[:-1] + edges[1:]) / 2.0
 centers, edges
 
-#%%
+# %%
 
 fig, ax = pplt.subplots()
 ax.scatter(centers, hist, color="r")
 ax.hist(xdata, bins="fd", density=True, color="gray")
 pplt.show()
 
-#%%
+# %%
 fit = Fit(model, parameters, data={"x": centers, "p": hist})
 binned_lsq_result = fit.execute()
 print(binned_lsq_result)
-#%%
+# %%
 binned_lsq_result.guess
-#%%
+# %%
 print(likelihood_result.hessian)
 print(binned_lsq_result.hessian)
 # %%

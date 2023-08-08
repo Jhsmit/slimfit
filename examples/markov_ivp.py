@@ -91,7 +91,7 @@ ax.line(eval_data["t"], y_eval.squeeze(), cycle=cycle)
 ax.format(xlabel="Time", ylabel="Population Fraction")
 pplt.show()
 
-#%%
+# %%
 result.minimizer.loss
-#%%
+# %%
 print(result)

@@ -1,14 +1,10 @@
 from __future__ import annotations
 
-import itertools
-from typing import Union, ItemsView, ValuesView, KeysView, Optional
 
-import numpy.typing as npt
 from sympy import Expr, MatrixBase, Symbol
 
 import slimfit.base
 import slimfit.numerical as numerical
-from slimfit.parameter import Parameters
 
 
 class Model(slimfit.base.CompositeExpr):
@@ -21,12 +17,6 @@ class Model(slimfit.base.CompositeExpr):
 
     def __repr__(self):
         return f"Model({self.expr.__repr__()})"
-
-    # def __getitem__(self, item: Union[str, Symbol]) -> numerical.NumExprBase:
-    #     if isinstance(item, str):
-    #         item = self.symbols[item]
-    #
-    #     return self.expr[item]
 
     @property
     def dependent_symbols(self) -> dict[str, Symbol]:

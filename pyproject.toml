@@ -45,7 +45,6 @@ docs = [
 ]
 dev = [
     "black[jupyter]>=22.12.0",
-    "setuptools-scm"
 ]
 
 test = [

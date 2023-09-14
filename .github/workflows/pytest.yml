@@ -1,7 +1,6 @@
 name: Testing
 on: [push]
 
-# adapted from: https://github.com/tiangolo/fastapi/blob/master/.github/workflows/test.yml
 jobs:
   test:
     strategy:

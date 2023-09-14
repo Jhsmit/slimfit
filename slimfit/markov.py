@@ -23,7 +23,7 @@ def generate_transition_matrix(
     trs_matrix = zeros(len(all_states), len(all_states))
     for conn in connectivity:
         split = conn.split(" ")
-        states = [s for s in split if not s in OPERATORS]
+        states = [s for s in split if s not in OPERATORS]
 
         for current_state in states:
             i = split.index(current_state)

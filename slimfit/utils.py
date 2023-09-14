@@ -11,7 +11,6 @@ from slimfit import NumExprBase
 from slimfit.models import Model
 from slimfit.operations import Mul
 
-# from slimfit.operations import Mul
 from slimfit.parameter import Parameter
 
 

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from functools import cached_property
 from typing import Optional, Type
 
 import numpy as np
@@ -11,8 +10,6 @@ from slimfit.fitresult import FitResult
 from slimfit.loss import SELoss, LogLoss, Loss
 from slimfit.minimizers import ScipyMinimizer, Minimizer
 from slimfit.models import Model
-from slimfit.numerical import to_numerical
-from slimfit.objective import ScipyObjective, Hessian
 from slimfit.parameter import Parameter, Parameters
 
 

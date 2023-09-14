@@ -21,7 +21,7 @@ MIN_PROB = 1e-9  # Minimal probability value (> 0.) to enter into np.log
 # @dataclass(frozen=True)
 
 
-class Objective(object):
+class Objective:
     """
     Base class for objective functions.
 

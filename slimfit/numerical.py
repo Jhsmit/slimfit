@@ -56,7 +56,7 @@ class NumExpr(NumExprBase):
     ):
         if not isinstance(expr, (Expr, MatrixBase)):
             # TODO subclass such that typing is correct
-            raise TypeError(f"Expression must be an instance of `Expr` or ")
+            raise TypeError("Expression must be an instance of `Expr` or ")
         self.expr = expr
 
         # super().__init__()
@@ -266,7 +266,7 @@ class Constant(MatrixNumExpr):
         super().__init__(m, name=name)
 
     def __call__(self, **kwargs):
-        m_vals = super().__call__(**kwargs)
+        super().__call__(**kwargs)
 
         np.broadcast_to(...)
 

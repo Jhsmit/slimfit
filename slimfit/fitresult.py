@@ -4,17 +4,13 @@ import os
 import pickle
 from dataclasses import dataclass, field
 from datetime import datetime
-from functools import cached_property
 from pathlib import Path
 from typing import Optional, Any, Union, TYPE_CHECKING
 
 import numpy as np
-import numdifftools as nd
 import yaml
 
-from slimfit import Model
-from slimfit.loss import Loss
-from slimfit.objective import Objective, pack, unpack, Hessian
+from slimfit.objective import pack, unpack, Hessian
 from slimfit.utils import clean_types, rgetattr
 
 if TYPE_CHECKING:

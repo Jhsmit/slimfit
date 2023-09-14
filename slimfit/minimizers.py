@@ -3,10 +3,8 @@ from __future__ import annotations
 import abc
 import time
 import warnings
-from dataclasses import asdict
-from functools import reduce, cached_property
-from operator import or_
-from typing import Optional, Any
+from functools import cached_property
+from typing import Any
 
 import numpy as np
 from scipy.optimize import minimize
@@ -21,7 +19,7 @@ from slimfit.objective import ScipyObjective, pack, unpack, ScipyEMObjective
 # from slimfit.models import NumericalModel
 from slimfit.operations import Mul
 from slimfit.parameter import Parameters, Parameter
-from slimfit.utils import get_bounds, intersecting_component_symbols
+from slimfit.utils import intersecting_component_symbols
 
 # TODO parameter which needs to be inferred / set somehow
 STATE_AXIS = -2
@@ -121,7 +119,6 @@ class ScipyMinimizer(Minimizer):
 
     def rename_options(self, options: dict[str, Any]) -> dict[str, Any]:
         # todo parse options more generally
-        rename = [("max_iter", "maxiter")]
 
         out = options.copy()
         out.pop("stop_loss", None)

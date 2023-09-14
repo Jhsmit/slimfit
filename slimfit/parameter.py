@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import re
-from collections import UserDict, UserList
+from collections import UserList
 from dataclasses import dataclass, field, asdict, replace
 from enum import Enum
-from functools import cached_property
 from typing import Iterable, Optional
 
 import numpy as np

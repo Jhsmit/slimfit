@@ -8,7 +8,7 @@ from typing import Optional, KeysView, ValuesView, ItemsView, Callable
 from sympy import Symbol, Expr, MatrixBase, HadamardProduct
 import numpy as np
 
-from slimfit.parameter import Parameter, Parameters
+from slimfit.parameter import Parameters
 from slimfit.typing import Shape
 
 

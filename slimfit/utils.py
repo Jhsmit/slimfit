@@ -6,6 +6,7 @@ from typing import Iterable, Optional, OrderedDict, Any, Union
 
 import numpy as np
 from sympy import Symbol
+import keyword
 
 from slimfit import NumExprBase
 from slimfit.models import Model

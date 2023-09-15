@@ -7,6 +7,7 @@ from typing import Optional, KeysView, ValuesView, ItemsView, Callable
 
 from sympy import Symbol, Expr, MatrixBase, HadamardProduct
 import numpy as np
+import keyword
 
 from slimfit.parameter import Parameters
 from slimfit.typing import Shape
@@ -163,6 +164,11 @@ class CompositeExpr(SymbolicBase):
         return np.broadcast_shapes(*shapes)
 
 
+def is_valid_key(key: str) -> bool:
+    """Checks if a string is a valid key to use as keyword argument in a function call."""
+    return key.isidentifier() and not keyword.iskeyword(key)
+
+
 class NumExprBase(SymbolicBase):
     """Symbolic expression which allows calling cached lambified expressions
     subclasses must implement `symbols` attribute / property
@@ -175,6 +181,13 @@ class NumExprBase(SymbolicBase):
     #     # Accepted parameters are a subset of `symbols`
     #     # #todo property with getter / setter where setter filters parameters?
     #     # self.parameters = Parameters({name: p for name, p in parameters.items() if name in self.symbols})
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        for name in self.symbol_names:
+            if not is_valid_key(name):
+                raise ValueError(f"Invalid symbol name: {name}; must be valid python identifier.")
 
     @property
     def shape(self) -> Shape:

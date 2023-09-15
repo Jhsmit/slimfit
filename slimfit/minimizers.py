@@ -94,11 +94,13 @@ class ScipyMinimizer(Minimizer):
     def execute(self, **minimizer_options):
         x = pack(self.free_parameters.guess.values())
 
+        # minimizer_kwargs = self.rename_options(minimizer_options)
+        minimizer_kwargs = parse_scipy_options(minimizer_options)
         result = minimize(
             self.objective,
             x,
             bounds=self.get_bounds(),
-            options=self.rename_options(minimizer_options),
+            **minimizer_kwargs,
         )
 
         gof_qualifiers = {
@@ -117,12 +119,23 @@ class ScipyMinimizer(Minimizer):
         # todo pass to superclass generalize fitresult function
         return FitResult(**result_dict)
 
-    def rename_options(self, options: dict[str, Any]) -> dict[str, Any]:
+    @staticmethod
+    def rename_options(minimizer_options: dict[str, Any]) -> dict[str, Any]:
+        raise DeprecationWarning("deprecated in favour of `parse_scipy_options`")
         # todo parse options more generally
 
-        out = options.copy()
-        out.pop("stop_loss", None)
-        return out
+        kwargs = minimizer_options.copy()
+        options = {}
+        if "max_iter" in kwargs:
+            options["maxiter"] = kwargs.pop("max_iter")
+        if "disp" in kwargs:
+            options["disp"] = kwargs.pop("disp")
+        if options:
+            kwargs["options"] = options
+
+        # out = options.copy()
+        # out.pop("stop_loss", None)
+        return kwargs
 
 
 # should take an optional CompositeNumExpr which returns the posterior
@@ -147,7 +160,14 @@ class LikelihoodOptimizer(Minimizer):
             shapes=param_shapes,
         )
 
-    def execute(self, max_iter=250, patience=5, stop_loss=1e-7, verbose=True) -> FitResult:
+    def execute(
+        self, max_iter=250, patience=5, stop_loss=1e-7, verbose=True, **kwargs
+    ) -> FitResult:
+        """
+        kwargs: additional kwargs for scipy minimizer part
+
+        """
+
         # parameters which needs to be passed / inferred
         # Split top-level multiplications in the model as they can be optimized in log likelihood independently
         # TODO model should have this as property / method
@@ -220,7 +240,7 @@ class LikelihoodOptimizer(Minimizer):
                     # todo loss is not used; should be EM loss while the main loop uses Log likelihood loss
                     opt = ScipyEMOptimizer(sub_model, updated_parameters, **common_kwargs)
 
-                    scipy_result = opt.execute()
+                    scipy_result = opt.execute(**kwargs)
                     parameters = scipy_result.fit_parameters
                     base_result["scipy"] = scipy_result
 
@@ -463,7 +483,7 @@ class ScipyEMOptimizer(EMOptimizer):
         )
 
         x = pack(self.free_parameters.guess.values())
-        options = minimizer_options
+        minimizer_kwargs = parse_scipy_options(minimizer_options)
         # bounds = self.model.free_parameters.get_bounds()
         # todo what if users wants different bounds to pass to the minimizer?
         # perhaps that should also be passed, same as guess?
@@ -474,7 +494,7 @@ class ScipyEMOptimizer(EMOptimizer):
             # args=(self.model, self.loss, self.posterior),
             # args=(self.parameter_names, self.xdata, self.posterior, self.model, self.loss,),
             bounds=self.get_bounds(),
-            **options,
+            **minimizer_kwargs,
         )
 
         gof_qualifiers = {
@@ -514,6 +534,21 @@ class ScipyEMOptimizer(EMOptimizer):
 
 
 MIN_PROB = 1e-9  # Minimal probability value (> 0.) to enter into np.log
+
+
+def parse_scipy_options(minimizer_options: dict[str, Any]) -> dict[str, Any]:
+    """rename options for scipy minimizer"""
+
+    kwargs = minimizer_options.copy()
+    options = minimizer_options.get("options", {})
+    if "max_iter" in kwargs:
+        options["maxiter"] = kwargs.pop("max_iter")
+    if "disp" in kwargs:
+        options["disp"] = kwargs.pop("disp")
+    if options:
+        kwargs["options"] = options
+
+    return kwargs
 
 
 def minfunc_expectation(

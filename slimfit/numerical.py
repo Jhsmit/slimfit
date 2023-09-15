@@ -240,7 +240,8 @@ class MatrixNumExpr(NumExpr):
     # this is more of a str than a repr
     def __repr__(self):
         names = sorted(self.symbol_names)
-        return f"{self.name}({', '.join(names)})"
+        name = self.name or "MatrixNumExpr"
+        return f"{name}({', '.join(names)})"
 
     def index(self, symbol: Symbol) -> tuple[int, int]:
         """

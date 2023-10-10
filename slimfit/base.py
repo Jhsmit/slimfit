@@ -254,8 +254,13 @@ class FuncExpr(CompositeArgsExpr):
         arg_rpr = (f"{arg!r}" for arg in self.values())
         kw_rpr = (f"{k}={v!r}" for k, v in kwds.items())
 
-        if func.__module__ == "numpy":
+        if isinstance(func, np.ufunc):
             mod = "np."
+        elif module := getattr(func, "__module__", None):
+            if module == "numpy":
+                mod = "np."
+            else:
+                mod = module
         else:
             mod = ""
 

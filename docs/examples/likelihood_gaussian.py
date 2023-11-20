@@ -12,7 +12,6 @@ from slimfit.models import Model
 from slimfit.fit import Fit
 from slimfit.functions import gaussian_sympy
 from slimfit.loss import LogLoss
-from slimfit.parameter import Parameters
 
 # %%
 
@@ -22,7 +21,7 @@ xdata = np.random.normal(gt_params["mu"], scale=gt_params["sigma"], size=500)
 model = Model({Symbol("p"): gaussian_sympy(Symbol("x"), Symbol("mu"), Symbol("sigma"))})
 
 # %%
-parameters = Parameters.from_symbols(model.symbols, "mu sigma")
+parameters = model.define_parameters("mu sigma")
 # %%
 fit = Fit(model, parameters, data={"x": xdata}, loss=LogLoss())
 

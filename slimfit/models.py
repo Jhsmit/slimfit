@@ -5,6 +5,11 @@ from sympy import Expr, MatrixBase, Symbol
 
 import slimfit.base
 import slimfit.numerical as numerical
+import numpy.typing as npt
+from typing import Iterable, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from slimfit.parameter import Parameters
 
 
 class Model(slimfit.base.CompositeExpr):
@@ -36,6 +41,47 @@ class Model(slimfit.base.CompositeExpr):
         raise NotImplementedError("not yet implemented")
 
         # return {symbol.name: expr for symbol, expr in self.expr.items()}
+
+    def define_parameters(
+        self,
+        parameters: dict[str, npt.ArrayLike] | Iterable[str] | str = "*",
+    ) -> Parameters:
+        """
+        Defines and initializes parameters for the model.
+
+        This method accepts parameters in various forms (dictionary, iterable, or string)
+        and returns an instance of the Parameters class, initialized with the provided
+        parameters and the existing symbols of the model. Default value is '*', which
+        returns all the model's symbols as parameters.
+
+        Args:
+            parameters:
+            The parameters to define for the model. Can be a dictionary with parameter
+            names as keys and corresponding values, an iterable of parameter names, or a
+            single parameter name as a string.
+
+        Returns:
+            Parameters: An instance of the Parameters class, initialized with the provided
+            parameters and the existing symbols of the model.
+
+        Usage:
+            Assuming we have a model instance 'm' and we want to define the symbols 'a' and 'b'
+            are parameters:
+
+            ```python
+            defined_parameters = m.define_parameters("a b")
+            ```
+
+            Use a dictionary to define parameters and provide initial guesses:
+            ```python
+            guess = {'a': 3., 'b': 10}
+            defined_parameters = m.define_parameters(guess)
+            ```
+
+        """
+        from slimfit.parameter import Parameters
+
+        return Parameters.from_symbols(self.symbols, parameters)
 
 
 class Eval(slimfit.base.CompositeExpr):

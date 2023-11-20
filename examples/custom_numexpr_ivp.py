@@ -85,7 +85,7 @@ model = Model({y: ivp})
 
 # Fix frequency at GT value to ensure fit converges
 guess = {"f": 0.2, "d": 0.5, "y0": -1.0}
-parameters = Parameters.from_symbols(ivp.symbols, guess).replace("f", fixed=True)
+parameters = model.define_parameters(guess).replace("f", fixed=True)
 
 fit = Fit(model, parameters, data)
 result = fit.execute()

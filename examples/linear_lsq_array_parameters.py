@@ -29,7 +29,7 @@ np.polyfit(xdata, ydata, deg=1)
 
 # %%
 
-parameters = Parameters.from_symbols(model.symbols, "a b")
+parameters = model.define_parameters("a b")
 fit = Fit(model, parameters=parameters, data=DATA)
 result = fit.execute()
 

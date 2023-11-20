@@ -1,6 +1,5 @@
 # %%
 from slimfit.fit import Fit
-from slimfit.parameter import Parameters
 from slimfit.symbols import Symbol
 from slimfit.models import Model
 
@@ -27,7 +26,8 @@ DATA = {"x": xdata, "y": ydata}
 np.polyfit(xdata, ydata, deg=1)
 
 # %%
-parameters = Parameters.from_symbols(model.symbols, "a b")
+
+parameters = model.define_parameters("a b")
 fit = Fit(model, parameters=parameters, data=DATA)
 
 # %%

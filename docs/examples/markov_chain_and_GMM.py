@@ -66,8 +66,7 @@ gmm = GMM(Symbol("e"), mu=mu, sigma=sigma)
 model = Model({Symbol("p"): Mul(xt @ y0, gmm)})
 
 # %%
-
-parameters = Parameters.from_symbols(model.symbols, guess_values)
+parameters = model.define_parameters(guess_values)
 
 # %%
 parameters.set("y0_A", lower_bound=0.0, upper_bound=1.0)  # mod? set_parameter ? modify?

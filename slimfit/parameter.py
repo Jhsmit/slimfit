@@ -90,14 +90,15 @@ class Parameters(UserList):
     def from_symbols(
         cls,
         symbols: Iterable[Symbol],
-        parameters: dict[str, npt.ArrayLike] | Iterable[str] | str = None,
+        parameters: dict[str, npt.ArrayLike] | Iterable[str] | str = "*",
     ) -> Parameters:
         symbol_dict = {symbol.name: symbol for symbol in sorted(symbols, key=str)}
 
-        if isinstance(parameters, str):
+        if parameters == "*":
+            p_list = [Parameter(symbol) for symbol in symbol_dict.values()]
+        elif isinstance(parameters, str):
             p_list = [Parameter(symbol_dict[k]) for k in re.split("; |, |\*|\s+", parameters)]
-        elif isinstance(parameters, list):
-            p_list = [Parameter(symbol_dict[k]) for k in parameters]
+
         elif isinstance(parameters, dict):
             p_list = []
             for k, v in parameters.items():
@@ -105,10 +106,10 @@ class Parameters(UserList):
                     p_list.append(Parameter(symbol_dict[k], guess=v))
                 else:
                     p_list.append(Parameter(symbol_dict[k], guess=np.array(v)))
-        elif parameters is None:
-            p_list = [Parameter(symbol) for symbol in symbol_dict.values()]
+        elif isinstance(parameters, Iterable):
+            p_list = [Parameter(symbol_dict[k]) for k in parameters]
         else:
-            raise ValueError("Invalid values for 'parameters' or 'guess'")
+            raise ValueError("Invalid value for 'parameters'")
         return cls(p_list)
 
     @property

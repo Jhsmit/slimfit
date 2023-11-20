@@ -76,7 +76,7 @@ model = Model({Symbol("p"): Mul(c, num_gmm)})
 
 # %%
 symbols = get_symbols(mu, sigma, c)
-parameters = Parameters.from_symbols(symbols.values(), guess)
+parameters = model.define_parameters(guess)
 
 fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
 result = fit.execute(minimizer=LikelihoodOptimizer)

@@ -43,12 +43,6 @@ class TestEMBase(object):
         elem = m[0, 1]
         assert elem.name == "A_b"
 
-        parameters = {
-            "A_a": Parameter(m[0, 0], guess=2.0),
-            "A_b": Parameter(m[0, 1]),
-            "A_c": Parameter(m[0, 2]),
-        }
-
         m_num = to_numerical(m)
         values = {"A_a": 1, "A_b": 2, "A_c": 3.5}
 
@@ -78,7 +72,8 @@ class TestEMBase(object):
 
         symbols = get_symbols(mu, sigma, c)
         parameters = Parameters.from_symbols(symbols.values())
-        print(parameters.guess)
+        m_parameters = model.define_parameters((p.name for p in parameters))
+        assert parameters == m_parameters
 
         # Test calling the model
         kwargs = {"x": np.linspace(0, 1, num=100), **parameters.guess}
@@ -450,9 +445,7 @@ class TestEMFit(object):
         c = symbol_matrix(name="c", shape=c_shape, suffix=states)
 
         model = Model({Symbol("p"): Mul(c, GMM(Symbol("x"), mu, sigma))})
-
-        symbols = get_symbols(mu, sigma, c)
-        parameters = Parameters.from_symbols(symbols.values(), guess)
+        parameters = model.define_parameters(guess)
 
         fit = Fit(model, parameters, data, loss=LogSumLoss(sum_axis=1))
         result = fit.execute(minimizer=LikelihoodOptimizer, verbose=False)
@@ -646,8 +639,7 @@ class TestEMFit(object):
         gmm = GMM(Symbol("e"), mu=mu, sigma=sigma)
 
         model = Model({Symbol("p"): Mul(xt @ y0, gmm)})
-
-        parameters = Parameters.from_symbols(model.symbols, guess_values)
+        parameters = model.define_parameters(guess_values)
 
         parameters.set("y0_A", lower_bound=0.0, upper_bound=1.0)
         parameters.set("y0_B", lower_bound=0.0, upper_bound=1.0, fixed=True)

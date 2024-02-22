@@ -48,6 +48,28 @@ class DummyNumExpr(NumExprBase):
             return ()
 
 
+class NumberExpr(NumExprBase):
+    """callable object for sympy `Number`s"""
+
+    def __init__(self, obj: Any, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.obj = obj
+
+    def __call__(self, **kwargs):
+        return self.obj.evalf()
+
+    @property
+    def symbols(self) -> set[Symbol]:
+        return set()
+
+    @property
+    def shape(self) -> Shape:
+        try:
+            return self.obj.shape
+        except AttributeError:
+            return ()
+
+
 # TODO frozen dataclass?
 class NumExpr(NumExprBase):
     def __init__(
@@ -461,7 +483,7 @@ def to_numerical(
         return MatrixNumExpr(expression)
     elif isinstance(expression, Expr):
         return NumExpr(expression)
-    elif isinstance(expression, np.ndarray):
+    elif isinstance(expression, (np.ndarray, float, int)):
         return DummyNumExpr(expression)
     elif isinstance(expression, NumExprBase):
         return expression

@@ -1,7 +1,8 @@
 from pathlib import Path
 
 import pytest
-from sympy import HadamardProduct, Matrix, exp, Symbol, symbols
+from sympy import HadamardProduct, Matrix, exp, Symbol, symbols, Float, Rational, Integer
+
 from slimfit.fit import Fit
 from slimfit.functions import gaussian, gaussian_sympy, gaussian_numpy
 from slimfit.loss import LogLoss, SELoss
@@ -204,6 +205,24 @@ class TestNumExpr(object):
         )
 
         assert np.allclose(ans, ref)
+
+    def test_numbers(self):
+        a, b = symbols("a b")
+
+        m = Mul(a, b)
+        assert m(a=3, b=2) == 6
+
+        m = Mul(2, b)
+        assert m(b=2) == 4
+
+        m = Mul(Float(0.125, 30), b)
+        assert m(b=2) == 0.25
+
+        m = Mul(Rational(2, 3), b)
+        assert m(b=2) == 4 / 3
+
+        m = Mul(Integer(4), b)
+        assert m(b=2) == 8
 
     def test_gmm(self):
         states = ["A", "B", "C"]

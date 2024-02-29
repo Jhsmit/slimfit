@@ -13,7 +13,7 @@ import proplot as pplt
 from scipy.integrate import solve_ivp
 from sympy import Symbol, Expr, symbols
 
-from slimfit import Model, Parameters
+from slimfit import Model
 from slimfit.fit import Fit
 from slimfit.numerical import NumExpr, to_numerical
 from slimfit.base import CompositeExpr

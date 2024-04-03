@@ -91,7 +91,7 @@ class FitResult:
 
         d = {k: v for k in keys if (v := getattr(self, k)) is not None}
 
-        return d
+        return clean_types(d)
 
     def to_yaml(self, path: Union[os.PathLike[str], str], sort_keys: bool = False) -> None:
         """
@@ -102,8 +102,7 @@ class FitResult:
             sort_keys: Boolean indicating whether to sort the keys.
 
         """
-        dic = clean_types(self.to_dict())
-        Path(path).write_text(yaml.dump(dic, sort_keys=sort_keys))
+        Path(path).write_text(yaml.dump(self.to_dict(), sort_keys=sort_keys))
 
     def to_pickle(self, path: Union[os.PathLike[str], str]) -> None:
         """

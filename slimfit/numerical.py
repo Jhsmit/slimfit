@@ -423,6 +423,7 @@ class MarkovIVP(CompositeExpr):
         # exp(m*t) @ y0, which is (datapoints, states, 1)
         return np.expand_dims(sol.y.T, -1)
 
+    # TODO generalize
     def to_numerical(self) -> MarkovIVP:
         num_expr = {k: to_numerical(expr) for k, expr in self.items()}
         instance = MarkovIVP(**num_expr, domain=self.domain, **self.ivp_defaults)

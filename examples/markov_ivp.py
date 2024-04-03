@@ -8,17 +8,15 @@ feasible.
 """
 
 
-from typing import Callable, Optional
-
 from slimfit.fit import Fit
 from slimfit.markov import generate_transition_matrix, extract_states
 from slimfit.parameter import Parameters
-from slimfit.symbols import symbol_matrix, get_symbols
+from slimfit.symbols import symbol_matrix
 from slimfit.models import Model
 from slimfit.numerical import MarkovIVP
 import numpy as np
 import proplot as pplt
-from sympy import Matrix, lambdify, exp, Symbol
+from sympy import Symbol
 
 # %%
 np.random.seed(43)

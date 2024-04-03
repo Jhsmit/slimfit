@@ -78,6 +78,7 @@ class NumExpr(NumExprBase):
     ):
         if not isinstance(expr, (Expr, MatrixBase)):
             # TODO subclass such that typing is correct
+            # probaby sympy.Basic ?
             raise TypeError("Expression must be an instance of `Expr` or ")
         self.expr = expr
 

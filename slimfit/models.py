@@ -80,8 +80,9 @@ class Model(slimfit.base.CompositeExpr):
 
         """
         from slimfit.parameter import Parameters
+        parameters = Parameters.from_symbols(self.symbols, parameters)
 
-        return Parameters.from_symbols(self.symbols, parameters)
+        return parameters
 
 
 class Eval(slimfit.base.CompositeExpr):

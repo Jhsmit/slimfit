@@ -478,6 +478,7 @@ def to_numerical(
     #
     #     return NumericalModel(model_dict, parameters, data)
     if isinstance(expression, HadamardProduct):
+        raise DeprecationWarning("Use `Mul` instead")
         from slimfit.operations import Mul
 
         return Mul(*(to_numerical(arg) for arg in expression.args))

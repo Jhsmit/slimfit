@@ -2,17 +2,17 @@ from __future__ import annotations
 
 from functools import cached_property
 from typing import (
-    Union,
-    Callable,
-    Optional,
-    Any,
-    Iterable,
     TYPE_CHECKING,
+    Any,
+    Callable,
+    Iterable,
+    Optional,
+    Union,
 )
 
 import numpy as np
 from scipy.integrate import solve_ivp
-from sympy import Expr, MatrixBase, lambdify, HadamardProduct, Matrix, Symbol
+from sympy import Expr, HadamardProduct, Matrix, MatrixBase, Symbol, lambdify
 
 from slimfit.base import CompositeExpr, NumExprBase
 
@@ -397,12 +397,20 @@ class MarkovIVP(CompositeExpr):
         **ivp_kwargs,
     ):
         expr = {"t": t, "trs_matrix": trs_matrix, "y0": y0}
-
         super().__init__(expr)
 
         ivp_defaults = {"method": "Radau"}
         self.ivp_defaults = ivp_defaults | ivp_kwargs
         self.domain = domain
+
+    # @property
+    # def ivp_defaults(self):
+    #     ivp_kwargs = {k: v for k,v in self.kwargs.items() if k != 'domain'}
+    #     return ivp_kwargs
+
+    # @property
+    # def domain(self):
+    #     return self.kwargs['domain']
 
     def __call__(self, **kwargs):
         result = super().__call__(**kwargs)

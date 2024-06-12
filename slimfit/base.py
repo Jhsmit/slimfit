@@ -81,6 +81,10 @@ class CompositeExpr(SymbolicBase):
         else:
             return super().__getitem__(item)
 
+    def subs(self, *args, **kwargs):
+        if self.is_numerical():
+            raise ValueError("Cannot perform substitutions on a numerical expression or model")
+
     def is_numerical(self) -> bool:
         """Returns `True` if all expressions are numerical expressions."""
         for v in self.values():

@@ -13,12 +13,12 @@ from tqdm.auto import trange
 
 from slimfit import Model, NumExprBase
 from slimfit.fitresult import FitResult
-from slimfit.loss import Loss, LogSumLoss
-from slimfit.objective import ScipyObjective, pack, unpack, ScipyEMObjective
+from slimfit.loss import LogSumLoss, Loss
+from slimfit.objective import ScipyEMObjective, ScipyObjective, pack, unpack
 
 # from slimfit.models import NumericalModel
 from slimfit.operations import Mul
-from slimfit.parameter import Parameters, Parameter
+from slimfit.parameter import Parameter, Parameters
 from slimfit.utils import intersecting_component_symbols
 
 # TODO parameter which needs to be inferred / set somehow
@@ -380,9 +380,7 @@ class GMMOptimizer(EMOptimizer):
 
         # take only the mu symbos in the set of symbols designated as parameters
         mu_parameters = mu_symbols
-        # mu_parameters = reduce(
-        #     or_, [rhs["mu"].free_parameters.keys() for rhs in self.model.values()]
-        # )
+
         for mu_symbol in mu_parameters:
             num, denom = 0.0, 0.0
             for lhs, gmm_rhs in self.model.items():

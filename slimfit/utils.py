@@ -1,18 +1,21 @@
 from __future__ import annotations
 
+import keyword
 from collections import defaultdict
 from functools import reduce
-from typing import Iterable, Optional, OrderedDict, Any, Union
+from typing import Any, Iterable, Optional, OrderedDict, Union
 
 import numpy as np
 from sympy import Symbol
-import keyword
 
 from slimfit import NumExprBase
 from slimfit.models import Model
 from slimfit.operations import Mul
-
 from slimfit.parameter import Parameter
+
+
+def flat_concat(data: dict[str, np.ndarray]) -> np.ndarray:
+    return np.concatenate([arr.flatten() for arr in data.values()])
 
 
 def intersecting_component_symbols(

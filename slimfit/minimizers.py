@@ -13,13 +13,13 @@ from tqdm.auto import trange
 
 from slimfit import Model, NumExprBase
 from slimfit.fitresult import FitResult
-from slimfit.loss import Loss, LogSumLoss
-from slimfit.objective import ScipyObjective, pack, unpack, ScipyEMObjective
+from slimfit.loss import LogSumLoss, Loss
+from slimfit.objective import ScipyEMObjective, ScipyObjective, pack, unpack
 
 # from slimfit.models import NumericalModel
 from slimfit.operations import Mul
-from slimfit.parameter import Parameters, Parameter
-from slimfit.utils import intersecting_component_symbols
+from slimfit.parameter import Parameter, Parameters
+from slimfit.utils import flat_concat, intersecting_component_symbols
 
 # TODO parameter which needs to be inferred / set somehow
 STATE_AXIS = -2
@@ -103,11 +103,19 @@ class ScipyMinimizer(Minimizer):
             **minimizer_kwargs,
         )
 
+        parameter_values = unpack(result.x, self.objective.shapes)
         gof_qualifiers = {
             "loss": result["fun"],
         }
+        if self.ydata:
+            f = flat_concat(
+                self.model(**self.xdata, **parameter_values, **self.fixed_parameters.guess)
+            )
+            y = flat_concat(self.ydata)
 
-        parameter_values = unpack(result.x, self.objective.shapes)
+            gof_qualifiers["r_squared"] = 1 - np.sum((y - f) ** 2) / np.sum((y - np.mean(y)) ** 2)
+            gof_qualifiers["rmse"] = np.sqrt(np.mean((y - f) ** 2))
+
         result_dict = dict(
             fit_parameters=parameter_values,
             fixed_parameters=self.fixed_parameters.guess,

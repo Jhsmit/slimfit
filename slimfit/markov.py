@@ -1,9 +1,9 @@
 from functools import reduce
 from operator import add
-from typing import Optional, Callable, Type
+from typing import Callable, Optional, Type
 
 import numpy as np
-from sympy import Matrix, zeros, Symbol
+from sympy import Matrix, Symbol, zeros
 
 OPERATORS = ["<->", "<-", "->"]
 
@@ -13,7 +13,7 @@ def generate_transition_matrix(
     parameter_prefix="k",
     check_mass_balance=True,
     symbol_class: Type[Symbol] = Symbol,
-):
+) -> Matrix:
     all_states = extract_states(connectivity)
 
     b = ["_" in s for s in all_states]

@@ -5,12 +5,12 @@ import pickle
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Any, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 import numpy as np
 import yaml
 
-from slimfit.objective import pack, unpack, Hessian
+from slimfit.objective import Hessian, pack, unpack
 from slimfit.utils import clean_types, rgetattr
 
 if TYPE_CHECKING:
@@ -23,13 +23,13 @@ class FitResult:
     Fit result object.
     """
 
-    fit_parameters: dict[str, float | np.ndarray]
+    fit_parameters: dict[str, np.ndarray]
     """Fitted parameter values"""
 
     gof_qualifiers: dict
     """Goodness-of-fit qualifiers"""
 
-    fixed_parameters: dict[str, float] = field(default_factory=dict)
+    fixed_parameters: dict[str, float | np.ndarray] = field(default_factory=dict)  # Numerical dtype
     """Values of the model's fixed parameters"""
 
     guess: Optional[dict] = None

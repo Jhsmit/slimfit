@@ -11,9 +11,10 @@ from scipy.optimize import minimize
 from sympy import Symbol
 from tqdm.auto import trange
 
-from slimfit import Model, NumExprBase
+from slimfit.base import NumExprBase
 from slimfit.fitresult import FitResult
 from slimfit.loss import LogSumLoss, Loss
+from slimfit.models import Model
 from slimfit.objective import ScipyEMObjective, ScipyObjective, pack, unpack
 
 # from slimfit.models import NumericalModel
@@ -108,9 +109,11 @@ class ScipyMinimizer(Minimizer):
             "loss": result["fun"],
         }
         if self.ydata:
-            f = flat_concat(
-                self.model(**self.xdata, **parameter_values, **self.fixed_parameters.guess)
-            )
+            ans = self.model(**self.xdata, **parameter_values, **self.fixed_parameters.guess)
+            if not ans.keys() == self.ydata.keys():
+                raise ValueError("Mismatch between model and ydata keys")
+
+            f = flat_concat({k: ans[k] for k in self.ydata})
             y = flat_concat(self.ydata)
 
             gof_qualifiers["r_squared"] = 1 - np.sum((y - f) ** 2) / np.sum((y - np.mean(y)) ** 2)

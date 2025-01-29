@@ -5,7 +5,7 @@ from typing import Optional
 
 import numpy as np
 import numpy.typing as npt
-from sympy import Symbol, zeros, Expr, MatrixBase, Matrix
+from sympy import Expr, Matrix, MatrixBase, Symbol, symbols, zeros
 from sympy.core.cache import clear_cache
 
 
@@ -106,6 +106,22 @@ def symbol_matrix(
         )
 
     return matrix
+
+
+class SymbolNamespace(dict):
+    # TODO represent as list / set; support unions
+
+    def __getattr__(self, name) -> Symbol:
+        if name in self:
+            return self[name]
+        raise AttributeError(f"'SymbolNamespace' object has no attribute '{name}'")
+
+
+def make_symbols(names, *, cls=Symbol, **kwargs) -> SymbolNamespace:
+    default_kwargs = {"seq": True}
+    default_kwargs.update(kwargs)
+
+    return SymbolNamespace({s.name: s for s in symbols(names, cls=cls, **default_kwargs)})
 
 
 # SORT_PRIORITY = [Variable, Probability, Parameter]

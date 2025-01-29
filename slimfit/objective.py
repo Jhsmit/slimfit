@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-
 from typing import Iterable, Literal
 
-import numpy as np
 import numdifftools as nd
+import numpy as np
 
-from slimfit import Model
 from slimfit.loss import Loss
+from slimfit.models import Model
 from slimfit.typing import Shape
 
 MIN_PROB = 1e-9  # Minimal probability value (> 0.) to enter into np.log
@@ -135,8 +134,7 @@ class Hessian(ScipyObjective):
         return hess
 
 
-# seperate functions?
-def unpack(x: np.ndarray, shapes: dict[str, Shape]) -> dict[str, np.ndarray]:
+def unpack(x: np.ndarray, shapes: dict[str, tuple[int, ...]]) -> dict[str, np.ndarray]:
     """Unpack a ndim 1 array of concatenated parameter values into a dictionary of
     parameter name: parameter_value where parameter values are cast back to their
     specified shapes.
@@ -149,7 +147,9 @@ def unpack(x: np.ndarray, shapes: dict[str, Shape]) -> dict[str, np.ndarray]:
     return p_values
 
 
-def pack(parameter_values: Iterable[np.ndarray]) -> np.ndarray:
+def pack(
+    parameter_values: Iterable[np.ndarray],
+) -> np.ndarray:  # todo iterable numerical dtype input
     """Pack a dictionary of parameter_name together as array"""
 
     return np.concatenate(tuple(param_value.ravel() for param_value in parameter_values))

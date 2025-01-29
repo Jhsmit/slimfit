@@ -1,12 +1,12 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Iterable
 
+import numpy.typing as npt
 from sympy import Expr, MatrixBase, Symbol
 
 import slimfit.base
 import slimfit.numerical as numerical
-import numpy.typing as npt
-from typing import Iterable, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from slimfit.parameter import Parameters
@@ -79,7 +79,10 @@ class Model(slimfit.base.CompositeExpr):
             ```
 
         """
+        # TODO allow specification of parameters as symbols
+
         from slimfit.parameter import Parameters
+
         parameters = Parameters.from_symbols(self.symbols, parameters)
 
         return parameters
